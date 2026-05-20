@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0",
+  "installedPowers": [
+    {
+      "name": "supabase-hosted",
+      "registryId": "kiro-recommended"
+    }
+  ],
+  "dismissedAutoInstalls": []
+}

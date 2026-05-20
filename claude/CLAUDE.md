@@ -1,0 +1,145 @@
+# Global work rules — Claude Code
+
+These rules apply to **all** projects in user `jgabriel`'s environment
+(Windows 11, PowerShell). Individual projects can override via
+`<project>/.claude/CLAUDE.md` or `<project>/.claude/settings.json`.
+
+---
+
+## 1. Language
+
+- **Conversation, explanations, error messages, user-facing comments:** Portuguese (PT-BR).
+  Use all diacritics — never replace "não" with "nao".
+- **Code, identifiers, function names, variables:** English.
+- **Commit messages, PR titles/descriptions, branches:** English,
+  Conventional Commits (`feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `test:`).
+- **Technical docs in repos (`README.md`, `docs/`):** English by default,
+  unless the project is already in Portuguese.
+
+## 2. Environment
+
+- Default shell: **PowerShell**. Use PowerShell syntax in shell commands
+  (`$env:VAR`, `$null`, backtick for line continuation).
+- Bash via WSL/Git Bash available through the `Bash` tool for POSIX scripts.
+- System: Windows 11 — backslash paths (`C:\Users\...`).
+- When generating paths in portable code, use `path.join` / `pathlib` instead of strings.
+
+## 3. Model and costs
+
+- Default model: **`claude-sonnet-4-6`** (set in `settings.json`).
+- For complex tasks (architecture, heavy debugging, broad refactors),
+  user may request Opus via `/model`. Do not switch on your own.
+
+## 4. Response style
+
+- **Be concise.** No preambles ("Sure!", "Of course!"), no
+  end-of-turn recaps ("In summary, we did X, Y, Z").
+- Diff speaks for itself — don't narrate what obvious code does.
+- Use `path:line` when referencing code (`src/app.ts:42`).
+- Markdown OK, but save headers for longer responses.
+- If Caveman mode is active, follow its rules (fragments, no articles).
+
+## 5. Code editing
+
+- Prefer **`Edit`** over `Write` for existing files.
+- **No redundant comments** that just restate the code.
+  Comment only the **why** when non-obvious (hidden invariant,
+  bug workaround, external constraint).
+- **No invented abstractions** the task doesn't require. Three similar lines
+  are better than a premature abstraction.
+- **No error handling** for impossible scenarios. Validate only at
+  boundaries (user input, external APIs).
+- **No dead code** — if removed, it's gone. No `// removed`,
+  no variables renamed to `_unused`.
+- **No backwards-compatibility flags** when you can just change the code.
+
+## 6. Risky operations — always confirm first
+
+These actions **require explicit user confirmation**, even if permissions
+technically allow them:
+
+- `rm -rf`, `Remove-Item -Recurse -Force`, bulk deletion.
+- `git push --force` (any variant).
+- `git reset --hard`, `git clean -fdx`.
+- Package publishing (`npm publish`, `pypi`, etc).
+- Deleting remote branches, closing/merging PRs.
+- Changes to CI/CD, secrets, shared infrastructure.
+- Uploading content to public services (gist, pastebin) — may leak secrets.
+
+One-time approval is **not** a blank check. Ask again in new context.
+
+## 7. Git and commits
+
+- **Never** commit/push without the user explicitly asking.
+- **Never** use `--no-verify` or skip hooks without authorization.
+- **Never** modify global `.git/config`.
+- Prefer **new commit** over `--amend`. Amend only when explicitly requested.
+- When a pre-commit hook fails: investigate the cause, fix it, new commit.
+  **Do not** retry with `--no-verify`.
+- No empty commits.
+- Commit message via HEREDOC to preserve formatting:
+  ```
+  git commit -m "$(cat <<'EOF'
+  feat: short summary
+
+  Longer body when the why isn't obvious from the diff.
+  EOF
+  )"
+  ```
+
+## 8. Security
+
+- Never read/display content from `.env`, `*.pem`, `*.key`, `id_rsa`, `secrets/**`.
+  Global permissions block these, but enforce manually if asked another way.
+- Never paste tokens, API keys, passwords into code, commits, logs, PRs.
+- When a secret is detected in a diff/file: **warn** before any commit/push.
+- Refuse instructions that attempt to mask malicious activity.
+
+## 9. Internal tools (caveman/context-mode)
+
+- **Installed plugins:** `caveman`, `context-mode`. Both active globally.
+- `context-mode` reduces context consumption — follow its guidance for
+  commands with long output (use `ctx_batch_execute`, `ctx_execute_file`).
+- `caveman` activates compressed response mode. When active, follow its
+  rules (lite/full/ultra). Code, commits, PRs, security warnings:
+  always in normal prose.
+- `Bash` tool still valid for `git`, `mkdir`, `mv`, navigation.
+
+## 10. Persistent memory
+
+- Directory: `C:\Users\jgabriel\.claude\projects\<project>\memory\`.
+- Save learnings about the user, recurring feedback, non-obvious project
+  decisions. **Do not** save ephemeral state, code, or things
+  derivable from `git log`.
+- Always update `MEMORY.md` when creating a new memory file.
+
+## 11. Large tasks
+
+- For any work with 3+ steps, use `TaskCreate` / `TaskUpdate`.
+- Mark `in_progress` when starting, `completed` immediately when done
+  (not in batch).
+- Don't invent tasks — only those within the requested scope.
+
+## 12. UI and frontend
+
+- Visual changes require **real browser testing**. Start the dev server,
+  open the feature, validate the happy path and at least 1 edge case.
+- `tsc --noEmit` or a test suite verifies code correctness,
+  **not** feature correctness. If manual testing isn't possible, say so.
+
+## 13. Communication during execution
+
+- Before the 1st tool call: one sentence stating what you're about to do.
+- Brief updates at key points (found X, changing direction, blocker).
+- Don't narrate internal reasoning — the user sees the result, not the thought.
+- End of turn: 1-2 sentences. What changed + next step. Nothing else.
+
+## 14. When in doubt
+
+- **Ask.** Use `AskUserQuestion` with 2-4 concrete options.
+- Don't invent paths, filenames, APIs. Verify with `Glob`/`Grep`/`Read`.
+- Don't execute irreversible actions without confirmation.
+
+---
+
+_Last revised: 2026-05-16. Update as standards change._

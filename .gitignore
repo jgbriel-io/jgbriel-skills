@@ -1,0 +1,19 @@
+# Caches
+*.log
+*.tmp
+*.cache
+node_modules/
+
+# Local backups
+*.original.md
+*.backup
+*.bak
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Local-only state (não comitar)
+local/
+.local/
