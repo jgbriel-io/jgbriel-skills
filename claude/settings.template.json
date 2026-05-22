@@ -108,6 +108,7 @@
       }
     }
   },
+  "includeCoAuthoredBy": false,
   "autoUpdatesChannel": "latest",
   "defaultMode": "default"
 }
