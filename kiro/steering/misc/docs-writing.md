@@ -95,6 +95,48 @@ Data: YYYY-MM-DD
 
 Arquivos em kebab-case. Um tópico por arquivo.
 
+### Domain subfolder pattern
+
+Quando domínio tem 3+ arquivos, virar subpasta com `overview.md` como entry point:
+
+```
+docs/
+├── README.md              ← índice + status table + quick guide
+├── project/overview.md    ← o quê, para quem, stack, status
+├── architecture/          ← overview, patterns, decisions, flows, troubleshooting, technical-debt
+├── backend/               ← overview, bugs, edge-functions, rpcs, integrations
+├── database/              ← overview, schema, migrations, rls
+├── security/              ← overview, auth-rls, validations
+├── frontend/              ← overview, components, design-tokens, hooks, content
+├── git/                   ← overview, workflow, conventions
+└── sprints/               ← README, TEMPLATE, historico-completo, sprint-NN-tipo-desc.md
+```
+
+Regra: arquivo único até 3+ docs no domínio → então subfolder.
+
+## Sprint documentation
+
+### Nomenclatura
+
+```
+sprint-NN-tipo-descricao-kebab.md
+```
+- `tipo` — `mvp` | `refactor` | `fix`
+- Não implementadas: sufixo `-NAO-IMPLEMENTADA.md`
+
+### Seções obrigatórias
+
+Problem Statement → Requirements → Background → Proposed Solution → Task Breakdown → Implementation Details → Files Created → Files Modified → Testing & Validation → Results & Impact → Technical Debt → Lessons Learned → Next Steps → References
+
+### `sprints/README.md`
+
+Status table obrigatória:
+```md
+| Sprint | Período | Foco | Status | Arquivo |
+|--------|---------|------|--------|---------|
+```
+Seções: histórico por tipo (MVP / Refactor / Fix) + Não Implementadas + Referências.
+
 ## Anti-patterns
 
 - Doc desatualizado vs código — se não mantém, deletar

@@ -217,6 +217,100 @@ Todo projeto tem `docs/` na raiz. Estrutura padrão tiered.
 - ❌ Versionar PDFs gerados — versionar fonte (`.md`, `.tex`).
 - ❌ Pasta `docs/` sem `README.md` — ninguém sabe por onde começar.
 
+### Domain subfolder pattern (projetos com múltiplos docs por domínio)
+
+Quando um domínio tem 3+ arquivos, virar subpasta. Cada subpasta tem `overview.md` como entry point.
+
+```
+docs/
+├── README.md                  ← índice + status table + quick guide
+├── project/
+│   └── overview.md            ← o quê, para quem, problema, stack, status
+├── architecture/
+│   ├── overview.md            ← entry point obrigatório
+│   ├── patterns.md
+│   ├── decisions.md           ← ADRs
+│   ├── flows.md
+│   ├── troubleshooting.md
+│   └── technical-debt.md
+├── backend/
+│   ├── overview.md
+│   ├── bugs.md
+│   └── ...
+├── database/
+│   ├── overview.md
+│   ├── schema.md
+│   ├── migrations.md
+│   └── rls.md
+├── security/
+│   ├── overview.md
+│   └── ...
+├── frontend/
+│   ├── overview.md
+│   ├── components.md
+│   ├── design-tokens.md
+│   └── hooks.md
+├── git/
+│   ├── overview.md
+│   ├── workflow.md
+│   └── conventions.md
+└── sprints/
+    ├── README.md              ← índice com status table
+    ├── TEMPLATE.md
+    ├── historico-completo.md
+    └── sprint-NN-tipo-descricao.md
+```
+
+Regras:
+- Usar arquivo único (Tier 2) até um domínio precisar de 3+ docs — só então subfolder.
+- Todo `README.md` de `docs/` inclui: links por domínio, status table (domínio | arquivos | status), quick guide (comandos, stack, convenções).
+
+---
+
+## Sprint documentation
+
+### Nomenclatura
+
+```
+sprint-NN-tipo-descricao-kebab.md
+```
+
+- `NN` — número com zero à esquerda: `01`, `12`
+- `tipo` — `mvp` | `refactor` | `fix`
+- Não implementadas: `sprint-NN-tipo-descricao-NAO-IMPLEMENTADA.md`
+
+### Seções obrigatórias
+
+| Seção | Conteúdo |
+|-------|----------|
+| **Problem Statement** | Estado atual, sintomas, impacto, quantificação |
+| **Requirements** | Requisitos funcionais, não-funcionais, critérios de aceitação, fora do escopo |
+| **Background** | Stack envolvido, arquitetura relevante, padrões do projeto, arquivos afetados |
+| **Proposed Solution** | Abordagem, estrutura de pastas, padrões, por que foi escolhida |
+| **Task Breakdown** | Tasks com objetivo, implementação, arquivos afetados, teste, demo |
+| **Implementation Details** | Tabelas por categoria (migrations, components, hooks) |
+| **Files Created** | Árvore de arquivos com descrição breve |
+| **Files Modified** | Lista `caminho` — o que mudou e por quê |
+| **Testing & Validation** | Checklist: build, type-check, lint, testes, teste manual |
+| **Results & Impact** | Métricas quantitativas + melhorias qualitativas |
+| **Technical Debt** | Itens identificados mas não resolvidos, com justificativa |
+| **Lessons Learned** | O que funcionou, o que melhorar, aplicações futuras |
+| **Next Steps** | Próximas ações + sprint sugerida |
+| **References** | Links para issues, PRs, ADRs, docs relacionados |
+
+### `sprints/README.md`
+
+Status table obrigatória:
+
+```md
+| Sprint | Período | Foco | Status | Arquivo |
+|--------|---------|------|--------|---------|
+| Sprint 1 | DD–DD mês YYYY | Descrição | ✅ Implementada | [sprint-01](./sprint-01-...) |
+| Sprint N | — | Descrição | ❌ Não implementada | [sprint-N](./sprint-N-...) |
+```
+
+Seções: Histórico por tipo (MVP / Refactor / Fix) + Não Implementadas + Referências.
+
 ## Anti-patterns
 
 - ❌ Doc desatualizado vs código. Se não mantém, deletar.
