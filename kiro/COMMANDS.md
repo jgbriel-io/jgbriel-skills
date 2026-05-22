@@ -75,6 +75,7 @@ Carregados automaticamente por tipo de `inclusion`. Para steering manual: `@nome
 
 | Arquivo | Função |
 |---------|--------|
+| `commit.md` | Gera Conventional Commit a partir do diff staged |
 | `docs-writing.md` | Padrão de documentação técnica |
 | `setup-pre-commit.md` | Husky + lint-staged + tsc + tests |
 | `steering-creator.md` | Bootstrap e iteração de novos steering files |
