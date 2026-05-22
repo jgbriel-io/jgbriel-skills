@@ -17,3 +17,6 @@ desktop.ini
 # Local-only state (não comitar)
 local/
 .local/
+
+# Kiro example files
+*.example

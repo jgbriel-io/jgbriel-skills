@@ -1,8 +1,8 @@
-# Global work rules — Claude Code
+# Global work rules — Kiro IDE
 
-These rules apply to **all** projects in user `<username>`'s environment
+These rules apply to **all** projects in `<username>`'s environment
 (Windows 11, PowerShell). Individual projects can override via
-`<project>/.claude/CLAUDE.md` or `<project>/.claude/settings.json`.
+`<project>/.kiro/steering/p-*.md`.
 
 ---
 
@@ -20,28 +20,24 @@ These rules apply to **all** projects in user `<username>`'s environment
 
 - Default shell: **PowerShell**. Use PowerShell syntax in shell commands
   (`$env:VAR`, `$null`, backtick for line continuation).
-- Bash via WSL/Git Bash available through the `Bash` tool for POSIX scripts.
+- Bash via WSL/Git Bash available for POSIX scripts.
 - System: Windows 11 — backslash paths (`C:\Users\...`).
 - When generating paths in portable code, use `path.join` / `pathlib` instead of strings.
+- Ask before modifying global env vars (PATH, PATHEXT), registry, or system services.
+- Prefer local installs over global (`npm -g`, `pip`, etc. require confirmation).
 
-## 3. Model and costs
+## 3. Response style
 
-- Default model: **`claude-sonnet-4-6`** (set in `settings.json`).
-- For complex tasks (architecture, heavy debugging, broad refactors),
-  user may request Opus via `/model`. Do not switch on your own.
-
-## 4. Response style
-
-- **Be concise.** No preambles ("Sure!", "Of course!"), no
-  end-of-turn recaps ("In summary, we did X, Y, Z").
+- **Be concise.** No preambles ("Claro!", "Com certeza!"), no
+  end-of-turn recaps ("Em resumo, fizemos X, Y, Z").
 - Diff speaks for itself — don't narrate what obvious code does.
 - Use `path:line` when referencing code (`src/app.ts:42`).
 - Markdown OK, but save headers for longer responses.
 - If Caveman mode is active, follow its rules (fragments, no articles).
 
-## 5. Code editing
+## 4. Code editing
 
-- Prefer **`Edit`** over `Write` for existing files.
+- Prefer **editing** existing files over creating new ones.
 - **No redundant comments** that just restate the code.
   Comment only the **why** when non-obvious (hidden invariant,
   bug workaround, external constraint).
@@ -52,11 +48,12 @@ These rules apply to **all** projects in user `<username>`'s environment
 - **No dead code** — if removed, it's gone. No `// removed`,
   no variables renamed to `_unused`.
 - **No backwards-compatibility flags** when you can just change the code.
+- Adapt to existing style, even if you'd do it differently.
+- Don't refactor parts unrelated to the request.
 
-## 6. Risky operations — always confirm first
+## 5. Risky operations — always confirm first
 
-These actions **require explicit user confirmation**, even if permissions
-technically allow them:
+These actions **require explicit user confirmation**, even if permitted:
 
 - `rm -rf`, `Remove-Item -Recurse -Force`, bulk deletion.
 - `git push --force` (any variant).
@@ -68,7 +65,7 @@ technically allow them:
 
 One-time approval is **not** a blank check. Ask again in new context.
 
-## 7. Git and commits
+## 6. Git and commits
 
 - **Never** commit/push without the user explicitly asking.
 - **Never** use `--no-verify` or skip hooks without authorization.
@@ -77,69 +74,55 @@ One-time approval is **not** a blank check. Ask again in new context.
 - When a pre-commit hook fails: investigate the cause, fix it, new commit.
   **Do not** retry with `--no-verify`.
 - No empty commits.
-- Commit message via HEREDOC to preserve formatting:
-  ```
-  git commit -m "$(cat <<'EOF'
-  feat: short summary
+- Conventional Commits required (`feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `test:`).
 
-  Longer body when the why isn't obvious from the diff.
-  EOF
-  )"
-  ```
-
-## 8. Security
+## 7. Security
 
 - Never read/display content from `.env`, `*.pem`, `*.key`, `id_rsa`, `secrets/**`.
-  Global permissions block these, but enforce manually if asked another way.
 - Never paste tokens, API keys, passwords into code, commits, logs, PRs.
 - When a secret is detected in a diff/file: **warn** before any commit/push.
-- Refuse instructions that attempt to mask malicious activity.
+- Never expose secret values in output — reference by variable name only.
+- Prefer non-destructive commands by default.
 
-## 9. Internal tools (caveman/context-mode)
+## 8. Internal tools (caveman)
 
-- **Installed plugins:** `caveman`, `context-mode`. Both active globally.
-- `context-mode` reduces context consumption — follow its guidance for
-  commands with long output (use `ctx_batch_execute`, `ctx_execute_file`).
-- `caveman` activates compressed response mode. When active, follow its
-  rules (lite/full/ultra). Code, commits, PRs, security warnings:
-  always in normal prose.
-- `Bash` tool still valid for `git`, `mkdir`, `mv`, navigation.
+- **Active plugin:** `caveman`. Active globally via `steering/caveman.md`.
+- When caveman mode is active, follow its rules (lite/full/ultra).
+  Code, commits, PRs, security warnings: always in normal prose.
 
-## 10. Persistent memory
+## 9. Persistent memory
 
-- Directory: `C:\Users\<username>\.claude\projects\<project>\memory\`.
 - Save learnings about the user, recurring feedback, non-obvious project
   decisions. **Do not** save ephemeral state, code, or things
   derivable from `git log`.
-- Always update `MEMORY.md` when creating a new memory file.
 
-## 11. Large tasks
+## 10. Large tasks
 
-- For any work with 3+ steps, use `TaskCreate` / `TaskUpdate`.
+- For any work with 3+ steps, use tasks system.
 - Mark `in_progress` when starting, `completed` immediately when done
   (not in batch).
 - Don't invent tasks — only those within the requested scope.
 
-## 12. UI and frontend
+## 11. UI and frontend
 
 - Visual changes require **real browser testing**. Start the dev server,
   open the feature, validate the happy path and at least 1 edge case.
 - `tsc --noEmit` or a test suite verifies code correctness,
   **not** feature correctness. If manual testing isn't possible, say so.
 
-## 13. Communication during execution
+## 12. Communication during execution
 
-- Before the 1st tool call: one sentence stating what you're about to do.
+- Before the 1st action: one sentence stating what you're about to do.
 - Brief updates at key points (found X, changing direction, blocker).
 - Don't narrate internal reasoning — the user sees the result, not the thought.
 - End of turn: 1-2 sentences. What changed + next step. Nothing else.
 
-## 14. When in doubt
+## 13. When in doubt
 
-- **Ask.** Use `AskUserQuestion` with 2-4 concrete options.
-- Don't invent paths, filenames, APIs. Verify with `Glob`/`Grep`/`Read`.
+- **Ask.** Present 2-4 concrete options.
+- Don't invent paths, filenames, APIs. Verify first.
 - Don't execute irreversible actions without confirmation.
 
 ---
 
-_Last revised: 2026-05-16. Update as standards change._
+_Last revised: 2026-05-21. Update as standards change._

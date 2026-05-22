@@ -78,10 +78,4 @@
 | `~/.claude/settings.json` | Modelo, plugins, permissões, hooks |
 | `~/.claude/settings.local.json` | Permissões pessoais (ctx tools) |
 | `~/.claude/hooks/stop-beep.ps1` | Beep quando Claude termina resposta |
-| `~/.claude/projects/C--Users-B2ML/memory/` | Memória persistente entre sessões |
-
----
-
-## Pendente
-
-- [ ] Instalar Node.js v22+ (`fnm install 22 && fnm default 22`) → retry `/ctx-upgrade`
+| `~/.claude/projects/<project>/memory/` | Memória persistente entre sessões |

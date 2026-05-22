@@ -1,4 +1,4 @@
-# jgbriel-skills
+# jgabriel-skills
 
 Skills, regras e configurações reutilizáveis para **Claude Code** e **Kiro IDE**.
 Replica meu setup completo em qualquer máquina — regras de código, steering global,
@@ -11,27 +11,43 @@ hooks, MCP config e skills customizadas (engineering, TCC, productivity, etc).
 ## Estrutura
 
 ```
-jgbriel-skills/
+jgabriel-skills/
 ├── README.md
-├── COMMANDS.md                       # quick reference de comandos
 ├── .gitignore
 │
 ├── claude/                           # Claude Code global config (~/.claude)
 │   ├── CLAUDE.md                     # regras globais (idioma, git, response style)
-│   ├── GUIDE.md                      # guia rápido
+│   ├── COMMANDS.md                   # quick reference de todos os comandos/skills
+│   ├── GUIDE.md                      # guia rápido de setup
 │   ├── .mcp.json                     # MCP servers (placeholders ${VAR})
 │   ├── settings.template.json        # settings.json sanitizado
 │   ├── agents/                       # 4 agents (planner, researcher, reviewer, tcc-orientador)
 │   ├── commands/                     # 15 slash commands custom
 │   ├── hooks/                        # SessionStart / PreToolUse hooks
-│   └── skills/                       # skills custom (docs-writing, tcc-*, engineering/*, etc)
+│   └── skills/
+│       ├── tech/                     # expertise técnica (7 skills)
+│       ├── engineering/              # workflows de engenharia (9 skills)
+│       ├── misc/                     # utilitários (docs-writing, setup-pre-commit, skill-creator)
+│       ├── personal/                 # edit-article, obsidian-vault
+│       ├── productivity/             # grill-me, handoff
+│       └── tcc/                      # tcc-fragmentos, tcc-rascunho, tcc-revisao-impessoal
 │
 └── kiro/                             # Kiro IDE global config (~/.kiro)
-    ├── agents/                       # agent_config.json.example
+    ├── KIRO.md                       # regras globais Kiro
+    ├── COMMANDS.md                   # quick reference de steering/agents/skills/powers
+    ├── GUIDE.md                      # guia rápido de setup
+    ├── agents/                       # 4 agents JSON (planner, researcher, reviewer, tcc-orientador)
     ├── powers/installed/             # supabase-hosted power
     ├── settings/                     # cli.json, mcp.json
     ├── skills/                       # caveman, find-skills
-    └── steering/                     # 18 steering guides (language, git, security, etc)
+    └── steering/
+        ├── global/                   # sempre ativos (inclusion: always) — 10 guias
+        ├── tech/                     # expertise técnica (inclusion: manual/fileMatch)
+        ├── engineering/              # workflows de engenharia (inclusion: manual)
+        ├── misc/                     # utilitários (inclusion: manual)
+        ├── personal/                 # edit-article, obsidian-vault (inclusion: manual)
+        ├── productivity/             # grill-me, handoff (inclusion: manual)
+        └── tcc/                      # TCC SyncClass (inclusion: manual)
 ```
 
 ---
@@ -75,13 +91,12 @@ jgbriel-skills/
 
 **Skills (`skills/`):**
 
-- `docs-writing.md` — padrão de documentação técnica (Tier 1/2/3)
-- `skill-creator/` — bootstrap de novas skills
+- `tech/` — `code-reviewer`, `frontend-design`, `react-best-practices`, `senior-backend`, `senior-frontend`, `seo-optimizer`, `supabase-postgres`
 - `engineering/` — `diagnose`, `grill-with-docs`, `improve-codebase-architecture`, `prototype`, `tdd`, `to-issues`, `to-prd`, `triage`, `zoom-out`
+- `misc/` — `docs-writing`, `setup-pre-commit`, `skill-creator`
 - `personal/` — `edit-article`, `obsidian-vault`
 - `productivity/` — `grill-me`, `handoff`
-- `tcc/` — `tcc`, `tcc-fragmentos`, `tcc-rascunho`, `tcc-revisao-impessoal` (skills do projeto SyncClass TCC)
-- `misc/` — `setup-pre-commit`
+- `tcc/` — `tcc-fragmentos`, `tcc-rascunho`, `tcc-revisao-impessoal`
 
 **Config:**
 
@@ -92,11 +107,29 @@ jgbriel-skills/
 
 ### Kiro IDE (`kiro/`)
 
-- `steering/` — 18 guias globais: `language`, `code-editing`, `git`, `security`, `frontend`, `docs-style`, `tasks`, `response-style`, `system`, e variantes `g-*` (React, backend, frontend design, code-reviewer, SEO, Supabase, steering-guide)
-- `skills/` — `caveman` (modo compressão), `find-skills`
-- `powers/installed/` — `supabase-hosted` (power para projetos Supabase)
-- `settings/` — `cli.json`, `mcp.json`
-- `agents/` — `agent_config.json.example` (template)
+**Steering (`steering/`)** — carregados por tipo de `inclusion`:
+
+- `global/` (10 arquivos, `inclusion: always`) — `language`, `code-editing`, `git`, `security`, `frontend`, `docs-style`, `tasks`, `response-style`, `system`, `caveman`
+- `tech/` — code-reviewer, senior-backend, senior-frontend, frontend-design, react-best-practices, seo-optimizer, supabase-postgres, steering-guide
+- `engineering/` — diagnose, grill-with-docs, improve-codebase-architecture, prototype, tdd, to-issues, to-prd, triage, zoom-out
+- `misc/` — docs-writing, setup-pre-commit, steering-creator
+- `personal/` — edit-article, obsidian-vault
+- `productivity/` — grill-me, handoff
+- `tcc/` — tcc-fragmentos, tcc-rascunho, tcc-revisao-impessoal
+
+**Agents (`agents/`)** — 4 agents JSON:
+
+- `researcher.json` — localizador read-only (`path:line` table)
+- `reviewer.json` — code review severity-tagged, sem praise
+- `planner.json` — plano ordenado com deps, riscos e exit criteria
+- `tcc-orientador.json` — orientador severo de TCC (PT-BR)
+
+**Skills Kiro (`skills/`)** — invocadas via `@nome`:
+- `caveman` — modo compressão de tokens
+- `find-skills` — lista skills disponíveis no projeto
+
+**Powers (`powers/installed/`):**
+- `supabase-hosted` — integração Supabase (migrations, schema, types)
 
 ---
 
@@ -117,7 +150,7 @@ robocopy jgbriel-skills\kiro $env:USERPROFILE\.kiro /E
 git clone https://github.com/jgbriel-io/jgbriel-skills.git
 # Pega só o que interessa
 Copy-Item jgbriel-skills\claude\CLAUDE.md $env:USERPROFILE\.claude\
-Copy-Item jgbriel-skills\kiro\steering\* $env:USERPROFILE\.kiro\steering\
+Copy-Item jgbriel-skills\kiro\steering\* $env:USERPROFILE\.kiro\steering\ -Recurse
 ```
 
 ### Opção 3: Submódulo
