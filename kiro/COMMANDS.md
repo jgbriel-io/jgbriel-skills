@@ -1,5 +1,7 @@
 # Kiro IDE — Commands Reference
 
+> Workflows práticos combinando steering + agents: ver **`WORKFLOWS.md`**
+
 ## Steering Files (`steering/`)
 
 Carregados automaticamente por tipo de `inclusion`. Para steering manual: `@nome-do-arquivo` no chat.

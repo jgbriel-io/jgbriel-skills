@@ -1,5 +1,7 @@
 # Claude Code — Commands Reference
 
+> Workflows práticos combinando commands + skills + agents: ver **`WORKFLOWS.md`**
+
 ## Slash Commands (`commands/`)
 
 | Comando | Descrição |
