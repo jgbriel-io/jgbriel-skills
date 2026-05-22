@@ -69,6 +69,7 @@ Carregados automaticamente por tipo de `inclusion`. Para steering manual: `@nome
 | `tcc-fragmentos.md` | Captura matéria-prima bruta por capítulo |
 | `tcc-rascunho.md` | Escrita guiada parágrafo a parágrafo |
 | `tcc-revisao-impessoal.md` | Varredura: 1ª pessoa, clichês, citações órfãs |
+| `grill-me-tcc.md` | Stress-test pré-banca: hipóteses, metodologia, escopo, resultados |
 
 ### `misc/` — Utilitários (`inclusion: manual`)
 

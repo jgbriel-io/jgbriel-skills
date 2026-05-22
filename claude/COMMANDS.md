@@ -83,6 +83,7 @@ Invocação: `/<nome-da-skill>` ou trigger natural via descrição.
 | `/tcc-fragmentos` | Captura matéria-prima bruta por capítulo |
 | `/tcc-rascunho` | Escrita guiada parágrafo a parágrafo (ABNT/FEPI) |
 | `/tcc-revisao-impessoal` | Varredura: 1ª pessoa, clichês, informalidade, citações órfãs |
+| `/grill-me-tcc` | Stress-test pré-banca: hipóteses, metodologia, escopo, resultados |
 
 ---
 

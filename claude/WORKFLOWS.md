@@ -79,6 +79,16 @@ Receitas práticas combinando slash commands, skills e agents.
 /tcc-status              → snapshot do progresso geral (caps 1-10)
 ```
 
+## TCC — Simulação de Banca
+
+```
+/grill-me-tcc   → stress-test: hipóteses, metodologia, escopo, literatura, resultados
+                → uma pergunta por vez, indica fraqueza testada + resposta esperada
+                → ao final lista as 3 fragilidades mais críticas
+```
+
+> Diferente do `tcc-orientador` (revisa texto escrito), o `grill-me-tcc` testa se você consegue **defender** o que escreveu.
+
 ## Novo Projeto
 
 ```
