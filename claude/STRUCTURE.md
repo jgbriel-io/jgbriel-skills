@@ -141,4 +141,21 @@ Wiring real em `settings.json` (não versionado) → `hooks.{SessionStart,PreToo
 
 ---
 
-_Última atualização: 2026-06-21._
+## 8. Setup prático
+
+**MCP servers** — `.mcp.json` usa `${VAR}` placeholders, setar via env var de usuário:
+```powershell
+[System.Environment]::SetEnvironmentVariable('GITHUB_PERSONAL_ACCESS_TOKEN', 'ghp_xxx', 'User')
+[System.Environment]::SetEnvironmentVariable('SUPABASE_ACCESS_TOKEN', 'sbp_xxx', 'User')
+```
+
+**Settings** — copiar `settings.template.json` → `settings.json` e ajustar paths.
+
+**Paths:**
+- Global settings: `%USERPROFILE%\.claude\settings.json`
+- Global skills: `%USERPROFILE%\.claude\skills\`
+- Project-local: `<project>\.claude\`
+
+---
+
+_Última atualização: 2026-06-22._
