@@ -16,21 +16,22 @@ jgabriel-skills/
 ├── .gitignore
 │
 ├── claude/                           # Claude Code global config (~/.claude)
+│   ├── README.md                     # ordem de leitura dos docs abaixo
 │   ├── CLAUDE.md                     # regras globais (idioma, git, response style)
-│   ├── COMMANDS.md                   # quick reference de todos os comandos/skills
-│   ├── GUIDE.md                      # guia rápido de setup
+│   ├── STRUCTURE.md                  # onde tudo mora, settings.json, MCP, hooks, plugins
+│   ├── COMMANDS.md                   # tabela de slash commands
+│   ├── WORKFLOWS.md                  # receitas combinando commands + skills + agents
+│   ├── GUIDE.md                      # cheat sheet condensado
 │   ├── .mcp.json                     # MCP servers (placeholders ${VAR})
 │   ├── settings.template.json        # settings.json sanitizado
 │   ├── agents/                       # 4 agents (planner, researcher, reviewer, tcc-orientador)
 │   ├── commands/                     # 15 slash commands custom
-│   ├── hooks/                        # SessionStart / PreToolUse hooks
-│   └── skills/
-│       ├── tech/                     # expertise técnica (7 skills)
-│       ├── engineering/              # workflows de engenharia (9 skills)
-│       ├── misc/                     # utilitários (docs-writing, setup-pre-commit, skill-creator)
-│       ├── personal/                 # edit-article, obsidian-vault
-│       ├── productivity/             # grill-me, handoff
-│       └── tcc/                      # tcc-fragmentos, tcc-rascunho, tcc-revisao-impessoal
+│   ├── hooks/                        # SessionStart / PreToolUse hooks (2 scripts)
+│   └── skills/                       # 33 skills, pasta flat (sem subpastas por categoria)
+│
+├── templates/                        # templates de projeto, pra copiar em qualquer repo
+│   ├── CONTEXT.template.md           # glossário de domínio (1 contexto)
+│   └── CONTEXT-MAP.template.md       # glossário pra repo com múltiplos contextos
 │
 └── kiro/                             # Kiro IDE global config (~/.kiro)
     ├── KIRO.md                       # regras globais Kiro
@@ -87,23 +88,27 @@ jgabriel-skills/
 
 - `guard-dangerous-bash.mjs` — bloqueia comandos destrutivos (`rm -rf`, `git push --force`, etc)
 - `context-mode-cache-heal.mjs` — auto-cura cache do plugin context-mode
-- `stop-beep.ps1` — beep no fim de cada turno
 
-**Skills (`skills/`):**
+**Skills (`skills/`)** — 33 pastas, flat (sem subpastas por categoria):
 
-- `tech/` — `code-reviewer`, `frontend-design`, `react-best-practices`, `senior-backend`, `senior-frontend`, `seo-optimizer`, `supabase-postgres`
-- `engineering/` — `diagnose`, `grill-with-docs`, `improve-codebase-architecture`, `prototype`, `tdd`, `to-issues`, `to-prd`, `triage`, `zoom-out`
-- `misc/` — `docs-writing`, `setup-pre-commit`, `skill-creator`
-- `personal/` — `edit-article`, `obsidian-vault`
-- `productivity/` — `grill-me`, `handoff`
-- `tcc/` — `tcc-fragmentos`, `tcc-rascunho`, `tcc-revisao-impessoal`
+`code-reviewer`, `design-taste-frontend`, `diagnose`, `docs-writing`, `edit-article`, `grill-me`, `grill-me-tcc`, `grill-with-docs`, `handoff`, `high-end-visual-design`, `image-to-code`, `improve-codebase-architecture`, `minimalist-ui`, `obsidian-vault`, `prototype`, `react-best-practices`, `redesign-existing-projects`, `senior-backend`, `senior-frontend`, `seo-optimizer`, `setup-pre-commit`, `skill-creator`, `supabase-postgres`, `tcc-auditoria-banca`, `tcc-fragmentos`, `tcc-rascunho`, `tcc-revisao-impessoal`, `tdd`, `to-issues`, `to-prd`, `triage`, `ui-ux-pro-max`, `zoom-out`
+
+Lista com descrição completa: `claude/STRUCTURE.md`.
 
 **Config:**
 
 - `CLAUDE.md` — regras globais (PT-BR conversa, English code/commits, git rules, security, response style)
+- `STRUCTURE.md` — onde tudo mora (symlinks, settings.json, MCP, hooks, plugins), setup prático
 - `GUIDE.md` — onboarding rápido
 - `.mcp.json` — MCP servers (GitHub, Supabase) usando placeholders `${VAR}`
 - `settings.template.json` — settings sanitizado (sem caminhos absolutos meus)
+
+### Templates de projeto (`templates/`)
+
+Templates pra copiar como arquivo novo em qualquer projeto (não são config do Claude Code/Kiro):
+
+- `CONTEXT.template.md` — glossário de domínio de um contexto só. Formato e regras de uso: `claude/skills/grill-with-docs/CONTEXT-FORMAT.md`.
+- `CONTEXT-MAP.template.md` — pra repo com múltiplos contextos (monorepo/DDD), lista os contextos e como se relacionam.
 
 ### Kiro IDE (`kiro/`)
 
