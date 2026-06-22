@@ -77,5 +77,4 @@
 | `~/.claude/CLAUDE.md` | Regras globais (idioma, git, segurança) |
 | `~/.claude/settings.json` | Modelo, plugins, permissões, hooks |
 | `~/.claude/settings.local.json` | Permissões pessoais (ctx tools) |
-| `~/.claude/hooks/stop-beep.ps1` | Beep quando Claude termina resposta |
 | `~/.claude/projects/<project>/memory/` | Memória persistente entre sessões |
