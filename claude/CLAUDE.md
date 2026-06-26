@@ -122,10 +122,10 @@ One-time approval is **not** a blank check. Ask again in new context.
 
 ## 12. UI and frontend
 
-- Visual changes require **real browser testing**. Start the dev server,
-  open the feature, validate the happy path and at least 1 edge case.
+- UI testing is the **user's responsibility**. Do not start the dev server
+  or claim to validate UI — `tsc --noEmit` + type-check is the sign-off.
 - `tsc --noEmit` or a test suite verifies code correctness,
-  **not** feature correctness. If manual testing isn't possible, say so.
+  **not** feature correctness. After type-check passes, report done.
 
 ## 13. Communication during execution
 
@@ -142,4 +142,4 @@ One-time approval is **not** a blank check. Ask again in new context.
 
 ---
 
-_Last revised: 2026-05-16. Update as standards change._
+_Last revised: 2026-05-28. Update as standards change._

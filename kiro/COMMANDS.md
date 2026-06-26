@@ -26,8 +26,12 @@ Carregados automaticamente por tipo de `inclusion`. Para steering manual: `@nome
 | Arquivo | Função |
 |---------|--------|
 | `code-reviewer.md` | Checklist de code review completo |
-| `frontend-design.md` | UI distinta, anti-generic aesthetic |
+| `design-taste-frontend.md` | Anti-slop landing/portfolio/redesign — brief inference, dials, pre-flight check (v2) |
+| `high-end-visual-design.md` | Estética agência premium — double-bezel, motion choreography |
+| `image-to-code.md` | Pipeline imagem→análise→código |
+| `minimalist-ui.md` | Editorial monochromo, bento grid flat |
 | `react-best-practices.md` | Bundle size, re-renders, composição |
+| `redesign-existing-projects.md` | Audit-first em site/app existente, sem quebrar funcionalidade |
 | `senior-backend.md` | TanStack Query, Supabase hooks/mutations |
 | `senior-frontend.md` | Componentes, estado, Tailwind, a11y |
 | `seo-optimizer.md` | On-page, technical SEO, Core Web Vitals |
@@ -103,6 +107,7 @@ Skills Kiro são diferentes de Claude — invocadas com `@nome` no chat.
 |-------|--------|
 | `caveman` | Modo compressão de tokens |
 | `find-skills` | Lista skills disponíveis no projeto |
+| `ui-ux-pro-max` | Design intelligence pra dashboard/admin/e-commerce/SaaS/mobile (CLI Python + CSV de estilos/paletas/fontes) — NÃO landing/portfolio, isso é `design-taste-frontend` |
 
 ---
 

@@ -115,9 +115,9 @@ Templates pra copiar como arquivo novo em qualquer projeto (não são config do 
 **Steering (`steering/`)** — carregados por tipo de `inclusion`:
 
 - `global/` (10 arquivos, `inclusion: always`) — `language`, `code-editing`, `git`, `security`, `frontend`, `docs-style`, `tasks`, `response-style`, `system`, `caveman`
-- `tech/` — code-reviewer, senior-backend, senior-frontend, frontend-design, react-best-practices, seo-optimizer, supabase-postgres, steering-guide
+- `tech/` — code-reviewer, senior-backend, senior-frontend, react-best-practices, seo-optimizer, supabase-postgres, steering-guide, **+ suite de design** (design-taste-frontend v2, high-end-visual-design, minimalist-ui, redesign-existing-projects, image-to-code)
 - `engineering/` — diagnose, grill-with-docs, improve-codebase-architecture, prototype, tdd, to-issues, to-prd, triage, zoom-out
-- `misc/` — docs-writing, setup-pre-commit, steering-creator
+- `misc/` — commit, docs-writing, setup-pre-commit, steering-creator
 - `personal/` — edit-article, obsidian-vault
 - `productivity/` — grill-me, handoff
 - `tcc/` — tcc-fragmentos, tcc-rascunho, tcc-revisao-impessoal
@@ -132,6 +132,7 @@ Templates pra copiar como arquivo novo em qualquer projeto (não são config do 
 **Skills Kiro (`skills/`)** — invocadas via `@nome`:
 - `caveman` — modo compressão de tokens
 - `find-skills` — lista skills disponíveis no projeto
+- `ui-ux-pro-max` — design intelligence pra dashboard/admin/e-commerce/SaaS/mobile (CLI Python + dados de estilos/paletas/fontes)
 
 **Powers (`powers/installed/`):**
 - `supabase-hosted` — integração Supabase (migrations, schema, types)

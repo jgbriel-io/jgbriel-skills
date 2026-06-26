@@ -1,1 +1,4 @@
-{}
+{
+  "mcp.loadedBefore": true,
+  "chat.uiMode": "legacy"
+}
