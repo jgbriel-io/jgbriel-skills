@@ -2,6 +2,7 @@
 name: researcher
 description: Read-only code locator and codebase mapper. Use when the main thread needs to find where X is defined, what calls Y, list all uses of Z, map a directory, trace data flow, or understand an unfamiliar area before acting. Returns a compact path:line table or structured map — never proposes fixes, never edits. Saves main-thread tokens because the raw file reads stay inside the subagent. Use proactively whenever investigation would require reading 5+ files; prefer this over inline Read/Grep when the question is "where is X" or "how does Y connect to Z".
 tools: Read, Grep, Glob, Bash
+model: haiku
 ---
 
 # Researcher

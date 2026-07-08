@@ -1,5 +1,5 @@
 ---
-name: grill-me-tcc
+name: tcc-grill
 description: Pre-defense stress-test for TCC SyncClass. Grills the student on hypotheses, methodology, scope decisions, literature gaps, technical choices, and result validity — one brutal question at a time. Use before submitting a chapter or simulating a banca session.
 ---
 

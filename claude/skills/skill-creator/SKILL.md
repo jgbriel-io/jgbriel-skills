@@ -51,8 +51,22 @@ Ask the user (or extract from conversation):
 5. **Any bundled scripts/templates needed?** If the workflow always runs the
    same 50-line Python snippet, that snippet belongs in `scripts/`, not in
    the prose of SKILL.md.
+6. **Auto-invocable or explicit-only?** Model-invoked costs context load (the
+   description sits in the window every turn) but lets Claude and other skills
+   reach it; user-invoked (`disable-model-invocation: true`) is zero context
+   load but the user must remember it exists. Pick model-invocation only when
+   the agent must fire it on its own. Full framework: `/writing-great-skills`.
 
 If user is vague, propose 2–3 concrete versions and ask which matches.
+
+### Collision check (before drafting)
+
+Grep the frontmatter descriptions of installed skills
+(`~/.claude/skills/*/SKILL.md`) plus the plugin skills you can see in context
+for the new skill's trigger territory. Two skills answering the same trigger =
+invocation lottery — the top defect found in the 2026-07 audit. If territory
+overlaps: rename, narrow the description, or add mutual negative cases before
+writing any body.
 
 ## Step 2 — Draft the skill
 
@@ -89,6 +103,11 @@ Claude sees when deciding whether to load the skill. Cover:
 - Max **1024 characters** (Anthropic hard limit).
 - Write in **third person** ("Create skills" not "I create skills").
 - First sentence: what it does. Second sentence: "Use when ...".
+
+**Naming (C1.1):** kebab-case; the name says what the skill does or its
+domain — never a persona or vibe (no `senior-*`, `elite-*`, `*-pro-max`).
+Use a domain-prefix family when 3+ skills share a domain (`tcc-*`,
+`project-*`). Command-style skills may be imperative (`setup-pre-commit`).
 
 Bad: `Helps with PDFs.`
 Good: `Extract structured data from PDFs (invoices, receipts, forms) into JSON or CSV. Use when the user uploads a PDF, mentions extracting tables/fields/text from a PDF, asks to parse a receipt, or wants to convert a scanned form to structured data — even if they don't use the word "extract".`
@@ -141,6 +160,10 @@ SKILL.md tells Claude "if user mentions AWS, read `references/aws.md`".
 - Hyper-specific examples that don't generalize.
 - Bundled scripts duplicating what shell tools already do.
 - Comments-in-output ("// implementing X") — outputs should be clean.
+- The writing-great-skills failure modes: **no-ops** (lines the model already
+  obeys by default), **negation** ("don't do X" makes X more available —
+  state the positive instead), **sediment**, **duplication**. Run
+  `/writing-great-skills` when revising a draft.
 
 ---
 
@@ -234,22 +257,25 @@ When the skill is done:
 3. Suggest a test invocation: `/<skill-name>` or a natural-language trigger.
 4. Note if they need to add tool permissions to `settings.json` for any
    commands the skill uses.
+5. Mirror the skill to the vault docs copy
+   (`Obsidian Vault\wiki\Ferramentas\Claude\skills\<categoria>\<name>\`) and
+   add it to `skills/index.md` there. The global copy already sits in the D:
+   repo working tree (symlink) — remind the user to commit when convenient.
 
 ---
 
 ## Final review checklist
 
-Before declaring the skill done:
+Score the draft against the C1–C11 rubric in
+`wiki/Ferramentas/Claude/docs/SKILL-QUALITY.md` — or run `/skill-audit` on
+the new skill; that rubric is the single source of truth for quality gates
+(description, concision <500-line target, progressive disclosure, reasons
+over MUSTs, terminology, timelessness). Creator-specific extras on top:
 
-- [ ] Description ≤1024 chars, third person, includes "Use when ...".
-- [ ] Description names at least 2–3 trigger phrases including a lazy/casual one.
-- [ ] SKILL.md body under ~500 lines (split to `references/` if longer).
-- [ ] No time-sensitive info (dates, versions that will rot).
-- [ ] Consistent terminology — same word for the same thing throughout.
-- [ ] At least 2 concrete examples (input/output or before/after).
-- [ ] References at most one level deep (no `references/a/b/c.md`).
-- [ ] No ALL-CAPS MUSTs that could be replaced with reasoning.
-- [ ] Tested on 2–3 realistic prompts.
+- [ ] Collision check done — no installed skill shares the trigger territory.
+- [ ] Invocation mode chosen deliberately (model-invoked vs `disable-model-invocation`).
+- [ ] Tested on 2–3 realistic prompts in a fresh session.
+- [ ] Mirrored to the vault docs copy + listed in its `skills/index.md`.
 
 ## References
 

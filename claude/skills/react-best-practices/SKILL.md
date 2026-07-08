@@ -1,6 +1,6 @@
 ---
 name: react-best-practices
-description: React 18 + Vite performance rules — bundle size, re-renders, waterfalls, subscriptions. Use when the user asks about React performance, slow pages, bundle size, imports, useEffect misuse, or re-render debugging. Not a general review checklist — that is code-reviewer; writing conventions are senior-frontend.
+description: React 18 + Vite performance rules — bundle size, re-renders, waterfalls, subscriptions. Use when the user asks about React performance, slow pages, bundle size, imports, useEffect misuse, or re-render debugging. Not a general review checklist — that is code-reviewer; writing conventions are frontend-conventions.
 ---
 
 # React — Performance e Boas Práticas

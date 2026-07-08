@@ -1,6 +1,6 @@
 ---
-name: senior-backend
-description: Apply senior backend patterns for Supabase + TanStack Query — hooks, mutations, queries, real-time, error handling. Use when user asks about data fetching, hooks architecture, Supabase patterns, or backend review.
+name: supabase-hooks
+description: Data-layer patterns for Supabase + TanStack Query — custom hooks, mutations, queries, real-time subscriptions, error handling. Use when the user asks about data fetching, hooks architecture, Supabase client patterns, or reviewing the data layer. SQL/schema/RLS side is supabase-postgres.
 ---
 
 # Senior Backend — Supabase & Hooks

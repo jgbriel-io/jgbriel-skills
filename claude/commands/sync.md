@@ -1,6 +1,7 @@
 ---
 description: Sincroniza branch atual com remote — fetch, pull rebase, status final. Não toca outras branches.
 allowed-tools: Bash(git fetch:*), Bash(git pull:*), Bash(git status:*), Bash(git branch:*), Bash(git rev-list:*)
+model: haiku
 ---
 
 Sincronize a branch atual com o remote:
