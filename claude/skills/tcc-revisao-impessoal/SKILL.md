@@ -45,7 +45,7 @@ SUGESTÃO: <correção proposta>
 Padrões a buscar (case-insensitive, palavra inteira):
 
 - `\beu\b` (pronome)
-- `\bnós\b`, `\bnos\b` (pronome objeto)
+- `\bnós\b`, `\bnos\b` (pronome objeto — atenção: "nos" também é contração em+os ("nos sistemas", "nos dias"); reportar apenas quando for pronome reflexivo/objeto, ex. "nos deparamos", "apresenta-nos")
 - `\bminha\b`, `\bmeu\b`, `\bminhas\b`, `\bmeus\b`
 - `\bnossa\b`, `\bnosso\b`, `\bnossas\b`, `\bnossos\b`
 - `\bme\b` (em contexto reflexivo: "me parece", "me convém")

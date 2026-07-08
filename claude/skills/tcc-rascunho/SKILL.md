@@ -165,7 +165,7 @@ Quando o fragmento está em primeira pessoa ou informal, **converter na hora** a
 | Fragmento bruto | Texto formal |
 |---|---|
 | "Eu escolhi Supabase porque..." | "Optou-se pelo Supabase em razão de..." |
-| "A gente fez 24 sprints" | "O projeto contemplou 24 sprints" |
+| "A gente fez 31 sprints" | "O projeto contemplou 31 sprints" |
 | "Achei melhor usar RLS" | "Considerou-se mais adequado o uso de Row Level Security (RLS)" |
 | "Deu certo a abordagem" | "A abordagem apresentou resultado satisfatório" |
 | "Tem 25 migrations" | "O projeto contempla 25 migrações SQL versionadas" |
