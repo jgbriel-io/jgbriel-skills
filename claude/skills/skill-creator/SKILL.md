@@ -230,7 +230,7 @@ When the skill is done:
 
 1. Confirm path: `~/.claude/skills/<name>/SKILL.md` (or `%USERPROFILE%\.claude\skills\<name>\SKILL.md` on Windows) for global,
    or `<project>/.claude/skills/<name>/SKILL.md` for project-local.
-2. Tell them to restart Claude Code or run `/skills reload` so it loads.
+2. Tell them to restart Claude Code (or open a new session) so it loads — skills are read at session start.
 3. Suggest a test invocation: `/<skill-name>` or a natural-language trigger.
 4. Note if they need to add tool permissions to `settings.json` for any
    commands the skill uses.

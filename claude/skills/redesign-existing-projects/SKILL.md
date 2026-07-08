@@ -1,6 +1,6 @@
 ---
 name: redesign-existing-projects
-description: Upgrades existing websites and apps to premium quality. Audits current design, identifies generic AI patterns, and applies high-end design standards without breaking functionality. Works with any CSS framework or vanilla CSS.
+description: Incremental design upgrade of an EXISTING codebase — audits current design, identifies generic AI patterns, applies targeted fixes without migrating the stack or breaking functionality. Works with any CSS framework or vanilla CSS. Use when the user says "melhora o design do meu app", "deixa premium", "tá com cara de IA", or wants an existing site polished. Not for building new pages from scratch — that is design-taste-frontend territory.
 ---
 
 # Redesign Skill

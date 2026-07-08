@@ -1,6 +1,7 @@
 ---
 name: high-end-visual-design
-description: Teaches the AI to design like a high-end agency. Defines the exact fonts, spacing, shadows, card structures, and animations that make a website feel expensive. Blocks all the common defaults that make AI designs look cheap or generic.
+description: Explicit aesthetic preset — Awwwards-tier agency look with double-bezel cards, fluid island nav, spring-physics motion, and ethereal glass/editorial luxury/soft structuralism archetypes. Invoke via /high-end-visual-design when this specific expensive-agency aesthetic is wanted. Does not auto-trigger; general design briefs are handled by design-taste-frontend.
+disable-model-invocation: true
 ---
 
 # Agent Skill: Principal UI/UX Architect & Motion Choreographer (Awwwards-Tier)

@@ -1,58 +1,61 @@
 ---
 name: code-reviewer
-description: Full-stack code review checklist — architecture, quality, security, performance, UI/UX, TypeScript. Use when user asks for a code review or wants to validate a PR against standards.
+description: Stack-specific review checklist for React + TanStack Query + Supabase multi-tenant apps — hook architecture, RLS/tenant isolation, render performance, design tokens, TypeScript. Use when the user wants to validate a feature or PR against the project's stack standards, says "revisa contra o checklist", "valida os padrões do stack", or asks for a React/Supabase code review. Not a general diff reviewer — for severity-tagged diff findings use the reviewer agent or /review.
 ---
 
-# Code Review — Checklist
+# Code Review — Stack Checklist
 
-## Arquitetura
+Validate code against the React + TanStack Query + Supabase standards below.
+Walk every section; an item only appears in the report when it fails.
 
-- [ ] Componente faz apenas UI? Lógica está em hook customizado?
-- [ ] Hook usa TanStack Query para dados do servidor?
-- [ ] Cliente do banco/API chamado apenas em hooks, não em componentes?
-- [ ] Sem prop drilling profundo?
+## Architecture
 
-## Qualidade
+- [ ] Component does UI only? Logic lives in a custom hook?
+- [ ] Hook uses TanStack Query for server data?
+- [ ] Database/API client called only inside hooks, never in components?
+- [ ] No deep prop drilling?
 
-- [ ] Componente tem menos de ~150 linhas?
-- [ ] Sem ternários aninhados? (usar early returns)
-- [ ] Nomes descritivos? (`isLoading`, `hasError`, `userId`)
-- [ ] Sem código morto ou comentado?
-- [ ] Sem `console.log` em produção?
+## Quality
 
-## Segurança
+- [ ] Component under ~150 lines?
+- [ ] No nested ternaries? (prefer early returns)
+- [ ] Descriptive names? (`isLoading`, `hasError`, `userId`)
+- [ ] No dead or commented-out code?
+- [ ] No `console.log` shipping to production?
 
-- [ ] Inputs validados com schema (Zod, Yup, etc)?
-- [ ] Queries filtram pelo ID do usuário autenticado (tenant isolation)?
-- [ ] Sem dados sensíveis em logs?
-- [ ] Erros do backend tratados (`if (error) throw error`)?
-- [ ] RLS/policies habilitadas em novas tabelas?
+## Security
+
+- [ ] Inputs validated with a schema (Zod, Yup, etc)?
+- [ ] Queries filter by the authenticated user's ID (tenant isolation)?
+- [ ] No sensitive data in logs?
+- [ ] Backend errors handled (`if (error) throw error`)?
+- [ ] RLS/policies enabled on new tables?
 
 ## Performance
 
-- [ ] Sem barrel imports (`import { X } from '@/components/ui'`)?
-- [ ] Sem objetos/arrays criados inline em props?
-- [ ] `useEffect` não usado para data fetching?
-- [ ] Subscriptions real-time limpas no cleanup?
+- [ ] No barrel imports (`import { X } from '@/components/ui'`)?
+- [ ] No objects/arrays created inline in props?
+- [ ] `useEffect` not used for data fetching?
+- [ ] Real-time subscriptions cleaned up on unmount?
 
 ## UI/UX
 
-- [ ] Cores semânticas (`text-destructive` não `text-red-500`)?
-- [ ] Spacing consistente (escala de 4px: `gap-4`, `gap-6`, `gap-8`)?
-- [ ] Estados de loading, error e empty tratados?
-- [ ] Mensagens de erro localizadas?
-- [ ] Design tokens do projeto usados?
+- [ ] Semantic colors (`text-destructive`, not `text-red-500`)?
+- [ ] Consistent spacing (4px scale: `gap-4`, `gap-6`, `gap-8`)?
+- [ ] Loading, error, and empty states handled?
+- [ ] Error messages localized?
+- [ ] Project design tokens used?
 
 ## TypeScript
 
-- [ ] Sem `any` explícito desnecessário?
-- [ ] Props tipadas?
-- [ ] Tipos do banco/API usados (gerados via codegen)?
+- [ ] No unnecessary explicit `any`?
+- [ ] Props typed?
+- [ ] Database/API types used (generated via codegen)?
 
-## Padrões comuns de problema
+## Common problem patterns
 
 ```tsx
-// ❌ useState + useEffect para data fetching
+// ❌ useState + useEffect for data fetching
 const [data, setData] = useState();
 useEffect(() => { api.fetch().then(setData) }, []);
 
@@ -61,18 +64,33 @@ const { data } = useResource(id);
 ```
 
 ```tsx
-// ❌ Cor hardcoded
+// ❌ Hardcoded color
 <p className="text-red-500">Erro</p>
 
-// ✅ Semântica
+// ✅ Semantic token
 <p className="text-destructive">Erro</p>
 ```
 
 ```tsx
-// ❌ Objeto inline (novo ref a cada render)
+// ❌ Inline object (new ref every render)
 <List filters={{ status: 'active', userId }} />
 
-// ✅ Memoizar
+// ✅ Memoize
 const filters = useMemo(() => ({ status: 'active', userId }), [userId]);
 <List filters={filters} />
 ```
+
+## Reporting format
+
+List only failed items, grouped by section:
+
+```
+## Security
+- src/hooks/useOrders.ts:12 — query missing tenant filter — add .eq('user_id', userId)
+
+## Performance
+- src/pages/Dashboard.tsx:40 — inline object prop — wrap in useMemo
+```
+
+End with a one-line verdict: pass, pass with notes, or needs changes. If every
+section passes, say so in one line — no empty section headers.

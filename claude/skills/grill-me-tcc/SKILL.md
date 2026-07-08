@@ -51,7 +51,7 @@ Antes de começar, leia:
 
 ### 6. Resultados e Evidências
 
-- 218 commits e 16 sprints provam produtividade ou apenas atividade?
+- 152 commits e 31 sprints provam produtividade ou apenas atividade?
 - Como você distingue linhas de código geradas por IA de código escrito manualmente?
 - Os resultados são replicáveis por outro desenvolvedor nas mesmas condições?
 
