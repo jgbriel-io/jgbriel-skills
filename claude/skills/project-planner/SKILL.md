@@ -1,6 +1,6 @@
 ---
 name: project-planner
-description: Conversational project planning: asks one question at a time (grill-me style), suggests technical details when user doesn't know, and scaffolds wiki pages in wiki/Projetos/ after confirmation. Use when user says "quero planejar um projeto", "tenho uma ideia de projeto", "documenta esse projeto", "cria página do projeto X", "novo projeto no wiki", "vou começar um projeto", or starts describing a project idea — even casually. User can share what they already know; Claude fills gaps with suggestions. Does NOT apply to projects with existing docs/ on disk — use wiki-ingest for those.
+description: Conversational project planning: asks one question at a time (grilling style), suggests technical details when user doesn't know, and scaffolds wiki pages in wiki/Projetos/ after confirmation. Use when user says "quero planejar um projeto", "tenho uma ideia de projeto", "documenta esse projeto", "cria página do projeto X", "novo projeto no wiki". User can share what they already know; Claude fills gaps with suggestions. This is Phase 1 of new-project — for the full idea-to-implementation workflow use new-project instead; for projects with existing docs/ on disk use project-sync.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
@@ -208,4 +208,4 @@ Próximos passos:
 - `related:` usa aspas duplas: `"[[Nome]]"`, não `[[Nome]]`
 - Nome de arquivo: Title Case com espaços (`<Nome> - Backend.md`)
 - Nome de pasta: lowercase com hífens (`backend/`, `architecture/`)
-- Wikilinks em tabelas: `[[X|display]]` sem barra invertida (nunca `[[X\|display]]`)
+- Wikilinks em tabelas: escapar o pipe do display — `[[caminho\|Texto]]` — senão o `|` parte a célula e quebra link e tabela (regra do CLAUDE.md do vault)

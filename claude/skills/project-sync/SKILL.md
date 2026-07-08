@@ -1,6 +1,6 @@
 ---
 name: project-sync
-description: Reads docs/ from a project on D:/Projetos and creates or updates wiki/Projetos/<name>/ pages in the Obsidian vault. Use when user says "sincroniza projeto X", "atualiza wiki do projeto", "ingesta docs do X", "cria página pro X", "documenta o X no vault", "bate no D: do projeto", or names a known project (SyncClass, her-website, jgabriel.dev, Getfy, Baruk CRM, epagpos, etc.). Also use when user points to a D:/Projetos path directly. Creates index.md + subpages mirroring docs/ structure. Updates existing pages without overwriting manual content.
+description: Reads docs/ from a project on D:/Projetos and creates or updates wiki/Projetos/<name>/ pages in the Obsidian vault. Use when user says "sincroniza projeto X", "atualiza wiki do projeto", "ingesta docs do X", "cria página pro X", "documenta o X no vault", "bate no D: do projeto", or names a known project (SyncClass, her-website, jgabriel.dev, Getfy, Baruk CRM, epagpos, etc.). Also use when user points to a D:/Projetos path directly. Creates index.md + subpages mirroring docs/ structure. Updates existing pages without overwriting manual content. Only for project docs/ folders — loose sources (transcripts, URLs, single files) belong to the claude-obsidian wiki-ingest skill.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
