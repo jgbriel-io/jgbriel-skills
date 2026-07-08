@@ -1,6 +1,6 @@
 ---
 name: tcc-auditoria-banca
-description: Simula o parecer escrito de uma banca avaliadora de TCC sobre o documento já redigido. Lê os capítulos e produz um relatório de avaliação por critérios (estrutura e normas ABNT/FEPI, problema/objetivos/hipóteses, referencial teórico, metodologia e validade, resultados e discussão, conclusão, qualidade da escrita, contribuição), com conceito por critério, pontos fortes, fragilidades, exigências obrigatórias vs sugestões, e recomendação final (aprovado / aprovado com ressalvas / reprovado). Use quando o usuário disser "simular banca", "parecer de banca", "auditoria de banca", "avaliar como banca", "nota da banca", "tá pronto pra banca?", "avalia meu TCC como examinador", antes da entrega final ou da defesa. Não é interrogatório oral (isso é grill-me-tcc) nem revisão mecânica de forma (tcc-revisao-impessoal) — é o parecer avaliativo do documento.
+description: Simula o parecer escrito de uma banca avaliadora de TCC sobre o documento já redigido. Lê os capítulos e produz um relatório de avaliação por critérios (estrutura e normas ABNT/FEPI, problema/objetivos/hipóteses, referencial teórico, metodologia e validade, resultados e discussão, conclusão, qualidade da escrita, contribuição), com conceito por critério, pontos fortes, fragilidades, exigências obrigatórias vs sugestões, e recomendação final (aprovado / aprovado com ressalvas / reprovado). Use quando o usuário disser "simular banca", "parecer de banca", "auditoria de banca", "avaliar como banca", "nota da banca", "tá pronto pra banca?", "avalia meu TCC como examinador", antes da entrega final ou da defesa. Não é interrogatório oral (isso é tcc-grill) nem revisão mecânica de forma (tcc-revisao-impessoal) — é o parecer avaliativo do documento.
 allowed-tools: Read, Grep, Glob, Bash
 ---
 
@@ -13,7 +13,7 @@ e fundamentado — cada crítica vem com a razão e o que corrigir.
 
 Distinção das outras skills de TCC:
 - `tcc-revisao-impessoal` → forma mecânica (1ª pessoa, clichês, citações órfãs).
-- `grill-me-tcc` → interrogatório oral, uma pergunta dura por vez.
+- `tcc-grill` → interrogatório oral, uma pergunta dura por vez.
 - `tcc-orientador` (agent) → feedback de orientação durante a escrita.
 - **esta** → parecer avaliativo final do documento, por critérios, com conceito.
 

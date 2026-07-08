@@ -79,7 +79,7 @@ as-is).
 Per category, deliver:
 
 ```
-## <categoria>/<skill> — <✅|🟡|🔴> (<pts>/<max> · <pct>%)
+## <categoria>/<skill> — <OK|Ajustar|Reescrever> (<pts>/<max> · <pct>%)
 <table or bullets: only criteria scoring < 2, with evidence file:line>
 Fix: <one line per fix, or "nenhum">
 ```

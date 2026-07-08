@@ -1,9 +1,9 @@
 ---
-name: new-project
+name: project-new
 description: Orchestrates the full workflow for starting a project from scratch — idea to production-ready spec, design system, and implementation plan. Runs 5 phases in order: ideation, spec, design, implementation, maintenance. Invokes project-planner, grilling, domain-modeling, design-taste-frontend, setup-pre-commit, and project-sync at the right moment. Use when user says "novo projeto", "vou começar um projeto", "quero criar X do zero", "fluxo completo de projeto", "como começo o projeto X", or starts describing a project idea and wants to build it properly without rework.
 ---
 
-# new-project
+# project-new
 
 Guia o usuário pelo fluxo completo de criação de projeto, fase por fase, garantindo que nada seja pulado. Foco em evitar retrabalho — as decisões que mais custam (design system, schema, escopo) são tomadas antes de escrever código.
 
@@ -22,7 +22,7 @@ Guia o usuário pelo fluxo completo de criação de projeto, fase por fase, gara
    - O que pode dar errado na v1?
    - Qual o diferencial concreto vs. o que já existe?
 
-3. **Definir fora do escopo explicitamente** — criar seção `## Fora do escopo (v1)` no index.md com lista de ❌. Isso evita scope creep durante o desenvolvimento.
+3. **Definir fora do escopo explicitamente** — criar seção `## Fora do escopo (v1)` no index.md com lista em texto (sem emoji — regra do vault). Isso evita scope creep durante o desenvolvimento.
 
 **Entregáveis da Fase 1:**
 - `wiki/Projetos/<nome>/index.md` completo
@@ -125,7 +125,7 @@ Invocar `/setup-pre-commit` — lint, type-check e testes no pre-commit. Não de
 4. **Edge cases por último** — MVP funcionando > casos raros tratados.
 
 ### 4.3 Skills durante implementação
-- `/senior-backend` — hooks, mutations, queries Supabase/TanStack
+- `/supabase-hooks` — hooks, mutations, queries Supabase/TanStack
 - `/supabase-postgres` — schema, RLS, índices, migrations
 - `/react-best-practices` — performance, bundle, re-renders
 - `/tdd` — quando feature tem lógica complexa

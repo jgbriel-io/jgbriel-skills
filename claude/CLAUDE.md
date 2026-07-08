@@ -26,9 +26,22 @@ These rules apply to **all** projects in user `<username>`'s environment
 
 ## 3. Model and costs
 
-- Default model: **`claude-sonnet-4-6`** (set in `settings.json`).
-- For complex tasks (architecture, heavy debugging, broad refactors),
-  user may request Opus via `/model`. Do not switch on your own.
+- Main-loop model is the **user's choice** via `/model` — Claude never
+  switches it on its own. When the active model clearly mismatches the task,
+  **suggest the switch and ask first**; the user runs `/model`.
+- Tier guide (moving UP always requires asking first):
+
+| Tier | Use for |
+|---|---|
+| **Haiku** | Mechanical/repetitive: mass renames, formatting, extraction, short summaries, read-only fan-out subagents |
+| **Sonnet** | Day-to-day default: features, fixes, docs, ordinary reviews — best cost/speed |
+| **Opus** | Heavy reasoning: architecture, hard debugging, broad refactors, design decisions |
+| **Fable/Mythos (above Opus)** | Critical work: deep audits, complex multi-system planning, tasks where Opus fell short |
+
+- Subagents (Agent tool `model` param): omit by default — inherit the session
+  model. Downshifting a mechanical subagent to `haiku` is fine without asking
+  (pure cost saving, no risk). Running a subagent on a tier ABOVE the session
+  model: ask first.
 
 ## 4. Response style
 
@@ -142,4 +155,4 @@ One-time approval is **not** a blank check. Ask again in new context.
 
 ---
 
-_Last revised: 2026-05-28. Update as standards change._
+_Last revised: 2026-07-08. Update as standards change._

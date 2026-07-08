@@ -1,5 +1,5 @@
 ---
-name: senior-frontend
+name: frontend-conventions
 description: Conventions for WRITING new frontend code — component structure, state placement, Tailwind scale, accessibility, file organisation (React + TypeScript + Tailwind + shadcn/ui). Use when creating or refactoring components, or when the user asks how to structure frontend code. Performance debugging is react-best-practices; checklist validation is code-reviewer.
 ---
 

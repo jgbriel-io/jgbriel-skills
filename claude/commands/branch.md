@@ -2,6 +2,7 @@
 description: Cria branch nova a partir de main/master (atualizado) e faz switch. Detecta a branch base automaticamente.
 argument-hint: "<nome-da-branch>"
 allowed-tools: Bash(git branch:*), Bash(git checkout:*), Bash(git switch:*), Bash(git fetch:*), Bash(git pull:*), Bash(git status:*)
+model: haiku
 ---
 
 Cria branch `$ARGUMENTS` a partir da branch base do repo (main ou master) atualizada.

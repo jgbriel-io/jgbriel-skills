@@ -1,6 +1,7 @@
 ---
 description: Desfaz último commit (soft reset) — mantém mudanças staged, só remove o commit. Mostra o que será desfeito antes.
 allowed-tools: Bash(git log:*), Bash(git reset:*), Bash(git status:*)
+model: haiku
 ---
 
 Desfaz último commit via soft reset, mantendo as mudanças staged.

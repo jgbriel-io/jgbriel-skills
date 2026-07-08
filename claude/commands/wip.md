@@ -2,6 +2,7 @@
 description: Commit rápido WIP pra salvar progresso. Sem ritual de mensagem, só descrição livre opcional.
 argument-hint: "[descrição curta opcional]"
 allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git add:*), Bash(git commit:*)
+model: haiku
 ---
 
 Commit WIP rápido para salvar progresso.

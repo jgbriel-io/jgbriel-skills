@@ -1,6 +1,7 @@
 ---
 description: Snapshot rápido do estado do repo — branch, ahead/behind, staged, unstaged, untracked, último commit.
 allowed-tools: Bash(git status:*), Bash(git branch:*), Bash(git log:*), Bash(git diff:*), Bash(git rev-list:*)
+model: haiku
 ---
 
 Mostre um snapshot do estado atual do repo, neste formato:

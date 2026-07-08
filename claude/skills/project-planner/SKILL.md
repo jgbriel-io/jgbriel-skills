@@ -1,6 +1,6 @@
 ---
 name: project-planner
-description: Conversational project planning: asks one question at a time (grilling style), suggests technical details when user doesn't know, and scaffolds wiki pages in wiki/Projetos/ after confirmation. Use when user says "quero planejar um projeto", "tenho uma ideia de projeto", "documenta esse projeto", "cria página do projeto X", "novo projeto no wiki". User can share what they already know; Claude fills gaps with suggestions. This is Phase 1 of new-project — for the full idea-to-implementation workflow use new-project instead; for projects with existing docs/ on disk use project-sync.
+description: Conversational project planning: asks one question at a time (grilling style), suggests technical details when user doesn't know, and scaffolds wiki pages in wiki/Projetos/ after confirmation. Use when user says "quero planejar um projeto", "tenho uma ideia de projeto", "documenta esse projeto", "cria página do projeto X", "novo projeto no wiki". User can share what they already know; Claude fills gaps with suggestions. This is Phase 1 of project-new — for the full idea-to-implementation workflow use project-new instead; for projects with existing docs/ on disk use project-sync.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
@@ -14,7 +14,7 @@ Entrevista o usuário sobre um projeto novo e cria as páginas wiki em `wiki/Pro
 - Usuário quer criar estrutura wiki para projeto ainda não documentado
 - Usuário diz "vamos planejar X", "tenho ideia de Y", "cria projeto Z no wiki"
 
-Não usar quando: projeto tem `docs/` existente em disco → usar `wiki-ingest` em vez disso.
+Não usar quando: projeto tem `docs/` existente em disco → usar `project-sync` em vez disso.
 
 ---
 
@@ -36,7 +36,13 @@ Fluxo conversacional: Claude pergunta **uma coisa por vez**, sugere quando o usu
 3. **Stack** — perguntar ou sugerir camada a camada (frontend, backend, banco, infra). Sugerir stack comum pro tipo de projeto se o usuário não souber.
 4. **Status** — sem código (`seed`), em desenvolvimento (`developing`), em produção (`evergreen`).
 5. **Subpáginas** — propor as que fazem sentido pro projeto e confirmar.
-6. **Docs em disco?** — perguntar só se parecer projeto já iniciado.
+6. **Docs/repo em disco?** — perguntar só se parecer projeto já iniciado. Se
+   existir (ou estiver planejada) pasta em `D:/Projetos/...`, registrar o
+   caminho em `sources:` do frontmatter — é o que o project-sync usa depois.
+7. **Fora do escopo (v1)** — o que o projeto NÃO vai fazer na primeira versão.
+   Sugerir 2–3 candidatos com base no objetivo (integrações, mobile, admin,
+   multi-tenant...) e confirmar. Entregável obrigatório da Fase 1 do
+   project-new — sem isso, scope creep entra de graça.
 
 ### Exemplo de turno bom
 
@@ -64,6 +70,7 @@ Resumo antes de criar:
 **Stack**: Frontend: X · Backend: Y · Banco: Z · Infra: W
 **Status**: seed
 **Subpáginas**: Arquitetura · Backend · Frontend · Database
+**Fora do escopo (v1)**: A · B · C
 
 Crio os arquivos?
 ```
@@ -126,6 +133,17 @@ Status mapping:
 | [[<Nome> - Arquitetura]] | decisões de arquitetura, diagramas |
 | [[<Nome> - Backend]] | APIs, serviços, regras de negócio |
 | ... | ... |
+
+## Fora do escopo (v1)
+
+- <item confirmado no diálogo>
+- ...
+
+## Decisões
+
+| Decisão | Motivo |
+|---|---|
+| <escolha de stack/abordagem> | <por quê> |
 
 ## Comandos
 
@@ -196,7 +214,9 @@ Criado:
 
 Próximos passos:
 - Preencher seções marcadas com > [!gap]
-- Se tiver docs em D:/Projetos/..., rodar wiki-ingest pra enriquecer
+- Se tiver docs em D:/Projetos/..., rodar project-sync pra enriquecer
+- Stress-testar a ideia agora: /grilling
+- Fluxo completo (spec → design → implementação): project-new — esta skill foi a Fase 1
 ```
 
 ---
