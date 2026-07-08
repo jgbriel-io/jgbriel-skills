@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Stack-specific review checklist for React + TanStack Query + Supabase multi-tenant apps — hook architecture, RLS/tenant isolation, render performance, design tokens, TypeScript. Use when the user wants to validate a feature or PR against the project's stack standards, says "revisa contra o checklist", "valida os padrões do stack", or asks for a React/Supabase code review. Not a general diff reviewer — for severity-tagged diff findings use the reviewer agent or /review.
+description: Stack-specific review checklist for React + TanStack Query + Supabase multi-tenant apps — hook architecture, RLS/tenant isolation, render performance, design tokens, TypeScript. Use when the user wants to validate a feature or PR against the project's stack standards, says "revisa contra o checklist", "valida os padrões do stack", or asks for a React/Supabase code review. Not a general diff reviewer — for diff findings use the built-in /code-review.
 ---
 
 # Code Review — Stack Checklist
