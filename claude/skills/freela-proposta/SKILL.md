@@ -28,9 +28,10 @@ Na ordem do que mais trava a proposta:
    mais importante da proposta.
 3. **Prazo** — em semanas, contado a partir do quê (aprovação? recebimento do
    material do cliente?).
-4. **Investimento** — perguntar o valor ou a taxa/hora do usuário. **Nunca
-   inventar preço.** Se pedirem sugestão, estimar horas por entregável e
-   multiplicar pela taxa que o usuário informar.
+4. **Investimento** — o preço vem sempre do usuário: perguntar o valor
+   fechado ou a taxa/hora. Se pedirem sugestão, estimar horas por entregável
+   e multiplicar pela taxa que o usuário informar — a estimativa é de horas,
+   a precificação é dele.
 5. **Condições** — forma de pagamento (sinal + entrega é o padrão), quantas
    rodadas de revisão inclusas, o que é cobrado à parte, validade da proposta.
 

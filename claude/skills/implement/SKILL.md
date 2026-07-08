@@ -12,4 +12,4 @@ Run typechecking regularly, single test files regularly, and the full test suite
 
 Once done, use /code-review to review the work.
 
-Commit your work to the current branch.
+Commit your work to the current branch — the implement request itself is the authorization to commit (exception to the ask-first rule; it covers only this branch, never push).

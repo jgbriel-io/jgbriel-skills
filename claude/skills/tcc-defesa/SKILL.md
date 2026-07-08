@@ -20,9 +20,9 @@ depois do roteiro pronto).
 
 - Ler os capítulos finais (perguntar o path se não achar em
   `**/capitulos-final/` ou `**/projeto-escrito/`).
-- Métricas canônicas ficam no `CLAUDE.md` do vault/projeto (fechamento Jun
-  2026: 152 commits, 31 sprints, 301 tests, ~50k LOC, 70 migrations, 32 RF,
-  11 tabelas). Usar SEMPRE esses números — a banca compara com o texto.
+- Métricas do projeto: ler as canônicas no `CLAUDE.md` do vault/projeto
+  (seção "Métricas canônicas") e usar SEMPRE esses números — a banca compara
+  com o texto. Não citar de memória: a fonte é uma só.
 - Perguntar: tempo de fala definido pela FEPI? (assumir 20min se não souber,
   confirmar). Data da defesa? Formato (presencial/remoto, slides obrigatórios?).
 
