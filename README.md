@@ -119,7 +119,6 @@ Templates pra copiar como arquivo novo em qualquer projeto (não são config do 
 git clone https://github.com/jgbriel-io/jgbriel-skills.git
 # Linka conteúdo no home (cuidado, sobrescreve seu config)
 robocopy jgbriel-skills\claude $env:USERPROFILE\.claude /E
-robocopy jgbriel-skills\kiro $env:USERPROFILE\.kiro /E
 ```
 
 ### Opção 2: Copiar arquivos seletivos
@@ -128,7 +127,6 @@ robocopy jgbriel-skills\kiro $env:USERPROFILE\.kiro /E
 git clone https://github.com/jgbriel-io/jgbriel-skills.git
 # Pega só o que interessa
 Copy-Item jgbriel-skills\claude\CLAUDE.md $env:USERPROFILE\.claude\
-Copy-Item jgbriel-skills\kiro\steering\* $env:USERPROFILE\.kiro\steering\ -Recurse
 ```
 
 ### Opção 3: Submódulo
