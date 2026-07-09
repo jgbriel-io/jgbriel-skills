@@ -1,6 +1,6 @@
 # jgabriel-skills
 
-Skills, regras e configurações reutilizáveis para **Claude Code** e **Kiro IDE**.
+Skills, regras e configurações reutilizáveis para **Claude Code**.
 Replica meu setup completo em qualquer máquina — regras de código, steering global,
 hooks, MCP config e skills customizadas (engineering, TCC, productivity, etc).
 
@@ -33,8 +33,6 @@ jgabriel-skills/
 │   ├── CONTEXT.template.md           # glossário de domínio (1 contexto)
 │   └── CONTEXT-MAP.template.md       # glossário pra repo com múltiplos contextos
 │
-└── kiro/                             # Kiro IDE global config (~/.kiro)
-    ├── KIRO.md                       # regras globais Kiro
     ├── COMMANDS.md                   # quick reference de steering/agents/skills/powers
     ├── GUIDE.md                      # guia rápido de setup
     ├── agents/                       # 4 agents JSON (planner, researcher, reviewer, tcc-orientador)
@@ -105,37 +103,11 @@ Lista com descrição completa: `claude/STRUCTURE.md`.
 
 ### Templates de projeto (`templates/`)
 
-Templates pra copiar como arquivo novo em qualquer projeto (não são config do Claude Code/Kiro):
+Templates pra copiar como arquivo novo em qualquer projeto (não são config do Claude Code):
 
 - `CONTEXT.template.md` — glossário de domínio de um contexto só. Formato e regras de uso: `claude/skills/grill-with-docs/CONTEXT-FORMAT.md`.
 - `CONTEXT-MAP.template.md` — pra repo com múltiplos contextos (monorepo/DDD), lista os contextos e como se relacionam.
 
-### Kiro IDE (`kiro/`)
-
-**Steering (`steering/`)** — carregados por tipo de `inclusion`:
-
-- `global/` (10 arquivos, `inclusion: always`) — `language`, `code-editing`, `git`, `security`, `frontend`, `docs-style`, `tasks`, `response-style`, `system`, `caveman`
-- `tech/` — code-reviewer, senior-backend, senior-frontend, react-best-practices, seo-optimizer, supabase-postgres, steering-guide, **+ suite de design** (design-taste-frontend v2, high-end-visual-design, minimalist-ui, redesign-existing-projects, image-to-code)
-- `engineering/` — diagnose, grill-with-docs, improve-codebase-architecture, prototype, tdd, to-issues, to-prd, triage, zoom-out
-- `misc/` — commit, docs-writing, setup-pre-commit, steering-creator
-- `personal/` — edit-article, obsidian-vault
-- `productivity/` — grill-me, handoff
-- `tcc/` — tcc-fragmentos, tcc-rascunho, tcc-revisao-impessoal
-
-**Agents (`agents/`)** — 4 agents JSON:
-
-- `researcher.json` — localizador read-only (`path:line` table)
-- `reviewer.json` — code review severity-tagged, sem praise
-- `planner.json` — plano ordenado com deps, riscos e exit criteria
-- `tcc-orientador.json` — orientador severo de TCC (PT-BR)
-
-**Skills Kiro (`skills/`)** — invocadas via `@nome`:
-- `caveman` — modo compressão de tokens
-- `find-skills` — lista skills disponíveis no projeto
-- `ui-ux-pro-max` — design intelligence pra dashboard/admin/e-commerce/SaaS/mobile (CLI Python + dados de estilos/paletas/fontes)
-
-**Powers (`powers/installed/`):**
-- `supabase-hosted` — integração Supabase (migrations, schema, types)
 
 ---
 
