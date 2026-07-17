@@ -12,20 +12,24 @@ Lê `docs/` de um projeto em `D:/Projetos/` e cria ou atualiza `wiki/Projetos/<n
 
 ## Catálogo de projetos conhecidos
 
-| Nome wiki | Path em D: | Status |
-|-----------|-----------|--------|
-| SyncClass | `D:/Projetos/projetos-pessoais/tcc/SyncClass-Plataforma-SaaS/` | evergreen |
-| her-website | `D:/Projetos/Freelas/HER/her-website/` | evergreen |
-| jgabriel.dev | `D:/Projetos/projetos-pessoais/jgbriel-dev/` | developing |
-| Getfy | `D:/Projetos/Freelas/BARUK/getfy/` | active |
-| Baruk CRM | `D:/Projetos/Freelas/BARUK/HubLabel - n8n/` | active |
-| epagpos-front | `D:/Projetos/B2ml/epag/epagpos-front/` | active |
-| new-epag-website | `D:/Projetos/B2ml/epag/new-epag-website/` | active |
-| timer-b2ml | `D:/Projetos/B2ml/timer-b2ml/timer-b2ml-api/` | active |
-| bom-cristao | `D:/Projetos/Freelas/SMARTX/bom-cristao/` | active |
-| fast-brain-check | `D:/Projetos/Freelas/SMARTX/fast-brain-check/` | active |
+| Nome wiki | Pasta no vault | Path em D: | Status |
+|-----------|----------------|-----------|--------|
+| SyncClass | `Pessoais/syncclass-plataforma-saas/` | `D:/Projetos/projetos-pessoais/tcc/SyncClass-Plataforma-SaaS/` | evergreen |
+| Plataforma HER (her-website) | `Clientes/her-website/` | `D:/Projetos/Freelas/LARISSA-GISGNON/her-website/` | evergreen |
+| jgabriel.dev | `Pessoais/jgabriel.dev/` | `D:/Projetos/projetos-pessoais/jgbriel-dev/` | developing |
+| Getfy | — | `D:/Projetos/Freelas/BARUK/getfy/` | active |
+| Baruk CRM | — | `D:/Projetos/Freelas/BARUK/HubLabel - n8n/` | active |
+| epagpos-front | — | `D:/Projetos/B2ml/epag/epagpos-front/` | active |
+| new-epag-website | — | `D:/Projetos/B2ml/epag/new-epag-website/` | active |
+| timer-b2ml | — | `D:/Projetos/B2ml/timer-b2ml/timer-b2ml-api/` | active |
+| Bom Cristão | `Clientes/bom-cristao/` | `D:/Projetos/Freelas/SMARTX/bom-cristao-v2/` | active |
+| colab473-erp | `Clientes/colab473-erp/` | `D:/Projetos/Freelas/LARISSA-GISGNON/colab473-erp/` | developing |
+| fast-brain-check | — | `D:/Projetos/Freelas/SMARTX/fast-brain-check/` | active |
 
-Se projeto não estiver na tabela, pedir o path D: ao usuário.
+Notas:
+- `wiki/Projetos/` é organizado em subpastas de categoria (`Clientes/`, `Pessoais/`, `Backlog/`) — o path do vault na tabela é relativo a `wiki/Projetos/`.
+- Bom Cristão: o repo no D: ainda se chama `bom-cristao-v2` (rename pendente pelo usuário); o produto e a pasta do vault são só "Bom Cristão"/`bom-cristao`. O antigo bom-cristao (Next.js, descontinuado) foi excluído do vault e do D:.
+- Se projeto não estiver na tabela, pedir o path D: ao usuário.
 
 ---
 
@@ -38,7 +42,7 @@ Se projeto não estiver na tabela, pedir o path D: ao usuário.
    ls "<D_PATH>/docs/" 2>/dev/null || echo "NO_DOCS"
    ```
 4. Se `NO_DOCS`: buscar `README.md` na raiz do projeto como fonte alternativa. Informar usuário.
-5. Verificar se `wiki/Projetos/<nome>/` já existe → determinar modo CREATE vs UPDATE.
+5. Verificar se `wiki/Projetos/<categoria>/<nome>/` já existe (categorias: `Clientes/`, `Pessoais/`, `Backlog/` — ver coluna "Pasta no vault" do catálogo) → determinar modo CREATE vs UPDATE. Em CREATE, confirmar a categoria com o usuário se não for óbvia.
 
 ---
 
