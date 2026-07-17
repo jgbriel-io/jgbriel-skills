@@ -12,20 +12,24 @@ Lê `docs/` de um projeto em `D:/Projetos/` e cria ou atualiza `wiki/Projetos/<n
 
 ## Catálogo de projetos conhecidos
 
-| Nome wiki | Path em D: | Status |
-|-----------|-----------|--------|
-| SyncClass | `D:/Projetos/projetos-pessoais/tcc/SyncClass-Plataforma-SaaS/` | evergreen |
-| site-cliente-a | `D:/Projetos/Freelas/HER/site-cliente-a/` | evergreen |
-| jgabriel.dev | `D:/Projetos/projetos-pessoais/jgbriel-dev/` | developing |
-| Produto Cliente B | `D:/Projetos/Freelas/CLIENTE-B/produto-cliente-b/` | active |
-| CRM Cliente B | `D:/Projetos/Freelas/CLIENTE-B/crm-cliente-b/` | active |
-| pos-front | `D:/Projetos/B2ml/epag/pos-front/` | active |
-| site-corporativo | `D:/Projetos/B2ml/epag/site-corporativo/` | active |
-| timer-api | `D:/Projetos/B2ml/timer-api/timer-api/` | active |
-| site-cliente-c | `D:/Projetos/Freelas/CLIENTE-C/site-cliente-c/` | active |
-| app-cliente-c | `D:/Projetos/Freelas/CLIENTE-C/app-cliente-c/` | active |
+| Nome wiki | Pasta no vault | Path em D: | Status |
+|-----------|----------------|-----------|--------|
+| SyncClass | `Pessoais/syncclass-plataforma-saas/` | `D:/Projetos/projetos-pessoais/tcc/SyncClass-Plataforma-SaaS/` | evergreen |
+| Plataforma HER (site-cliente-a) | `Clientes/site-cliente-a/` | `D:/Projetos/Freelas/CLIENTE-A/site-cliente-a/` | evergreen |
+| jgabriel.dev | `Pessoais/jgabriel.dev/` | `D:/Projetos/projetos-pessoais/jgbriel-dev/` | developing |
+| Produto Cliente B | — | `D:/Projetos/Freelas/CLIENTE-B/produto-cliente-b/` | active |
+| CRM Cliente B | — | `D:/Projetos/Freelas/CLIENTE-B/crm-cliente-b/` | active |
+| pos-front | — | `D:/Projetos/B2ml/epag/pos-front/` | active |
+| site-corporativo | — | `D:/Projetos/B2ml/epag/site-corporativo/` | active |
+| timer-api | — | `D:/Projetos/B2ml/timer-api/timer-api/` | active |
+| Site Cliente C | `Clientes/site-cliente-c/` | `D:/Projetos/Freelas/CLIENTE-C/site-cliente-c/` | active |
+| erp-cliente-a | `Clientes/erp-cliente-a/` | `D:/Projetos/Freelas/CLIENTE-A/erp-cliente-a/` | developing |
+| app-cliente-c | — | `D:/Projetos/Freelas/CLIENTE-C/app-cliente-c/` | active |
 
-Se projeto não estiver na tabela, pedir o path D: ao usuário.
+Notas:
+- `wiki/Projetos/` é organizado em subpastas de categoria (`Clientes/`, `Pessoais/`, `Backlog/`) — o path do vault na tabela é relativo a `wiki/Projetos/`.
+- Site Cliente C: o repo no D: ainda se chama `site-cliente-c` (rename pendente pelo usuário); o produto e a pasta do vault são só "Site Cliente C"/`site-cliente-c`. O antigo site-cliente-c (Next.js, descontinuado) foi excluído do vault e do D:.
+- Se projeto não estiver na tabela, pedir o path D: ao usuário.
 
 ---
 
@@ -38,7 +42,7 @@ Se projeto não estiver na tabela, pedir o path D: ao usuário.
    ls "<D_PATH>/docs/" 2>/dev/null || echo "NO_DOCS"
    ```
 4. Se `NO_DOCS`: buscar `README.md` na raiz do projeto como fonte alternativa. Informar usuário.
-5. Verificar se `wiki/Projetos/<nome>/` já existe → determinar modo CREATE vs UPDATE.
+5. Verificar se `wiki/Projetos/<categoria>/<nome>/` já existe (categorias: `Clientes/`, `Pessoais/`, `Backlog/` — ver coluna "Pasta no vault" do catálogo) → determinar modo CREATE vs UPDATE. Em CREATE, confirmar a categoria com o usuário se não for óbvia.
 
 ---
 
