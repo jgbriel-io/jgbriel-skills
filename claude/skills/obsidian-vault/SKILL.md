@@ -18,7 +18,7 @@ them creates ghost pages.
 wiki/
 ├── Aprendizado/
 ├── Clientes/
-├── Faculdade/TCC/SyncClass/    ← academic context
+├── Faculdade/TCC/              ← academic context (flattened 2026-07-17)
 ├── Ferramentas/Claude/
 ├── Pessoal/
 └── Projetos/                   ← SyncClass, jgabriel.dev, her-website, Templates
@@ -43,7 +43,7 @@ clicked. Therefore:
 
 | Alias | Path |
 |---|---|
-| SyncClass (academic) | `wiki/Faculdade/TCC/SyncClass/index` |
+| SyncClass (academic) | `wiki/Faculdade/TCC/index` |
 | SyncClass Projeto (technical) | `wiki/Projetos/SyncClass/index` |
 | TCC | `wiki/Faculdade/TCC/index` |
 | Projetos | `wiki/Projetos/index` |
