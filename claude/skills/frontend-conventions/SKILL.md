@@ -1,11 +1,11 @@
 ---
 name: frontend-conventions
-description: Conventions for WRITING new frontend code — component structure, state placement, Tailwind scale, accessibility, file organisation (React + TypeScript + Tailwind + shadcn/ui). Use when creating or refactoring components, or when the user asks how to structure frontend code. Performance debugging is react-best-practices; checklist validation is code-reviewer.
+description: Conventions for WRITING new frontend code — component structure, state placement, Tailwind scale, accessibility, file organisation (React + TypeScript + Tailwind + shadcn/ui). Use when creating or refactoring components, when the user asks how to structure frontend code, or when reviewing frontend code against the house checklist. Performance debugging is react-best-practices.
 ---
 
 # Senior Frontend — Boas Práticas
 
-Stack: React 18 + TypeScript + Vite + Tailwind + shadcn/ui + TanStack Query.
+Stack: React 18 + TypeScript + Tailwind + shadcn/ui + TanStack Query (Vite ou Next.js, conforme o projeto).
 
 ## Componentes
 
@@ -29,9 +29,27 @@ const UserCard = ({ user, onEdit }: Props) => {
 - Server state sempre via TanStack Query — nunca `useState` + `useEffect` para dados
 - Evitar estado global desnecessário
 
+## Estados de UI
+
+- Toda tela com dados trata os três estados: **loading**, **error** e **empty**
+- Loading: skeleton com o shape do layout final, não spinner genérico
+- Error: mensagem clara e localizada, inline em forms
+- Empty: composto de propósito, indicando como popular
+- Aprofundamento em `error-ux` — skill dedicada aos estados de tela (4 estados incluindo success, retry e error boundaries)
+
 ## Performance
 
-- Não criar objetos/arrays inline em props
+- Não criar objetos/arrays inline em props (novo ref a cada render):
+
+```tsx
+// ❌
+<List filters={{ status: 'active', userId }} />
+
+// ✅
+const filters = useMemo(() => ({ status: 'active', userId }), [userId]);
+<List filters={filters} />
+```
+
 - `useMemo`/`useCallback` só com evidência de problema
 - Imports diretos, não barrel:
 
@@ -62,3 +80,19 @@ import { Button } from '@/components/ui/button'
 - Um componente por arquivo
 - Hooks customizados em `src/hooks/` com prefixo `use`
 - Lógica de negócio fora de componentes — em hooks
+
+## Checklist de review
+
+Ao revisar frontend, verificar:
+
+- [ ] Componente faz apenas UI? Lógica em hook customizado?
+- [ ] Componente tem menos de ~150 linhas?
+- [ ] Sem ternários aninhados (early returns)?
+- [ ] Nomes descritivos (`isLoading`, `hasError`, `userId`)?
+- [ ] Sem código morto, comentado, ou `console.log`?
+- [ ] Estados de loading, error e empty tratados?
+- [ ] Cores semânticas, não hardcoded?
+- [ ] Sem barrel imports?
+- [ ] Sem objetos/arrays inline em props?
+- [ ] `useEffect` não usado para data fetching?
+- [ ] Props tipadas, sem `any` desnecessário?
