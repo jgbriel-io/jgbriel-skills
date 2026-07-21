@@ -1,6 +1,6 @@
 ---
 name: domain-modeling
-description: Build and sharpen a project's domain model. Use when the user wants to pin down domain terminology or a ubiquitous language, record an architectural decision, or when another skill needs to maintain the domain model.
+description: Build and sharpen a project's domain model and ubiquitous language. Use when the user wants to pin down domain terminology, mentions "domain model", "ubiquitous language" or "CONTEXT.md", wants to record an architectural decision, asks to "grill with docs" or stress-test a plan against the documented domain model, or when another skill needs to maintain the domain model.
 ---
 
 # Domain Modeling
@@ -72,3 +72,13 @@ Only offer to create an ADR when all three are true:
 3. **The result of a real trade-off** — there were genuine alternatives and you picked one for specific reasons
 
 If any of the three is missing, skip the ADR. Use the format in [ADR-FORMAT.md](./ADR-FORMAT.md).
+
+## Grill with docs (plan stress-test mode)
+
+When the user wants a plan stress-tested against the documented domain model ("grill with docs"):
+
+- Interview the user relentlessly about every aspect of the plan until you reach shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
+- For each question, provide your recommended answer.
+- Ask the questions one at a time, waiting for feedback on each question before continuing.
+- If a question can be answered by exploring the codebase, explore the codebase instead. During exploration, also look for existing documentation (`CONTEXT.md`, `CONTEXT-MAP.md`, `docs/adr/`) and ground the grilling in it.
+- All the disciplines above apply during the session: challenge against the glossary, sharpen fuzzy language, discuss concrete scenarios, cross-reference with code, update `CONTEXT.md` inline, offer ADRs sparingly.
