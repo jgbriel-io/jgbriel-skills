@@ -10,7 +10,7 @@ design, migração de dados, redação de conteúdo, configuração de infra —
 qualquer entrega com incerteza. O erro mais comum não é a conta errada, é
 estimar a tarefa grande inteira de uma vez.
 
-Output: a estimativa alimenta `freela-proposta` (quando o destino é um
+Output: a estimativa alimenta `proposta-comercial` (quando o destino é um
 cliente) ou `project-planner` (quando é projeto pessoal documentado no wiki).
 
 ## 1. Decompor antes de estimar

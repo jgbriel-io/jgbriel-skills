@@ -1,9 +1,9 @@
 ---
-name: project-new
-description: Orchestrates the full workflow for starting a project from scratch — idea to production-ready spec, design system, and implementation plan. Runs 5 phases in order: ideation, spec, design, implementation, maintenance. Invokes project-planner, grilling, domain-modeling, design-taste-frontend, setup-pre-commit, and project-sync at the right moment. Use when user says "novo projeto", "vou começar um projeto", "quero criar X do zero", "fluxo completo de projeto", "como começo o projeto X", or starts describing a project idea and wants to build it properly without rework.
+name: project-kickoff
+description: Orchestrates the full workflow for starting a project from scratch — idea to production-ready spec, design system, and implementation plan. Runs 5 phases in order: ideation, spec, design, implementation, maintenance. Invokes project-planner, grill-me, domain-modeling, design-direction, setup-pre-commit, and project-sync at the right moment. Use when user says "novo projeto", "vou começar um projeto", "quero criar X do zero", "fluxo completo de projeto", "como começo o projeto X", or starts describing a project idea and wants to build it properly without rework.
 ---
 
-# project-new
+# project-kickoff
 
 Guia o usuário pelo fluxo completo de criação de projeto, fase por fase, garantindo que nada seja pulado. Foco em evitar retrabalho — as decisões que mais custam (design system, schema, escopo) são tomadas antes de escrever código.
 
@@ -16,7 +16,7 @@ Guia o usuário pelo fluxo completo de criação de projeto, fase por fase, gara
 1. Invocar `/project-planner` para capturar a ideia conversacionalmente e criar o wiki em `wiki/Projetos/<nome>/`.
    - Ao final do planner, o index.md e stubs das subpáginas já existem.
 
-2. Após o planner, invocar `/grilling` para stress-test da ideia:
+2. Após o planner, invocar `/grill-me` para stress-test da ideia:
    - Quem é o usuário real? Como chega ao produto?
    - Como monetiza? O modelo sustenta?
    - O que pode dar errado na v1?
@@ -81,7 +81,7 @@ Perguntar ao usuário:
 - Público e tom (jovem/formal, feminino/neutro, tech/popular)
 
 ### 3.2 Invocar design skill
-- `/design-taste-frontend` — para landing pages e sites de conteúdo
+- `/design-direction` — para landing pages e sites de conteúdo
 - `/high-end-visual-design` — para produtos premium
 - `/minimalist-ui` — para interfaces editoriais e clean
 
@@ -152,7 +152,7 @@ Invocar `/setup-pre-commit` — lint, type-check e testes no pre-commit. Não de
 ```
 Fase 1 — Ideação
   [ ] /project-planner executado — wiki stub criado
-  [ ] /grilling feito — ideia stress-testada
+  [ ] /grill-me feito — ideia stress-testada
   [ ] Fora do escopo documentado no index.md
 
 Fase 2 — Spec

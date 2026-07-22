@@ -89,7 +89,7 @@ jgabriel-skills/
 
 **Skills (`skills/`)** — 33 pastas, flat (sem subpastas por categoria):
 
-`code-reviewer`, `design-taste-frontend`, `diagnose`, `docs-writing`, `edit-article`, `grill-me`, `grill-me-tcc`, `grill-with-docs`, `handoff`, `high-end-visual-design`, `image-to-code`, `improve-codebase-architecture`, `minimalist-ui`, `obsidian-vault`, `prototype`, `react-best-practices`, `redesign-existing-projects`, `senior-backend`, `senior-frontend`, `seo-optimizer`, `setup-pre-commit`, `skill-creator`, `supabase-postgres`, `tcc-auditoria-banca`, `tcc-fragmentos`, `tcc-rascunho`, `tcc-revisao-impessoal`, `tdd`, `to-issues`, `to-prd`, `triage`, `ui-ux-pro-max`, `zoom-out`
+`code-reviewer`, `design-direction`, `diagnose`, `docs-writing`, `edit-article`, `grill-me`, `grill-me-tcc`, `grill-with-docs`, `handoff`, `high-end-visual-design`, `image-to-code`, `improve-codebase-architecture`, `minimalist-ui`, `obsidian-vault`, `prototype`, `react-best-practices`, `redesign-existing-projects`, `senior-backend`, `senior-frontend`, `seo-optimizer`, `setup-pre-commit`, `skill-creator`, `supabase-postgres`, `tcc-auditoria-banca`, `tcc-fragmentos`, `tcc-rascunho`, `tcc-revisao-impessoal`, `tdd`, `to-issues`, `to-prd`, `triage`, `ui-ux-pro-max`, `zoom-out`
 
 Lista com descrição completa: `claude/STRUCTURE.md`.
 

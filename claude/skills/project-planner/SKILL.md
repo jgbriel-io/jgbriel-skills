@@ -1,6 +1,6 @@
 ---
 name: project-planner
-description: Conversational project planning: asks one question at a time (grilling style), suggests technical details when user doesn't know, and scaffolds wiki pages in wiki/Projetos/ after confirmation. Use when user says "quero planejar um projeto", "tenho uma ideia de projeto", "documenta esse projeto", "cria página do projeto X", "novo projeto no wiki", "vou começar um projeto", or starts describing a project idea — even casually. User can share what they already know; Claude fills gaps with suggestions. This is Phase 1 of project-new — for the full idea-to-implementation workflow use project-new instead; for projects with existing docs/ on disk use project-sync.
+description: Conversational project planning: asks one question at a time (grill-me style), suggests technical details when user doesn't know, and scaffolds wiki pages in wiki/Projetos/ after confirmation. Use when user says "quero planejar um projeto", "tenho uma ideia de projeto", "documenta esse projeto", "cria página do projeto X", "novo projeto no wiki", "vou começar um projeto", or starts describing a project idea — even casually. User can share what they already know; Claude fills gaps with suggestions. This is Phase 1 of project-kickoff — for the full idea-to-implementation workflow use project-kickoff instead; for projects with existing docs/ on disk use project-sync.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
@@ -31,7 +31,7 @@ Sinal para nível completo: usuário menciona stack, repos, módulos, migração
 
 ---
 
-## Passo 1 — Diálogo (estilo grilling, não questionário fixo)
+## Passo 1 — Diálogo (estilo grill-me, não questionário fixo)
 
 Fluxo conversacional: Claude pergunta **uma coisa por vez**, sugere quando o usuário não souber, avança quando o usuário já trouxer a info. Não despeja lista de perguntas.
 
@@ -55,7 +55,7 @@ Fluxo conversacional: Claude pergunta **uma coisa por vez**, sugere quando o usu
 7. **Fora do escopo (v1)** — o que o projeto NÃO vai fazer na primeira versão.
    Sugerir 2–3 candidatos com base no objetivo (integrações, mobile, admin,
    multi-tenant...) e confirmar. Entregável obrigatório da Fase 1 do
-   project-new — sem isso, scope creep entra de graça.
+   project-kickoff — sem isso, scope creep entra de graça.
 
 ### Tópicos de arquitetura (nível completo — só quando o sinal acima aparecer)
 
@@ -317,8 +317,8 @@ Criado:
 Próximos passos:
 - Preencher seções marcadas com > [!gap]
 - Se tiver docs em D:/Projetos/..., rodar project-sync pra enriquecer
-- Stress-testar a ideia agora: /grilling
-- Fluxo completo (spec → design → implementação): project-new — esta skill foi a Fase 1
+- Stress-testar a ideia agora: /grill-me
+- Fluxo completo (spec → design → implementação): project-kickoff — esta skill foi a Fase 1
 ```
 
 ---

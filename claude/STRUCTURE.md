@@ -43,7 +43,7 @@ Lista completa com descrição exata (extraída do frontmatter `description:` de
 | Skill | Trigger / uso |
 |---|---|
 | `code-reviewer` | Code review full-stack — arquitetura, qualidade, segurança, performance, UI/UX, TS |
-| `design-taste-frontend` | Landing pages/portfolios anti-slop — direção de design real, audit-first em redesign |
+| `design-direction` | Landing pages/portfolios anti-slop — direção de design real, audit-first em redesign |
 | `diagnose` | Loop disciplinado de diagnóstico (reproduzir→minimizar→hipótese→instrumentar→fix→regressão) |
 | `docs-writing` | Style guide pra README/docs/ADR/JSDoc — não cobre escrita acadêmica TCC |
 | `edit-article` | Reestruturar/clarear/apertar prosa de artigo |

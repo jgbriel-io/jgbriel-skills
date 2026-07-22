@@ -1,6 +1,6 @@
 ---
 name: high-end-visual-design
-description: Explicit aesthetic preset — Awwwards-tier agency look with double-bezel cards, fluid island nav, spring-physics motion, and ethereal glass/editorial luxury/soft structuralism archetypes. Invoke via /high-end-visual-design when this specific expensive-agency aesthetic is wanted. Does not auto-trigger; general design briefs are handled by design-taste-frontend.
+description: Explicit aesthetic preset — Awwwards-tier agency look with double-bezel cards, fluid island nav, spring-physics motion, and ethereal glass/editorial luxury/soft structuralism archetypes. Invoke via /high-end-visual-design when this specific expensive-agency aesthetic is wanted. Does not auto-trigger; general design briefs are handled by design-direction.
 disable-model-invocation: true
 ---
 
