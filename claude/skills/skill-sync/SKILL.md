@@ -47,7 +47,7 @@ LOCAL-ONLY pair with near-identical content is a rename, not two skills.
 - `setup-pre-commit` — local ask-before-committing rule (step 8)
 - `diagnose` — local name kept (upstream calls it diagnosing-bugs)
 - Any skill whose divergence IS a local fix from an audit — check
-  `wiki/Ferramentas/Claude/docs/Claude Code - Critérios de Qualidade das Skills.md` audit history when unsure
+  `wiki/Ferramentas/Claude Code/docs/Critérios de Qualidade das Skills.md` audit history when unsure
 
 For these, pull upstream content only by merging around the local adaptation,
 never by wholesale copy.
@@ -74,7 +74,7 @@ Verify with a final grep — zero leftovers.
 - Run `scripts/mirror-to-vault.sh` (repo root) to sync every changed skill to the vault; new skills also get
   a row in the vault `skills/index.md` (and update the counts there and in the
   Claude `index.md`).
-- Append a sync entry to `Claude Code - Critérios de Qualidade das Skills.md`'s audit section: date, pulled,
+- Append a sync entry to `Critérios de Qualidade das Skills.md`'s audit section: date, pulled,
   adopted, protected.
 - New skills go on the pending list for a `/skill-audit` pass.
 

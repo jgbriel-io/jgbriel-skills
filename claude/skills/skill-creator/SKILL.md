@@ -267,7 +267,7 @@ When the skill is done:
 ## Final review checklist
 
 Score the draft against the C1–C11 rubric in
-`wiki/Ferramentas/Claude/docs/Claude Code - Critérios de Qualidade das Skills.md` — or run `/skill-audit` on
+`wiki/Ferramentas/Claude Code/docs/Critérios de Qualidade das Skills.md` — or run `/skill-audit` on
 the new skill; that rubric is the single source of truth for quality gates
 (description, concision <500-line target, progressive disclosure, reasons
 over MUSTs, terminology, timelessness). Creator-specific extras on top:
