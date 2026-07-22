@@ -1,6 +1,6 @@
 ---
 name: image-to-code
-description: Image-first website design workflow — generate design reference images, deeply analyze them, then implement the frontend to match them faithfully. Use for visually important web tasks (hero sections, landing pages, marketing sites, portfolios, premium multi-section sites, visual redesigns) when an image generation tool is available in the environment (MCP image tool, banana, generate_image). If no image-gen tool exists, say so and use design-taste-frontend directly instead.
+description: Image-first website design workflow — generate design reference images, deeply analyze them, then implement the frontend to match them faithfully. Use for visually important web tasks (hero sections, landing pages, marketing sites, portfolios, premium multi-section sites, visual redesigns) when an image generation tool is available in the environment (MCP image tool, banana, generate_image). If no image-gen tool exists, say so and use design-direction directly instead.
 ---
 
 # Image-First Website Design to Code
@@ -18,7 +18,7 @@ of producing an actual visual reference.
 
 **Availability gate:** first confirm an image generation tool exists in the
 environment. If none does, tell the user and fall back to the
-design-taste-frontend approach — do not fake this workflow without images.
+design-direction approach — do not fake this workflow without images.
 
 ## Baseline dials
 

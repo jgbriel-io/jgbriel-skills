@@ -1,6 +1,6 @@
 ---
 name: minimalist-ui
-description: Clean editorial document-style interfaces — warm monochrome palette, typographic contrast, flat bento grids, muted pastel accents, no gradients or heavy shadows. Use when the user asks for a Notion-style, minimalist, editorial, "document-like", or utilitarian-premium UI, or names this aesthetic explicitly. Not for cinematic/dark/glassy briefs — those belong to design-taste-frontend.
+description: Clean editorial document-style interfaces — warm monochrome palette, typographic contrast, flat bento grids, muted pastel accents, no gradients or heavy shadows. Use when the user asks for a Notion-style, minimalist, editorial, "document-like", or utilitarian-premium UI, or names this aesthetic explicitly. Not for cinematic/dark/glassy briefs — those belong to design-direction.
 ---
 
 # Protocol: Premium Utilitarian Minimalism UI Architect

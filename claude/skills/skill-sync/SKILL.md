@@ -64,7 +64,7 @@ Imported skills are never ready as-is. After pulling, grep the pulled skills for
 
 - `/setup-matt-pocock-skills` → replace with "configured in the project's
   `CLAUDE.md` or equivalent context file"
-- `diagnosing-bugs` → `diagnose` · `grill-me` → `grilling`
+- `diagnosing-bugs` → `diagnose` · `grill-me` → `grill-me`
 - `ask-matt`, matt's URLs/paths → remove or adapt
 
 Verify with a final grep — zero leftovers.

@@ -80,5 +80,5 @@ When the user wants a plan stress-tested against the documented domain model ("g
 - Interview the user relentlessly about every aspect of the plan until you reach shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
 - For each question, provide your recommended answer.
 - Ask the questions one at a time, waiting for feedback on each question before continuing.
-- If a question can be answered by exploring the codebase, explore the codebase instead. During exploration, also look for existing documentation (`CONTEXT.md`, `CONTEXT-MAP.md`, `docs/adr/`) and ground the grilling in it.
+- If a question can be answered by exploring the codebase, explore the codebase instead. During exploration, also look for existing documentation (`CONTEXT.md`, `CONTEXT-MAP.md`, `docs/adr/`) and ground the grill-me in it.
 - All the disciplines above apply during the session: challenge against the glossary, sharpen fuzzy language, discuss concrete scenarios, cross-reference with code, update `CONTEXT.md` inline, offer ADRs sparingly.

@@ -117,7 +117,7 @@ Procurar o documento oficial (era SP 800-145?) e citar formal no cap. 2.
 
 ## Postura conversacional
 
-Esta é uma **sessão de grilling**. Entrevistar o usuário sobre o que ele está pensando:
+Esta é uma **sessão de grill-me**. Entrevistar o usuário sobre o que ele está pensando:
 
 - "Que parte do código você acha que merece destaque no capítulo?"
 - "Que decisão técnica ainda não tem justificativa registrada?"

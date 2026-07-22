@@ -1,13 +1,13 @@
 ---
 name: stack-scaffold
-description: Scaffold a new project with the user's standard stack — React 18 + TypeScript + Tailwind + shadcn/ui, on Vite + Supabase by default (personal projects) or Next.js / NestJS when a client project calls for it — pre-wired with his conventions (hooks-only data layer, folder structure, pre-commit hooks, RLS-first schema). Use when the user says "cria o projeto com meu stack", "scaffold do projeto", "monta o boilerplate", or when project-new reaches Phase 4. Not the planning workflow — that is project-new; this is the technical bootstrap only.
+description: Scaffold a new project with the user's standard stack — React 18 + TypeScript + Tailwind + shadcn/ui, on Vite + Supabase by default (personal projects) or Next.js / NestJS when a client project calls for it — pre-wired with his conventions (hooks-only data layer, folder structure, pre-commit hooks, RLS-first schema). Use when the user says "cria o projeto com meu stack", "scaffold do projeto", "monta o boilerplate", or when project-kickoff reaches Phase 4. Not the planning workflow — that is project-kickoff; this is the technical bootstrap only.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # Stack Scaffold
 
 Technical bootstrap of the user's standard stack. Invoked standalone or by
-`project-new` Phase 4.1. The point: day-1 codebase already obeys the
+`project-kickoff` Phase 4.1. The point: day-1 codebase already obeys the
 conventions the review skills check later — no retrofit.
 
 ## Before scaffolding
@@ -118,5 +118,5 @@ tanstack-query-patterns service + hook pattern) as the template to copy.
 ### 6. Hand back
 
 Report: created structure, commands to run (`pnpm dev` / `pnpm start:dev`),
-what's stubbed (keys pending), and the next step — if inside project-new,
+what's stubbed (keys pending), and the next step — if inside project-kickoff,
 back to Phase 4.2 (schema first, then feature-by-feature).

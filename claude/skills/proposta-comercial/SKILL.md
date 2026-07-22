@@ -1,5 +1,5 @@
 ---
-name: freela-proposta
+name: proposta-comercial
 description: Transforma um briefing de cliente em proposta comercial de freela — escopo fechado (incluído/excluído), entregáveis, cronograma, investimento e condições. Entrevista o que faltar, uma pergunta por vez, e salva a proposta no vault do cliente. Use quando o usuário disser "faz a proposta pro cliente X", "monta o orçamento", "escopo pro freela", "proposta comercial", ou colar um briefing pedindo precificação. Não gera contrato jurídico — só a proposta.
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
