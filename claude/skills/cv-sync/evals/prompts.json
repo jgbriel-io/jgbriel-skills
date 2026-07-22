@@ -1,0 +1,8 @@
+{
+  "skill": "cv-sync",
+  "prompts": [
+    {"id": 1, "prompt": "atualiza o cv: troca o e-mail pra jgbriel.dev@gmail.com e sobe no site", "should_trigger": true},
+    {"id": 2, "prompt": "mudei umas coisa no curriculo, recompila e ja deixa no site", "should_trigger": true},
+    {"id": 3, "prompt": "adapta meu curriculo pra essa vaga de pleno na XPTO: <descrição>", "should_trigger": false}
+  ]
+}
