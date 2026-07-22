@@ -1,5 +1,5 @@
 ---
-description: Quebra tarefa em vertical slices independentes — cada slice end-to-end demoable. Foco em entrega incremental, não em camadas. Análise local, sem publicar no tracker — pra criar issues use to-issues. Análise local, sem publicar no tracker — pra criar issues use to-issues.
+description: Quebra tarefa em vertical slices independentes — cada slice end-to-end demoable. Foco em entrega incremental, não em camadas.
 argument-hint: "<descrição da tarefa>"
 allowed-tools: Read, Grep, Glob
 ---
