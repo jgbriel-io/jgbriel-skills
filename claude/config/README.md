@@ -26,5 +26,5 @@ template for each. Copy the template, delete the comments, fill it in.
   earns the strictest pruning of all file types.
 - Domain context files (DESIGN.md, CONTEXT.md, ADRs) live in the project repo,
   not here — this kit only holds the templates.
-- Skill authoring quality bar: `wiki/Ferramentas/Claude/docs/SKILL-QUALITY.md`
+- Skill authoring quality bar: `wiki/Ferramentas/Claude/docs/Claude Code - Critérios de Qualidade das Skills.md`
   (C1–C11) in the vault; theory in the `writing-great-skills` skill.

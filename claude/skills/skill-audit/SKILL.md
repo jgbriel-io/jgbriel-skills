@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 
 Audit the user's Claude Code skills with the rubric below. Full rubric,
 scoring rationale, and audit history live in the vault:
-`wiki/Ferramentas/Claude/docs/SKILL-QUALITY.md` — read it first if available,
+`wiki/Ferramentas/Claude/docs/Claude Code - Critérios de Qualidade das Skills.md` — read it first if available,
 and append results there when done.
 
 ## The three-point system (where skills live)
@@ -45,7 +45,7 @@ mirrored to the vault.
    delete from both scopes and prune index references.
 6. **Commit in the D: repo** when the user asks; the vault auto-commits via
    its Obsidian Git hook (watch for stale 0-byte `.git/index.lock`).
-7. **Record results** in SKILL-QUALITY.md's audit section: date, per-category
+7. **Record results** in `Claude Code - Critérios de Qualidade das Skills.md`'s audit section: date, per-category
    state, unresolved items.
 
 ## Rubric (C1–C11)
