@@ -1,6 +1,6 @@
 ---
 name: resume-tailor
-description: Customize resume for specific job postings while maintaining truthfulness
+description: Customize resume for specific job postings while maintaining truthfulness. Use when user wants to tailor/customize their resume for a role, or mentions "tailor resume", "customize resume", "target role", "match job description". Use after job-description-analyzer.
 ---
 
 # Resume Tailor

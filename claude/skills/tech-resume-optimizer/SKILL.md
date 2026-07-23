@@ -1,6 +1,6 @@
 ---
 name: tech-resume-optimizer
-description: Optimize resumes for software engineering, PM, and technical roles
+description: Optimize resumes for software engineering, PM, and technical roles. Use when user is applying for SWE or technical roles, or mentions "tech resume", "software engineer resume", "SWE resume".
 ---
 
 # Tech Resume Optimizer

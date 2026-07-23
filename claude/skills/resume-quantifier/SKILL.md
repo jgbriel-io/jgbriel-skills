@@ -1,6 +1,6 @@
 ---
 name: resume-quantifier
-description: Find opportunities to add metrics and estimate numbers when exact data unavailable
+description: Find opportunities to add metrics and estimate numbers when exact data unavailable. Use when user needs to add metrics or numbers to their resume, or mentions "add metrics", "quantify", "no data".
 ---
 
 # Resume Quantifier

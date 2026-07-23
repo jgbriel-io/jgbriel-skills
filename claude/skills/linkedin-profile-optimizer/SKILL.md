@@ -1,6 +1,6 @@
 ---
 name: linkedin-profile-optimizer
-description: Optimize LinkedIn profile for searchability, recruiter visibility, and engagement
+description: Optimize LinkedIn profile for searchability, recruiter visibility, and engagement. Use when user wants to optimize their LinkedIn profile for job searching, or mentions "LinkedIn profile", "optimize LinkedIn", "LinkedIn headline", "recruiter".
 ---
 
 # LinkedIn Profile Optimizer

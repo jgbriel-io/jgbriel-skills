@@ -1,6 +1,6 @@
 ---
 name: resume-bullet-writer
-description: Transform weak resume bullets into achievement-focused statements with metrics and impact
+description: Transform weak resume bullets into achievement-focused statements with metrics and impact. Use when user wants to improve or write resume bullet points, or mentions "improve my bullets", "quantify my achievements", "results-driven".
 ---
 
 # Resume Bullet Writer

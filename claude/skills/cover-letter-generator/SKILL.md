@@ -1,6 +1,6 @@
 ---
 name: cover-letter-generator
-description: Create personalized, compelling cover letters from resume and job description
+description: Create personalized, compelling cover letters from resume and job description. Use when user wants to write a cover letter or application letter, or mentions "cover letter", "application letter", "letter for job". Use after job-description-analyzer.
 ---
 
 # Cover Letter Generator

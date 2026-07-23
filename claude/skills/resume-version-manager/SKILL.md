@@ -1,6 +1,6 @@
 ---
 name: resume-version-manager
-description: Track different resume versions, maintain master resume, manage tailored versions
+description: Track different resume versions, maintain master resume, manage tailored versions. Use when user has multiple resume versions to manage, or mentions "resume versions", "master resume", "which resume".
 ---
 
 # Resume Version Manager

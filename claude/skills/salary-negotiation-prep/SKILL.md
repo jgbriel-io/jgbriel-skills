@@ -1,6 +1,6 @@
 ---
 name: salary-negotiation-prep
-description: Research market rates, build negotiation strategy, and create counter-offer scripts
+description: Research market rates, build negotiation strategy, and create counter-offer scripts. Use when user wants to negotiate a job offer or salary, or mentions "salary negotiation", "negotiate offer", "counter offer".
 ---
 
 # Salary Negotiation Prep
