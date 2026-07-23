@@ -107,6 +107,8 @@ Tool preference:
 
 ## Phase 5 — Fix + regression test
 
+**Intent gate — before writing any fix.** A failing check has two possible culprits: the code, or the check/expectation itself. State one line before editing: *code does X; the check/user expects Y; the spec (README/docs/docstring) says Z.* You must actually open the spec to fill Z. If X, Y, Z don't all agree, the disagreement **is** the finding — surface it, don't silently make one side match another. Authority order when they conflict: an explicit user statement beats the spec, the spec beats the tests, the tests beat current code behavior. "Fix the code" / "make the test pass" is a task framing, not a statement of intended behavior — it does not promote the test above the spec.
+
 Write the regression test **before the fix** — but only if there is a **correct seam** for it.
 
 A correct seam is one where the test exercises the **real bug pattern** as it occurs at the call site. If the only available seam is too shallow (single-caller test when the bug needs multiple callers, unit test that can't replicate the chain that triggered the bug), a regression test there gives false confidence.
@@ -127,6 +129,7 @@ Required before declaring done:
 
 - [ ] Original repro no longer reproduces (re-run the Phase 1 loop)
 - [ ] Regression test passes (or absence of seam is documented)
+- [ ] **Twin search** — a bug found in one place is presumed to recur elsewhere until you've searched. Name the exact wrong construct, grep the whole project for it, and state one line: `TWINS: searched <pattern> — found <N> other sites: <files, or "none">`. Fix them or list them; "done" with no search behind it is a false completeness claim.
 - [ ] All `[DEBUG-...]` instrumentation removed (`grep` the prefix)
 - [ ] Throwaway prototypes deleted (or moved to a clearly-marked debug location)
 - [ ] The hypothesis that turned out correct is stated in the commit / PR message — so the next debugger learns
