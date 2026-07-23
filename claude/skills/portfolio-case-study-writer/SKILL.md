@@ -1,6 +1,6 @@
 ---
 name: portfolio-case-study-writer
-description: Transform resume bullets into detailed portfolio case studies
+description: Transform resume bullets into detailed portfolio case studies. Use when user wants to create a case study or portfolio piece, or mentions "case study", "portfolio", "project writeup", "work samples".
 ---
 
 # Portfolio Case Study Writer

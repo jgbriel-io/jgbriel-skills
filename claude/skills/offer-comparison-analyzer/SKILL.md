@@ -1,6 +1,6 @@
 ---
 name: offer-comparison-analyzer
-description: Compare multiple job offers side-by-side with total compensation analysis
+description: Compare multiple job offers side-by-side with total compensation analysis. Use when user has multiple job offers to compare, or mentions "compare offers", "multiple offers", "which job", "offer comparison".
 ---
 
 # Offer Comparison Analyzer

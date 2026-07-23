@@ -1,6 +1,6 @@
 ---
 name: job-description-analyzer
-description: Analyze job postings, calculate match scores, identify gaps, and create application strategy
+description: Analyze job postings, calculate match scores, identify gaps, and create application strategy. Use when user wants to analyze a job posting, asks "should I apply", wants a match percentage, or mentions "analyze this job", "am I qualified", "match score". Use before resume tailoring.
 ---
 
 # Job Description Analyzer
