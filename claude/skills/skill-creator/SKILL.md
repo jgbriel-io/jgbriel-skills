@@ -59,6 +59,18 @@ Ask the user (or extract from conversation):
 
 If user is vague, propose 2–3 concrete versions and ask which matches.
 
+### Red-line check (before anything else)
+
+Some domains must not get a skill at all. If the domain requires professional
+licensure or a wrong answer causes physical, legal, or financial harm — medical
+or clinical diagnosis/treatment, legal advice (vs. compliance *research*),
+specific financial buy/sell/allocation advice (vs. *analysis*), mental health,
+safety-critical engineering — **refuse to build the checklist and route to a
+qualified human.** A skill wearing the costume of competence in these areas is
+worse than none: a test prompt can't catch advice that gets someone hurt or
+sued. Anything adjacent ships only with human sign-off, never on a vibe-check
+alone.
+
 ### Collision check (before drafting)
 
 Grep the frontmatter descriptions of installed skills
@@ -258,7 +270,7 @@ When the skill is done:
 4. Note if they need to add tool permissions to `settings.json` for any
    commands the skill uses.
 5. Mirror the skill to the vault docs copy
-   (`Obsidian Vault\wiki\Ferramentas\Claude\skills\<categoria>\<name>\`) and
+   (`Obsidian Vault\wiki\Ferramentas\Claude Code\skills\<categoria>\<name>\`) and
    add it to `skills/index.md` there. The global copy already sits in the D:
    repo working tree (symlink) — remind the user to commit when convenient.
 

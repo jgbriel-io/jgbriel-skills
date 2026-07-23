@@ -132,6 +132,14 @@ One-time approval is **not** a blank check. Ask again in new context.
 - Mark `in_progress` when starting, `completed` immediately when done
   (not in batch).
 - Don't invent tasks — only those within the requested scope.
+- **Método de execução padrão:** para tarefa multi-step que nenhuma skill
+  específica cobre, seguir o loop da skill `fable-method` (classify → define
+  done → gather evidence → act surgically → verify by observation → report
+  outcome-first). Gate de trivialidade dela vale: mudança óbvia de ≤10 linhas
+  em 1 arquivo pula o loop. As linhas nomeadas do método (INTENT quando muda
+  comportamento, AUTH quando faz ação externa, TWINS quando corrige defeito,
+  PENDING quando deixa follow-up prescrito) são compatíveis com as regras 6/7
+  acima — reforçam, não substituem.
 
 ## 12. UI and frontend
 
