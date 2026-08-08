@@ -6,7 +6,7 @@
 set -euo pipefail
 
 SRC="$HOME/.claude/skills"
-DST="/c/Users/jgabriel/Documents/Obsidian Vault/wiki/Ferramentas/Claude/skills"
+DST="/c/Users/jgabriel/Documents/Obsidian Vault/wiki/Ferramentas/Claude Code/skills"
 
 updated=0
 warned=0
