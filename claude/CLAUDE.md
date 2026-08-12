@@ -56,8 +56,16 @@ These rules apply to **all** projects in user `<username>`'s environment
 
 - Prefer **`Edit`** over `Write` for existing files.
 - **No redundant comments** that just restate the code.
-  Comment only the **why** when non-obvious (hidden invariant,
-  bug workaround, external constraint).
+- **Inline comments: rare, max 1 line, code-relevant only.** Reserve for
+  genuinely obscure/complex logic (non-obvious algorithm, regex, bit
+  tricks, workaround forced by an external bug/API). Not one per function.
+  **Never** a multi-line justification block, and never changelog-style
+  phrasing ("mudamos de X pra Y porque o usuário pediu Z" — that belongs
+  in a commit message or `docs/`, not in the source file).
+- **Explaining a change (why this approach, what was tried, tradeoffs)
+  → `docs/` (ADR, changelog, design note) or the commit body — never an
+  inline comment.** If a project has no `docs/`, ask before creating one;
+  don't default to dumping rationale as code comments instead.
 - **No invented abstractions** the task doesn't require. Three similar lines
   are better than a premature abstraction.
 - **No error handling** for impossible scenarios. Validate only at
@@ -147,15 +155,37 @@ One-time approval is **not** a blank check. Ask again in new context.
   or claim to validate UI — `tsc --noEmit` + type-check is the sign-off.
 - `tsc --noEmit` or a test suite verifies code correctness,
   **not** feature correctness. After type-check passes, report done.
+- **Always apply `frontend-conventions`** before writing or editing any
+  `.tsx`/`.jsx`/`.vue`/`.svelte` file, even a small edit — not just when
+  the task reads as "create/refactor a component". Covers: componentize
+  aggressively, page files only compose components (no raw JSX/logic/UI
+  strings in page-level files), UI text centralized in `*.content.ts`.
+  Don't wait for semantic skill-trigger match; treat it as a standing rule.
 
-## 13. Communication during execution
+## 13. Backend and database
+
+- **Always apply `backend-service-conventions`** before writing or editing
+  any backend service/controller/repository file, regardless of language
+  or framework — layering, dependency injection, error handling, module
+  boundaries. Stack-agnostic, so it always applies, unlike the DB-specific
+  skills below.
+- **Always apply `input-validation`** before writing or editing any
+  endpoint/DTO/handler that receives external input (request, queue
+  message, upload, CLI arg) — validate at the boundary, every time,
+  not just when the task reads as "add validation".
+- DB-specific skills (`postgres-conventions`, `supabase-postgres`,
+  `safe-migrations`, `query-performance`) trigger by task, not forced —
+  the DB engine varies per project, forcing one globally would misfire
+  on a project using a different store.
+
+## 14. Communication during execution
 
 - Before the 1st tool call: one sentence stating what you're about to do.
 - Brief updates at key points (found X, changing direction, blocker).
 - Don't narrate internal reasoning — the user sees the result, not the thought.
 - End of turn: 1-2 sentences. What changed + next step. Nothing else.
 
-## 14. When in doubt
+## 15. When in doubt
 
 - **Ask.** Use `AskUserQuestion` with 2-4 concrete options.
 - Don't invent paths, filenames, APIs. Verify with `Glob`/`Grep`/`Read`.
@@ -163,4 +193,4 @@ One-time approval is **not** a blank check. Ask again in new context.
 
 ---
 
-_Last revised: 2026-07-08. Update as standards change._
+_Last revised: 2026-08-11. Update as standards change._

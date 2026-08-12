@@ -1,6 +1,6 @@
 ---
 name: frontend-conventions
-description: Conventions for WRITING new frontend code — component structure, state placement, Tailwind scale, accessibility, file organisation (React + TypeScript + Tailwind + shadcn/ui). Use when creating or refactoring components, when the user asks how to structure frontend code, or when reviewing frontend code against the house checklist. Performance debugging is react-best-practices.
+description: Conventions for WRITING new frontend code — component structure and extraction, page files that only compose components, UI text centralized in *.content.ts, state placement, Tailwind scale, accessibility, file organisation (React + TypeScript + Tailwind + shadcn/ui). Use when creating or editing any .tsx/.jsx/.vue/.svelte file, when asked where a component, page, or UI string should live, or when reviewing frontend code against the house checklist. Performance debugging is react-best-practices.
 ---
 
 # Senior Frontend — Boas Práticas
@@ -81,6 +81,67 @@ import { Button } from '@/components/ui/button'
 - Hooks customizados em `src/hooks/` com prefixo `use`
 - Lógica de negócio fora de componentes — em hooks
 
+## Páginas só compõem
+
+- Arquivo de página/rota (`app/**/page.tsx`, `pages/*.tsx`, `routes/*.tsx`)
+  **só importa e compõe componentes** — sem JSX cru além de wrappers
+  estruturais (`<div>`, `<Suspense>`, layout grid), sem lógica de negócio,
+  sem fetch direto, sem string de UI solta.
+- Página = orquestração. Componente = apresentação. Hook = lógica/estado.
+  Se a página cresce além de composição + wiring de props, extrair.
+- **Escopo:** página nova nasce assim. Página legada gorda não vira alvo de
+  refactor durante um fix pontual — apontar como follow-up e seguir.
+
+```tsx
+// ❌ — JSX de verdade e string solta dentro da página
+export default function CheckoutPage() {
+  const { data } = useQuery(...);
+  return (
+    <div>
+      <h1>Finalizar compra</h1>
+      {data.items.map(i => <div key={i.id}>{i.name}</div>)}
+    </div>
+  );
+}
+
+// ✅ — página só compõe
+export default function CheckoutPage() {
+  return (
+    <PageLayout>
+      <CheckoutSummary />
+      <CheckoutForm />
+    </PageLayout>
+  );
+}
+```
+
+## Conteúdo de UI (texto)
+
+- Todo texto visível ao usuário (heading, label, mensagem, CTA, placeholder,
+  copy de erro) fica centralizado em `<page-ou-feature>.content.ts`, um
+  arquivo por página/feature, exportando const tipada.
+- Componente importa de lá — nunca string literal solta em JSX, exceto
+  valor dinâmico vindo de dado (`user.name`, contagem, etc).
+- Motivo: revisão de copy sem abrir componente, terreno pronto pra
+  i18n sem refactor futuro.
+- **Escopo:** vale para código novo (componente/página criada agora) e para
+  arquivo que já tem `.content.ts` ou i18n. Em arquivo legado com string
+  solta, **não migrar de carona** num fix pontual — mencionar como
+  follow-up e seguir. Migração de legado só quando o usuário pedir.
+
+```tsx
+// checkout.content.ts
+export const checkoutContent = {
+  title: 'Finalizar compra',
+  emptyCart: 'Seu carrinho está vazio',
+  submitCta: 'Confirmar pedido',
+} as const;
+
+// CheckoutSummary.tsx
+import { checkoutContent } from './checkout.content';
+const CheckoutSummary = () => <h1>{checkoutContent.title}</h1>;
+```
+
 ## Checklist de review
 
 Ao revisar frontend, verificar:
@@ -96,3 +157,5 @@ Ao revisar frontend, verificar:
 - [ ] Sem objetos/arrays inline em props?
 - [ ] `useEffect` não usado para data fetching?
 - [ ] Props tipadas, sem `any` desnecessário?
+- [ ] Página só compõe componentes (sem JSX cru, sem lógica, sem fetch)?
+- [ ] Texto de UI vem de `*.content.ts`, não string solta em JSX?
