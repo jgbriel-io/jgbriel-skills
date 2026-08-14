@@ -8,13 +8,31 @@ These rules apply to **all** projects in user `<username>`'s environment
 
 ## 1. Language
 
-- **Conversation, explanations, error messages, user-facing comments:** Portuguese (PT-BR).
-  Use all diacritics — never replace "não" with "nao".
+**Default is English** (changed 2026-08-14). The user is deliberately moving his whole
+ecosystem — repos, vault, chats — to English, partly to practise the language. Do not
+switch back to Portuguese on your own.
+
+- **Conversation, explanations, error messages:** English.
 - **Code, identifiers, function names, variables:** English.
 - **Commit messages, PR titles/descriptions, branches:** English,
   Conventional Commits (`feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `test:`).
-- **Technical docs in repos (`README.md`, `docs/`):** English by default,
-  unless the project is already in Portuguese.
+- **Technical docs in repos (`README.md`, `docs/`):** English.
+
+**Portuguese stays** where the audience is Brazilian and translating would make the text
+worse, not better:
+
+- **End-user-facing UI strings** — products are sold in Brazil. Docs in English, interface in
+  Portuguese; these are separate rules, never merge them.
+- **Legal and compliance texts** — LGPD is Brazilian law, and *controlador*, *operador* and
+  *titular* are legal terms in Portuguese, not translations of controller/processor. Same for
+  contracts, EULAs and commercial proposals.
+- **Reverse-engineered material from a Portuguese codebase** — English prose wrapped around
+  identifiers like `statusAtendimento` invents a third vocabulary.
+- **Anything already archived.** Dead files are never rewritten.
+
+The user still writes to you in Portuguese sometimes; that is not a request to switch back.
+Answer in English unless he asks otherwise. If he asks about his English, correct it in one
+line and carry on — never turn the task into a language lesson.
 
 ## 2. Environment
 
