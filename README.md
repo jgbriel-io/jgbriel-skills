@@ -22,12 +22,13 @@ jgabriel-skills/
 │   ├── COMMANDS.md                   # tabela de slash commands
 │   ├── WORKFLOWS.md                  # receitas combinando commands + skills + agents
 │   ├── GUIDE.md                      # cheat sheet condensado
-│   ├── .mcp.json                     # MCP servers (placeholders ${VAR})
+│   ├── .mcp.json                     # template MCP de escopo de PROJETO (placeholders ${VAR})
 │   ├── settings.template.json        # settings.json sanitizado
-│   ├── agents/                       # 4 agents (planner, researcher, reviewer, tcc-orientador)
-│   ├── commands/                     # 15 slash commands custom
-│   ├── hooks/                        # SessionStart / PreToolUse hooks (2 scripts)
-│   └── skills/                       # 33 skills, pasta flat (sem subpastas por categoria)
+│   ├── agents/                       # 3 agents (planner, researcher, tcc-orientador)
+│   ├── commands/                     # 12 slash commands custom
+│   ├── hooks/                        # SessionStart / PreToolUse hooks (3 scripts)
+│   ├── skills/                       # 82 skills, pasta flat (sem subpastas por categoria)
+│   └── skills-archived/              # skills fora de circulação (29)
 │
 ├── templates/                        # templates de projeto, pra copiar em qualquer repo
 │   ├── CONTEXT.template.md           # glossário de domínio (1 contexto)
@@ -98,7 +99,7 @@ Lista com descrição completa: `claude/STRUCTURE.md`.
 - `CLAUDE.md` — regras globais (PT-BR conversa, English code/commits, git rules, security, response style)
 - `STRUCTURE.md` — onde tudo mora (symlinks, settings.json, MCP, hooks, plugins), setup prático
 - `GUIDE.md` — onboarding rápido
-- `.mcp.json` — MCP servers (GitHub, Supabase) usando placeholders `${VAR}`
+- `.mcp.json` — template de MCP servers de **escopo de projeto** (GitHub, Supabase) com placeholders `${VAR}`. Copiar para a raiz do projeto; `~/.claude/.mcp.json` não é lido
 - `settings.template.json` — settings sanitizado (sem caminhos absolutos meus)
 
 ### Templates de projeto (`templates/`)
@@ -138,7 +139,11 @@ git submodule add https://github.com/jgbriel-io/jgbriel-skills.git .jgbriel-skil
 
 ### Setup de secrets
 
-`.mcp.json` usa env vars. Defina antes de usar MCP:
+`.mcp.json` usa env vars, e só é lido da **raiz de um projeto** — copie para lá em vez de
+apontar para `~/.claude/`. Servidor de escopo de usuário se registra com
+`claude mcp add -s user <nome> -- <cmd>` e mora em `~/.claude.json`.
+
+Defina as vars antes de usar MCP:
 
 ```powershell
 [System.Environment]::SetEnvironmentVariable('GITHUB_PERSONAL_ACCESS_TOKEN', 'ghp_xxx', 'User')

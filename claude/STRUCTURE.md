@@ -14,7 +14,6 @@ Tudo que é versionável vive neste repo (`D:\Projetos\projetos-pessoais\jgabrie
 |---|---|---|
 | `CLAUDE.md` | symlink | `claude/CLAUDE.md` (regras globais) |
 | `GUIDE.md` | symlink | `claude/GUIDE.md` (cheatsheet) |
-| `.mcp.json` | symlink | `claude/.mcp.json` (servers MCP) |
 | `settings.template.json` | symlink | `claude/settings.template.json` |
 | `skills/` | symlink | `claude/skills/` |
 | `agents/` | symlink | `claude/agents/` |
@@ -122,12 +121,22 @@ Wiring real em `settings.json` (não versionado) → `hooks.{SessionStart,PreToo
 
 ---
 
-## 6. MCP servers (`.mcp.json`)
+## 6. MCP servers
+
+**`.mcp.json` só é lido da raiz de um projeto.** Não existe `~/.claude/.mcp.json` — o
+arquivo era symlinkado para lá até 2026-08-17 e nunca carregou nada. Servidor de escopo de
+usuário mora em `~/.claude.json`, registrado por `claude mcp add -s user <nome> -- <cmd>`.
+
+`claude/.mcp.json` neste repo é template de escopo de projeto: copiar para a raiz do projeto
+que precisar dos servidores.
 
 | Server | Comando | Uso |
 |---|---|---|
 | `github` | `npx @modelcontextprotocol/server-github` | Requer `GITHUB_PERSONAL_ACCESS_TOKEN` no ambiente |
 | `supabase` | `npx @supabase/mcp-server-supabase@latest --read-only` | Requer `SUPABASE_ACCESS_TOKEN`. **Read-only** por flag explícita |
+
+Servidores de usuário ativos hoje (em `~/.claude.json`, fora deste repo):
+`codebase-memory-mcp`, `playwright`, `nanobanana-mcp`.
 
 ---
 

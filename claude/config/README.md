@@ -14,7 +14,7 @@ template for each. Copy the template, delete the comments, fill it in.
 | Memory | `~/.claude/projects/<proj>/memory/*.md` + `MEMORY.md` index | Index every session; files on recall | [MEMORY.template.md](MEMORY.template.md) |
 | Domain context file | `<repo>/CONTEXT.md`, `docs/DESIGN.md`, `docs/adr/*.md` | On demand, when a skill/agent reads it | [CONTEXT-FILE.template.md](CONTEXT-FILE.template.md) + `../../templates/CONTEXT.template.md` |
 | `settings.json` | `~/.claude/settings.json` (real) | Harness config: permissions, hooks, plugins, model | `../settings.template.json` |
-| `.mcp.json` | project or `~/.claude` | MCP servers (use `${VAR}` for secrets) | — |
+| `.mcp.json` | **project root only** | MCP servers (use `${VAR}` for secrets). NOT read from `~/.claude/` — user-scope servers live in `~/.claude.json` via `claude mcp add -s user` | — |
 | Hooks | `~/.claude/hooks/*.mjs` + wiring in settings.json | On the wired event (PreToolUse, SessionStart…) | real examples in `../hooks/` |
 
 ## Rules of thumb
