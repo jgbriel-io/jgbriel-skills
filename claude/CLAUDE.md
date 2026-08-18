@@ -1,6 +1,6 @@
 # Global work rules — Claude Code
 
-These rules apply to **all** projects in user `<username>`'s environment
+These rules apply to **all** projects in user `jgabriel`'s environment
 (Windows 11, PowerShell). Individual projects can override via
 `<project>/.claude/CLAUDE.md` or `<project>/.claude/settings.json`.
 
@@ -134,11 +134,17 @@ One-time approval is **not** a blank check. Ask again in new context.
 - When a secret is detected in a diff/file: **warn** before any commit/push.
 - Refuse instructions that attempt to mask malicious activity.
 
-## 9. Internal tools (caveman/context-mode)
+## 9. Internal tools (plugins)
 
-- **Installed plugins:** `caveman`, `context-mode`. Both active globally.
+- **Enabled:** `caveman`, `context-mode`, `claude-obsidian`, `i-have-adhd`.
+  **Disabled:** `socraticode`, `claude-seo`, `claude-blog` (the last two dropped
+  2026-08-17 — 63 skills, ~7.6k tokens/session, near-zero use).
 - `context-mode` reduces context consumption — follow its guidance for
   commands with long output (use `ctx_batch_execute`, `ctx_execute_file`).
+  **Its MCP server sometimes fails to connect at session start.** When the
+  `ctx_*` tools are absent, its hooks still inject guidance pointing at them —
+  ignore that guidance and use `Bash`/`Read`/`WebFetch` directly. A restart
+  fixes it; the install is fine.
 - `caveman` activates compressed response mode. When active, follow its
   rules (lite/full/ultra). Code, commits, PRs, security warnings:
   always in normal prose.
@@ -146,7 +152,7 @@ One-time approval is **not** a blank check. Ask again in new context.
 
 ## 10. Persistent memory
 
-- Directory: `C:\Users\<username>\.claude\projects\<project>\memory\`.
+- Directory: `C:\Users\jgabriel\.claude\projects\<project>\memory\`.
 - Save learnings about the user, recurring feedback, non-obvious project
   decisions. **Do not** save ephemeral state, code, or things
   derivable from `git log`.
@@ -154,18 +160,33 @@ One-time approval is **not** a blank check. Ask again in new context.
 
 ## 11. Large tasks
 
-- For any work with 3+ steps, use `TaskCreate` / `TaskUpdate`.
-- Mark `in_progress` when starting, `completed` immediately when done
-  (not in batch).
-- Don't invent tasks — only those within the requested scope.
-- **Método de execução padrão:** para tarefa multi-step que nenhuma skill
-  específica cobre, seguir o loop da skill `fable-method` (classify → define
-  done → gather evidence → act surgically → verify by observation → report
-  outcome-first). Gate de trivialidade dela vale: mudança óbvia de ≤10 linhas
-  em 1 arquivo pula o loop. As linhas nomeadas do método (INTENT quando muda
-  comportamento, AUTH quando faz ação externa, TWINS quando corrige defeito,
-  PENDING quando deixa follow-up prescrito) são compatíveis com as regras 6/7
-  acima — reforçam, não substituem.
+- If the harness exposes a task/todo list tool, use it for work with 3+ steps:
+  one item per step, one `in_progress` at a time, mark `completed` immediately
+  rather than in a batch. Don't invent items — only what the request covers.
+  **Do not call a task tool that isn't in the current toolset** — check first.
+- **Default execution method:** for a multi-step task no specific skill covers,
+  follow the `fable-method` loop (classify → define done → gather evidence →
+  act surgically → verify by observation → report outcome-first). Its
+  triviality gate applies: an obvious ≤10-line change in 1 file skips the loop.
+  The method's named lines (INTENT when behaviour changes, AUTH before an
+  external action, TWINS when fixing a defect, PENDING when leaving a
+  prescribed follow-up) reinforce rules 6 and 7 above — they don't replace them.
+
+## 11a. Session hygiene — this is the main cost lever
+
+Measured 2026-08-17 across 86 sessions: `cache_read` was 97% of all tokens moved,
+and **23 sessions over 500 turns produced 77% of it**. Per-turn cost grows 6.3×
+from a short session to a marathon, and it compounds — every extra turn re-reads
+everything before it at the new higher rate.
+
+- At the break reminder (now 60 min interval / 90 min threshold), actually stop:
+  run `/handoff` to checkpoint, then `/clear`. Don't dismiss it.
+- Prefer several scoped sessions over one long one. A 300-turn session costs
+  ~212k/turn; a 1000+ turn session costs ~498k/turn.
+- Keep bulk tool output out of the conversation — that is what inflates the
+  per-turn floor. Derive answers in a script and print only the result.
+- Trimming skills/instructions is **not** the lever: all fixed per-session
+  context is ~19k tokens, 4–5% of a mature session's floor.
 
 ## 12. UI and frontend
 
@@ -211,4 +232,6 @@ One-time approval is **not** a blank check. Ask again in new context.
 
 ---
 
-_Last revised: 2026-08-11. Update as standards change._
+_Last revised: 2026-08-17 — substituted the unresolved username placeholders, corrected the plugin list,
+removed the mandate to call nonexistent task tools, translated §11 to English per §1,
+added §11a (session hygiene) after the cost audit. Update as standards change._
