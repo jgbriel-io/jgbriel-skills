@@ -8,7 +8,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 
 Audit the user's Claude Code skills with the rubric below. Full rubric,
 scoring rationale, and audit history live in the vault:
-`wiki/Ferramentas/Claude Code/docs/Critérios de Qualidade das Skills.md` — read it first if available,
+`wiki/Tools/Claude Code/docs/Skills Quality Criteria.md` — read it first if available,
 and append results there when done.
 
 ## The three-point system (where skills live)
@@ -17,7 +17,7 @@ and append results there when done.
    symlinked to point 2: editing one edits the other.
 2. `D:\Projetos\projetos-pessoais\jgabriel-skills\claude\skills\` — the git
    repo. Commits happen here (Conventional Commits, English).
-3. `Obsidian Vault\wiki\Ferramentas\Claude\skills\<categoria>\<name>\` —
+3. `Obsidian Vault\wiki\Tools\Claude Code\skills\<categoria>\<name>\` —
    documentation mirror, manual copy. The only side needing explicit sync.
 
 Vendor packs (Cloudflare) are tracked in the repo but deliberately not

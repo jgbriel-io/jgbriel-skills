@@ -18,8 +18,8 @@ them creates ghost pages.
 wiki/
 ├── Aprendizado/
 ├── Clientes/
-├── Faculdade/TCC/              ← academic context (flattened 2026-07-17)
-├── Ferramentas/Claude/
+├── College/TCC/                ← academic context (flattened 2026-07-17)
+├── Tools/Claude Code/
 ├── Pessoal/
 └── Projetos/                   ← SyncClass, jgabriel.dev, her-website, Templates
 WIKI.md                         ← real root, do not touch
