@@ -170,9 +170,16 @@ One-time approval is **not** a blank check. Ask again in new context.
   follow the `fable-method` loop (classify → define done → gather evidence →
   act surgically → verify by observation → report outcome-first). Its
   triviality gate applies: an obvious ≤10-line change in 1 file skips the loop.
-  The method's named lines (INTENT when behaviour changes, AUTH before an
-  external action, TWINS when fixing a defect, PENDING when leaving a
-  prescribed follow-up) reinforce rules 6 and 7 above — they don't replace them.
+- **The four named lines are not part of that conditional.** INTENT (behaviour
+  changed), AUTH (irreversible or outward-facing action), TWINS (a defect was
+  fixed) and PENDING (a prescribed follow-up deliberately not taken) fire
+  **whenever their trigger condition is met — in every task, including one a
+  skill already covers, and including one the triviality gate exempted from the
+  loop.** A skill covering the work does not displace them: `diagnose` owns
+  debugging, but a fix it produces still owes TWINS. Small does not exempt
+  either — a two-line change that deletes data still owes AUTH, and a one-line
+  fix can still have twins elsewhere. They reinforce rules 6 and 7 above and
+  never replace them.
 
 ## 11a. Session hygiene — this is the main cost lever
 
@@ -234,7 +241,12 @@ everything before it at the new higher rate.
 
 ---
 
-_Last revised: 2026-08-25 — tightened §5 inline-comment rule from "rare" to zero-by-default
+_Last revised: 2026-08-28 — split §11 so fable-method's four named lines (INTENT, AUTH, TWINS,
+PENDING) fire on their trigger in every task, including one a skill covers and one the
+triviality gate exempted from the loop. Prompted by deduping INTENT/TWINS out of `diagnose`,
+which would otherwise have left debugging with neither._
+
+_Previously revised: 2026-08-25 — tightened §5 inline-comment rule from "rare" to zero-by-default
 after finding several still slipping through on a real task; rationale/workaround comments
 now explicitly barred even at one line, redirected to commit body/docs._
 
