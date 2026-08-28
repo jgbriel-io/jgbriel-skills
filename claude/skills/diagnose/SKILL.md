@@ -9,6 +9,12 @@ A discipline for hard bugs. Skip phases only when explicitly justified.
 
 When exploring the codebase, read `CONTEXT.md` (if it exists) to get a clear mental model of the relevant modules, and check ADRs in the area you're touching.
 
+## Redact
+
+This skill has you show commands, outputs and captured artifacts. **Redact every secret first** — write `<REDACTED>` in its place. Build loops against env vars, so the credential stays in the environment rather than in what you show. Captured artifacts carry auth headers — quote only the lines that carry the signal.
+
+If the redacted output is not enough to diagnose the bug, say so and ask the user.
+
 ## Phase 1 — Build a feedback loop
 
 **This is the skill.** Everything else is mechanical. If you have a **tight** pass/fail signal for the bug — one that goes red on _this_ bug — you will find the cause; bisection, hypothesis-testing, and instrumentation all just consume it. If you don't have one, no amount of staring at code will save you.
@@ -107,8 +113,6 @@ Tool preference:
 
 ## Phase 5 — Fix + regression test
 
-**Intent gate — before writing any fix.** A failing check has two possible culprits: the code, or the check/expectation itself. State one line before editing: *code does X; the check/user expects Y; the spec (README/docs/docstring) says Z.* You must actually open the spec to fill Z. If X, Y, Z don't all agree, the disagreement **is** the finding — surface it, don't silently make one side match another. Authority order when they conflict: an explicit user statement beats the spec, the spec beats the tests, the tests beat current code behavior. "Fix the code" / "make the test pass" is a task framing, not a statement of intended behavior — it does not promote the test above the spec.
-
 Write the regression test **before the fix** — but only if there is a **correct seam** for it.
 
 A correct seam is one where the test exercises the **real bug pattern** as it occurs at the call site. If the only available seam is too shallow (single-caller test when the bug needs multiple callers, unit test that can't replicate the chain that triggered the bug), a regression test there gives false confidence.
@@ -129,7 +133,6 @@ Required before declaring done:
 
 - [ ] Original repro no longer reproduces (re-run the Phase 1 loop)
 - [ ] Regression test passes (or absence of seam is documented)
-- [ ] **Twin search** — a bug found in one place is presumed to recur elsewhere until you've searched. Name the exact wrong construct, grep the whole project for it, and state one line: `TWINS: searched <pattern> — found <N> other sites: <files, or "none">`. Fix them or list them; "done" with no search behind it is a false completeness claim.
 - [ ] All `[DEBUG-...]` instrumentation removed (`grep` the prefix)
 - [ ] Throwaway prototypes deleted (or moved to a clearly-marked debug location)
 - [ ] The hypothesis that turned out correct is stated in the commit / PR message — so the next debugger learns
