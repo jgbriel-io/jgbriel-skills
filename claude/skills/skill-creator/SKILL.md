@@ -270,16 +270,20 @@ When the skill is done:
 4. Note if they need to add tool permissions to `settings.json` for any
    commands the skill uses.
 5. Mirror the skill to the vault docs copy
-   (`Obsidian Vault\wiki\Ferramentas\Claude Code\skills\<categoria>\<name>\`) and
-   add it to `skills/index.md` there. The global copy already sits in the D:
-   repo working tree (symlink) — remind the user to commit when convenient.
+   (`Obsidian Vault\wiki\Tools\Claude Code\skills\<categoria>\<name>\`) and
+   add it to `skills/index.md` there. **A new skill must get its vault folder
+   by hand once** — `mirror-to-vault.sh` only refreshes folders that already
+   exist, so a skill that skips this step never syncs at all.
+6. **Write it to both `~/.claude/skills/` and the D: repo, then commit.**
+   Unlike `agents/` and `commands/`, `skills/` is a real directory, **not** a
+   junction — the two copies are independent and silently drift apart.
 
 ---
 
 ## Final review checklist
 
 Score the draft against the C1–C11 rubric in
-`wiki/Ferramentas/Claude Code/docs/Critérios de Qualidade das Skills.md` — or run `/skill-audit` on
+`wiki/Tools/Claude Code/docs/Skills Quality Criteria.md` — or run `/skill-audit` on
 the new skill; that rubric is the single source of truth for quality gates
 (description, concision <500-line target, progressive disclosure, reasons
 over MUSTs, terminology, timelessness). Creator-specific extras on top:

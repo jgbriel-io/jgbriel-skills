@@ -13,7 +13,7 @@ Validated workflow from the 2026-07-08 sync.
 
 1. `~/.claude/skills/` — runtime (symlinked to point 2; editing one edits both)
 2. `D:\Projetos\projetos-pessoais\jgabriel-skills\claude\skills\` — git repo, where commits happen
-3. `Obsidian Vault\wiki\Ferramentas\Claude\skills\<categoria>\` — docs mirror, manual copy
+3. `Obsidian Vault\wiki\Tools\Claude Code\skills\<categoria>\` — docs mirror, manual copy
 
 Upstream: `https://github.com/mattpocock/skills` (skills under
 `skills/<category>/<name>/`). Vendor packs (Cloudflare) have their own
@@ -47,7 +47,7 @@ LOCAL-ONLY pair with near-identical content is a rename, not two skills.
 - `setup-pre-commit` — local ask-before-committing rule (step 8)
 - `diagnose` — local name kept (upstream calls it diagnosing-bugs)
 - Any skill whose divergence IS a local fix from an audit — check
-  `wiki/Ferramentas/Claude Code/docs/Critérios de Qualidade das Skills.md` audit history when unsure
+  `wiki/Tools/Claude Code/docs/Skills Quality Criteria.md` audit history when unsure
 
 For these, pull upstream content only by merging around the local adaptation,
 never by wholesale copy.
