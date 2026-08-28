@@ -74,12 +74,14 @@ line and carry on — never turn the task into a language lesson.
 
 - Prefer **`Edit`** over `Write` for existing files.
 - **No redundant comments** that just restate the code.
-- **Inline comments: rare, max 1 line, code-relevant only.** Reserve for
-  genuinely obscure/complex logic (non-obvious algorithm, regex, bit
-  tricks, workaround forced by an external bug/API). Not one per function.
-  **Never** a multi-line justification block, and never changelog-style
-  phrasing ("mudamos de X pra Y porque o usuário pediu Z" — that belongs
-  in a commit message or `docs/`, not in the source file).
+- **Default to zero inline comments — not "rare", zero.** The only exception
+  is a genuinely complex algorithm (non-obvious math, bit tricks, a gnarly
+  regex) where better naming/structure still can't make it self-explanatory
+  — and this should come up rarely. Even then: max 1 line, no exceptions.
+  **A workaround, a design rationale, or "why this approach" is never a
+  comment**, not even one line — that belongs in the commit body or
+  `docs/`. When in doubt, don't write it; prefer a clearer name/structure
+  over a comment that explains an unclear one.
 - **Explaining a change (why this approach, what was tried, tradeoffs)
   → `docs/` (ADR, changelog, design note) or the commit body — never an
   inline comment.** If a project has no `docs/`, ask before creating one;
@@ -232,6 +234,10 @@ everything before it at the new higher rate.
 
 ---
 
-_Last revised: 2026-08-17 — substituted the unresolved username placeholders, corrected the plugin list,
-removed the mandate to call nonexistent task tools, translated §11 to English per §1,
-added §11a (session hygiene) after the cost audit. Update as standards change._
+_Last revised: 2026-08-25 — tightened §5 inline-comment rule from "rare" to zero-by-default
+after finding several still slipping through on a real task; rationale/workaround comments
+now explicitly barred even at one line, redirected to commit body/docs._
+
+_Previously revised: 2026-08-17 — substituted the unresolved username placeholders, corrected
+the plugin list, removed the mandate to call nonexistent task tools, translated §11 to English
+per §1, added §11a (session hygiene) after the cost audit. Update as standards change._
