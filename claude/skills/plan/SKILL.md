@@ -22,6 +22,8 @@ Planning is overhead. Match it to the work, and say which tier you picked.
 
 Escalate only on evidence: tier 1 that surfaces a genuine dependency graph or an undecided trade-off becomes tier 3, and you say why.
 
+**Tier 1's brief must carry tier 1's budget.** The subagent answers the brief it is given, not the tier you had in mind — ask it for exact paths, per-step exit criteria, risks and open decisions and it will correctly return a dossier, because that is what you requested. So state the ceiling *inside* the prompt: *"≤300 words, numbered steps, no tables, no risk register, no verified-state section — name the order and the one thing most likely to go wrong."* Give it the context it needs and cap the shape it returns. A tier-1 dispatch that comes back dossier-shaped is a briefing failure, not an escalation — either re-ask within budget, or say out loud that the work turned out to be tier 3.
+
 **Push back rather than padding.** A genuine one-liner gets told it's a one-liner — don't manufacture six steps for a rename. Scope too big to plan meaningfully gets scoped down first: *"this needs breaking into smaller goals before I can order it — shall we start with X?"*
 
 ## 1. Gate
