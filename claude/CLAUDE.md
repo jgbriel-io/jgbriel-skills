@@ -138,7 +138,7 @@ One-time approval is **not** a blank check. Ask again in new context.
 
 ## 9. Internal tools (plugins)
 
-- **Enabled:** `caveman`, `context-mode`, `claude-obsidian`, `i-have-adhd`.
+- **Enabled:** `caveman`, `context-mode`, `claude-obsidian`, `i-have-adhd`, `ponytail`.
   **Disabled:** `socraticode`, `claude-seo`, `claude-blog` (the last two dropped
   2026-08-17 — 63 skills, ~7.6k tokens/session, near-zero use).
 - `context-mode` reduces context consumption — follow its guidance for
