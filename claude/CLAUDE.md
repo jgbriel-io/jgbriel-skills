@@ -239,9 +239,73 @@ everything before it at the new higher rate.
 - Don't invent paths, filenames, APIs. Verify with `Glob`/`Grep`/`Read`.
 - Don't execute irreversible actions without confirmation.
 
+## 16. Issue labels
+
+One taxonomy across every repository that runs the PRD-to-issue pipeline. Four axes, all
+prefixed — a bare label name is a leftover, not a valid value.
+
+| Axis | Values | Cardinality |
+|---|---|---|
+| `state:` | `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` | **exactly 1** on every open issue |
+| `type:` | `bug`, `enhancement`, `docs` | 0 or 1 |
+| `model:` | `opus`, `sonnet`, `haiku` | **exactly 1** on every open issue |
+| `domain:` | varies per repo | 0..n |
+
+The `state:` and `type:` values are the `triage` skill's canonical roles, one-to-one — that skill
+needs no translation layer here. Its `needs-triage → needs-info → …` transitions apply as written.
+
+### What the states mean here
+
+- **`needs-info`** — stopped waiting on a **third party**: the client, a supplier, a provider.
+  Anything phrased "depends on <someone>" lands here. A `depends_on` between your own PRDs is
+  **not** this — that is ordering, already carried by the frontmatter, and it does not change an
+  issue's state.
+- **`ready-for-human`** — you can do it now, it just cannot be delegated: creating a vendor
+  account, issuing a credential, a decision only you can make. There is no `HITL:` title prefix;
+  this label replaced it.
+- **Birth state depends on origin.** An issue published by `to-prd` or `to-issues` is born
+  `ready-for-agent` — by construction it carries closed acceptance criteria, which `to-prd` step 4
+  verifies. An issue you open by hand is born `needs-triage`.
+- **Closed issues are historical record.** The cardinality rule reaches open issues only; never
+  stamp a state onto something already closed.
+
+### The other two axes
+
+- **`model:` is complexity, not urgency.** Execution order already comes from `depends_on` and the
+  issue number. An issue can be urgent and mechanical.
+- **It does not belong in PRD frontmatter** — neither does `state:`. The tier is per slice, not per
+  PRD: one PRD's RLS migration is `model:opus` while its plain CRUD is `model:sonnet`. Frontmatter
+  carries only what is stable: `domain:` labels and `depends_on`.
+- **Tier mismatch is a stop, not a switch.** Picking up an issue labelled above the session's
+  current model: say so and wait, per §3 — never switch on your own. Working below it (Opus on a
+  `model:haiku` issue) needs no ceremony.
+- **`domain:` is declared per repository**, in that repo's own `CLAUDE.md`, and only once it is
+  actually needed. A repo with no declared domains runs on the universal axes alone.
+
+### Mechanics
+
+- **`to-issues` and `to-prd` provision what is missing.** Before publishing, create any absent
+  label with `gh label create` (idempotent — ignore "already exists"): the universal axes above,
+  and the `domain:` vocabulary from the repo's `CLAUDE.md`. A new repository needs no manual
+  setup; its first issue provisions it.
+- **Never invent a value** outside the table or the repo's declared `domain:` list. Renaming a
+  label preserves its links; creating a near-duplicate silently splits them.
+- **Audit:** `D:\Projetos\projetos-pessoais\jgabriel-skills\scripts\audit-labels.sh` sweeps every
+  pipeline repo and exits non-zero on a violation. Nothing runs it automatically — run it after a
+  slicing session.
+
+Applies to every repository running the PRD-to-issue pipeline. The roster itself is deliberately
+not listed here: this repo is public and those repos are not. The live list lives in the untracked
+`scripts/.pipeline-repos`, which is also what the audit script reads.
+
 ---
 
-_Last revised: 2026-08-28 — split §11 so fable-method's four named lines (INTENT, AUTH, TWINS,
+_Last revised: 2026-08-29 — added §16 (issue labels): one prefixed four-axis taxonomy across the six
+pipeline repos, replacing a per-repo improvised vocabulary. The `state:` axis adopts the `triage`
+skill's five roles verbatim, so that skill needs no mapping layer; `needs-info` is reserved for
+waiting on a third party, never for a `depends_on` between your own issues._
+
+_Previously revised: 2026-08-28 — split §11 so fable-method's four named lines (INTENT, AUTH, TWINS,
 PENDING) fire on their trigger in every task, including one a skill covers and one the
 triviality gate exempted from the loop. Prompted by deduping INTENT/TWINS out of `diagnose`,
 which would otherwise have left debugging with neither._

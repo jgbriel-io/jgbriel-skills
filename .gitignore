@@ -27,3 +27,6 @@ local/
 # It is an external checkout, so it is not tracked here -- and a reconciliation
 # reporting it as "only in global" is expected, not drift.
 claude/skills/impeccable/
+
+# private repo roster for scripts/audit-labels.sh - never commit
+scripts/.pipeline-repos

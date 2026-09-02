@@ -6,7 +6,9 @@ disable-model-invocation: true
 
 This skill takes the current conversation context and codebase understanding and produces a PRD. Do NOT interview the user — just synthesize what you already know.
 
-The issue tracker and triage label vocabulary should be configured in the project's `CLAUDE.md` or equivalent context file before using this skill.
+The issue tracker and label vocabulary should be configured in the project's `CLAUDE.md` or equivalent context file before using this skill.
+
+Before publishing, provision the labels: create any missing value with `gh label create` (idempotent — ignore "already exists"), taking the universal axes from the label taxonomy in the user's global `CLAUDE.md` and the `domain:` vocabulary from the project's own. Never invent a value outside those two lists.
 
 ## Process
 
@@ -16,7 +18,11 @@ The issue tracker and triage label vocabulary should be configured in the projec
 
 Check with the user that these seams match their expectations.
 
-3. Write the PRD using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.
+3. Write the PRD using the template below, then publish it to the project issue tracker. Apply the `state:ready-for-agent` label - no need for additional triage.
+
+4. Prove it landed. Read the published issue back from the tracker and confirm three things in its returned body: the `state:ready-for-agent` label is present, every section of the template exists, and no `<placeholder>` text survived. Report the issue's identifier and URL. "Published successfully" is not evidence — the tracker's own output is. If the publish failed twice, stop, keep the PRD text in the conversation so it is not lost, and report the exact error rather than retrying blind.
+
+Don't edit or close a parent issue while publishing this one, and don't invent a label the project's vocabulary doesn't define.
 
 <prd-template>
 
