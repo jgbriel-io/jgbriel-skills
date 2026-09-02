@@ -8,7 +8,9 @@ disable-model-invocation: true
 
 Break a plan into independently-grabbable issues using vertical slices (tracer bullets).
 
-The issue tracker and triage label vocabulary should be configured in the project's `CLAUDE.md` or equivalent context file before using this skill.
+The issue tracker and label vocabulary should be configured in the project's `CLAUDE.md` or equivalent context file before using this skill.
+
+Before publishing, provision the labels: create any missing value with `gh label create` (idempotent — ignore "already exists"), taking the universal axes from the label taxonomy in the user's global `CLAUDE.md` and the `domain:` vocabulary from the project's own. Never invent a value outside those two lists.
 
 ## Process
 
