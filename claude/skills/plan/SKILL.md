@@ -2,6 +2,7 @@
 name: plan
 description: Produce an implementation plan — ordered steps, explicit dependencies, mechanical proofs, risks and exit criteria. Scales from a quick in-chat answer to a durable dossier that another session can execute cold. Use when the user asks how to approach something, asks for a plan or the order of work, or before starting anything with several moving parts.
 argument-hint: <target — a task, PRD, issue or topic> [constraints]
+disable-model-invocation: true
 ---
 
 Plan: `$ARGUMENTS`

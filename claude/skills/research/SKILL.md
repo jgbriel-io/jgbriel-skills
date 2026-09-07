@@ -2,6 +2,7 @@
 name: research
 description: Investigate a question or topic against primary sources and the repo's own history, then capture verified findings as a Markdown file. Use when the user asks to research or investigate something, asks "does this already exist / how did we do it before", or wants reading legwork delegated.
 argument-hint: <topic or question> [focus]
+disable-model-invocation: true
 ---
 
 Investigate: `$ARGUMENTS`
