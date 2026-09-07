@@ -2,6 +2,7 @@
 name: implement
 description: Implement planned work — a plan, PRD, issue or agreed task. Resolves the target first, refuses to edit without one, works in vertical slices, verifies by the surface actually touched, and closes the record. Use when the user asks to build, implement or code something that has already been decided.
 argument-hint: <plan, PRD, issue or task> [scope notes]
+disable-model-invocation: true
 ---
 
 Implement: `$ARGUMENTS`

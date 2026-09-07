@@ -2,6 +2,7 @@
 name: project-planner
 description: Conversational project planning: asks one question at a time (grill-me style), suggests technical details when user doesn't know, and scaffolds wiki pages in wiki/Projetos/ after confirmation. Use when user says "quero planejar um projeto", "tenho uma ideia de projeto", "documenta esse projeto", "cria página do projeto X", "novo projeto no wiki", "vou começar um projeto", or starts describing a project idea — even casually. User can share what they already know; Claude fills gaps with suggestions. This is Phase 1 of project-kickoff — for the full idea-to-implementation workflow use project-kickoff instead; for projects with existing docs/ on disk use project-sync.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
+disable-model-invocation: true
 ---
 
 # project-planner
