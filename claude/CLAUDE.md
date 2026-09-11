@@ -263,7 +263,7 @@ The sixth, `blocked-by-module`, sits outside that mapping — see below.
   issue's state.
 - **`blocked-by-module`** — waits on another module of **this project's own codebase** landing as
   actual code, not on a third party and not on a human-only step. Added by whitelabel-crm decision
-  250 (2026-09-08, `docs/decisions/decisions.md`) because `depends_on` alone is frontmatter,
+  256 (2026-09-08, `docs/decisions/decisions.md`) because `depends_on` alone is frontmatter,
   invisible to a `state:`-filtered board, and forcing this case into `needs-info` would make an
   internal wait indistinguishable from an external one. Name it after the shape of the block, not
   the blocking issue or decision number, so the label stays correct after that issue closes.
@@ -310,7 +310,7 @@ not listed here: this repo is public and those repos are not. The live list live
 _Last revised: 2026-09-08 — added a sixth `state:` value, `blocked-by-module`, for an issue waiting
 on another module of the same project landing as code — distinct from `needs-info` (third party)
 and from a bare `depends_on` (frontmatter, invisible on a `state:`-filtered board). Prompted by
-whitelabel-crm issue #72 (decision 250)._
+whitelabel-crm issue #72 (decision 256)._
 
 _Previously revised: 2026-08-29 — added §16 (issue labels): one prefixed four-axis taxonomy across the six
 pipeline repos, replacing a per-repo improvised vocabulary. The `state:` axis adopts the `triage`
