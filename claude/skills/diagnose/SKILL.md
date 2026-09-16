@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 A discipline for hard bugs. Skip phases only when explicitly justified.
 
-When exploring the codebase, read `CONTEXT.md` (if it exists) to get a clear mental model of the relevant modules, and check ADRs in the area you're touching.
+When exploring the codebase, read `CONTEXT.md` (if it exists) to get a clear mental model of the relevant modules, and check ADRs in the area you're touching. **A recorded decision can turn the report into a change request rather than a bug** — deliberate behaviour someone dislikes is not a defect, and finding that out early costs one read.
 
 Golden rule: **evidence before theory, reproduction before fixing, root cause before patch.** A known symptom can have a new cause — never conclude by pattern-match.
 
@@ -144,6 +144,8 @@ Tool preference:
 
 **Tag every debug log** with a unique prefix, e.g. `[DEBUG-a4f2]`. Cleanup at the end becomes a single grep. Untagged logs survive; tagged logs die.
 
+**A bug that disappears when you add a log or a wait is telling you something**: that is a timing signal, not a mystery. Observe with less interference — a debugger snapshot instead of a print, a probe outside the hot path — and run the repro deliberately with and without the instrumentation to confirm the ordering is what moves it.
+
 ### Wolf Fence — binary search in space
 
 A wrong value with no stack trace has no obvious probe site. Don't scatter logs. Draw the path the data travels — entry → auth → validation → service → persistence → response — and place **one** detector at the **midpoint**: a log of the value, or an assertion that fails. Run the repro once and ask a single question: **is the value already wrong here?** Wrong → the cause is upstream. Right → it's downstream. Halve again. log₂(n) runs localizes the stage. **One detector per round** — two detectors is two variables and tells you less than one.
@@ -159,6 +161,18 @@ In the report, the symptom line and the origin line are **two distinct `file:lin
 **Perf branch.** For performance regressions, logs are usually wrong. Instead: establish a baseline measurement (timing harness, `performance.now()`, profiler, query plan), then bisect. Measure first, fix second.
 
 ## Specialist paths — take these when the triage fits
+
+Route by the signal, and read only the playbook that applies:
+
+| Signal | Path |
+| --- | --- |
+| It used to work | **It worked before**, below — history, then bisect |
+| It started after an upgrade | **It started after a dependency changed**, below |
+| UI, console, network, races, hydration | [stacks/devtools.md](stacks/devtools.md) |
+| Stale cache, HMR, server-vs-browser logs on Next.js | [stacks/web-next.md](stacks/web-next.md) |
+| The runtime is Bun | [stacks/bun.md](stacks/bun.md) |
+| One specific record, user or tenant | the data-bug note in Phase 2 — drive the repro with the offending datum |
+| A model's output or action | Phase 1, fixing input and state; a fresh session when accumulated context would carry the result |
 
 ### It worked before (regression)
 
