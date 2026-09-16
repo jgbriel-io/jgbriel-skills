@@ -9,7 +9,7 @@
     {
       "name": "core",
       "source": "./plugins/core",
-      "description": "Commands de git e repositório do dia a dia, e o subagent researcher que dois deles usam."
+      "description": "Base do fleet: commands de git/repo, o subagent researcher e os hooks de proteção. Instale em toda máquina."
     },
     {
       "name": "core-loop",

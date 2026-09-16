@@ -52,27 +52,6 @@
   },
   "model": "opus",
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"C:/Program Files/nodejs/node.exe\" \"{{USER_HOME_FWD}}/.claude/hooks/context-mode-cache-heal.mjs\""
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"C:/Program Files/nodejs/node.exe\" \"{{USER_HOME_FWD}}/.claude/hooks/guard-dangerous-bash.mjs\""
-          }
-        ]
-      }
-    ],
     "Stop": [
       {
         "hooks": [

@@ -1,9 +1,35 @@
 {
   "name": "core",
   "version": "1.0.0",
-  "description": "Commands de git e repositório do dia a dia, e o subagent researcher que dois deles usam.",
+  "description": "Base do fleet: commands de git/repo, o subagent researcher e os hooks de proteção. Instale em toda máquina.",
   "author": {
     "name": "João Gabriel",
     "url": "https://github.com/jgbriel-io"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "HOOK_ROOT=$(printf %s \"${CLAUDE_PLUGIN_ROOT}\" | sed 's|^/\\([a-zA-Z]\\)/|\\1:/|'); node \"$HOOK_ROOT/hooks/guard-dangerous-bash.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "HOOK_ROOT=$(printf %s \"${CLAUDE_PLUGIN_ROOT}\" | sed 's|^/\\([a-zA-Z]\\)/|\\1:/|'); node \"$HOOK_ROOT/hooks/context-mode-cache-heal.mjs\"",
+            "timeout": 30,
+            "statusMessage": "Checking context-mode cache..."
+          }
+        ]
+      }
+    ]
   }
 }
