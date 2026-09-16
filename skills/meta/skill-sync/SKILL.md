@@ -11,7 +11,7 @@ repo is the only place anything is edited.
 
 ## Where everything lives
 
-1. `plugins/<categoria>/skills/<name>/` in this repo — **the source of truth.**
+1. `skills/<categoria>/<name>/` in this repo — **the source of truth.**
    Every edit happens here, and nowhere else.
 2. `~/.claude/plugins/cache/<marketplace>/<plugin>/<versão>/` — the runtime.
    A **versioned copy** pinned to a `gitCommitSha`; `claude plugin update` is what
@@ -40,9 +40,9 @@ Note the latest commit date — tells how stale the last sync is.
 
 ### 2. Classify every skill
 
-For each upstream skill vs its counterpart in `plugins/*/skills/<name>`, using
+For each upstream skill vs its counterpart in `skills/*/<name>`, using
 `diff -rq --strip-trailing-cr` (CRLF noise otherwise flags whole files). Resolve
-the local path once — `find plugins -maxdepth 3 -type d -name <name>` — because a
+the local path once — `find skills -maxdepth 2 -type d -name <name>` — because a
 skill can sit in any category:
 
 - **SAME** — nothing to do

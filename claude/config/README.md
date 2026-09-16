@@ -9,8 +9,8 @@ template for each. Copy the template, delete the comments, fill it in.
 | `CLAUDE.md` (project) | `<repo>/.claude/CLAUDE.md` or repo root | Sessions inside that repo; overrides/extends global | same template, project flavor |
 | `CLAUDE.local.md` | repo root, gitignored | Like project CLAUDE.md, personal only | same |
 | `SKILL.md` | `~/.claude/skills/<name>/` | description always; body on trigger | `skills/skill-creator/templates/SKILL.template.md` |
-| Agent | `plugins/<plugin>/agents/<name>.md` (fleet) ou `~/.claude/agents/<name>.md` (avulso) | description always; runs as isolated subagent | [AGENT.template.md](AGENT.template.md) |
-| Slash command | `plugins/<plugin>/commands/<name>.md` (fleet) ou `~/.claude/commands/<name>.md` (avulso) | Only when user types `/<name>` | [COMMAND.template.md](COMMAND.template.md) |
+| Agent | `agents/<name>.md` no repo (fleet) ou `~/.claude/agents/<name>.md` (avulso) | description always; runs as isolated subagent | [AGENT.template.md](AGENT.template.md) |
+| Slash command | `commands/<name>.md` no repo (fleet) ou `~/.claude/commands/<name>.md` (avulso) | Only when user types `/<name>` | [COMMAND.template.md](COMMAND.template.md) |
 | Memory | `~/.claude/projects/<proj>/memory/*.md` + `MEMORY.md` index | Index every session; files on recall | [MEMORY.template.md](MEMORY.template.md) |
 | Domain context file | `<repo>/CONTEXT.md`, `docs/DESIGN.md`, `docs/adr/*.md` | On demand, when a skill/agent reads it | [CONTEXT-FILE.template.md](CONTEXT-FILE.template.md) + `../../templates/CONTEXT.template.md` |
 | `settings.json` | `~/.claude/settings.json` (real) | Harness config: permissions, hooks, plugins, model | `../settings.template.json` |
