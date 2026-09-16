@@ -1,23 +1,34 @@
 ---
 name: skill-sync
-description: Sync the skill fleet across its three points and against upstream mattpocock/skills — diff local vs upstream, pull updates preserving local adaptations, adapt matt-specific cross-refs, mirror to the vault, and stage the D: repo commit. Use when the user says "sincroniza as skills", "atualiza do mattpocock", "verifica updates do repo do matt", "puxa as skills novas", or after noticing upstream drift. Quality scoring is skill-audit; creating skills is skill-creator.
+description: Sync the skill fleet against its upstreams — mattpocock/skills and lucasmonstrox/utevo-lux — diffing repo vs upstream, pulling updates around local adaptations, adapting upstream-specific cross-refs, then republishing through the plugin marketplace. Use when the user says "sincroniza as skills", "atualiza do mattpocock", "verifica updates do upstream", "puxa as skills novas", or after noticing upstream drift. Quality scoring is skill-audit; creating skills is skill-creator.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # Skill Sync
 
-Keeps the three-point skill system consistent and current against upstream.
-Validated workflow from the 2026-07-08 sync.
+Keeps the fleet current against upstream. The fleet ships as **plugins**, so the
+repo is the only place anything is edited.
 
-## The three points
+## Where everything lives
 
-1. `~/.claude/skills/` — runtime (symlinked to point 2; editing one edits both)
-2. `D:\Projetos\projetos-pessoais\jgabriel-skills\plugins\<categoria>\skills\` — git repo, where commits happen
-3. `Obsidian Vault\wiki\Tools\Claude Code\skills\<categoria>\` — docs mirror, manual copy
+1. `plugins/<categoria>/skills/<name>/` in this repo — **the source of truth.**
+   Every edit happens here, and nowhere else.
+2. `~/.claude/plugins/cache/<marketplace>/<plugin>/<versão>/` — the runtime.
+   A **versioned copy** pinned to a `gitCommitSha`; `claude plugin update` is what
+   refreshes it. Never edit it: the next update overwrites the whole version dir.
+3. `Obsidian Vault\wiki\Tools\Claude Code\skills\<categoria>\` — docs mirror,
+   manual copy.
 
-Upstream: `https://github.com/mattpocock/skills` (skills under
-`skills/<category>/<name>/`). Vendor packs (Cloudflare) have their own
-upstream — out of scope here.
+On the machine where skills get written, register the working copy itself:
+`claude plugin marketplace add <path do repo>`. A **directory** marketplace reads
+straight from the working tree — no clone — so a pull lands the moment you bump
+the plugin's `version` and run `claude plugin update`. Other machines add the
+GitHub repo instead.
+
+Upstreams: `https://github.com/mattpocock/skills` (skills under
+`skills/<category>/<name>/`) and `https://github.com/lucasmonstrox/utevo-lux`
+(under `plugins/utevo-lux/skills/<name>/`), which is the second upstream for the
+core loop. Vendor packs (Cloudflare) have their own upstream — out of scope here.
 
 ## Process
 
@@ -29,13 +40,16 @@ Note the latest commit date — tells how stale the last sync is.
 
 ### 2. Classify every skill
 
-For each upstream skill vs `~/.claude/skills/<name>`, using
-`diff -rq --strip-trailing-cr` (CRLF noise otherwise flags whole files):
+For each upstream skill vs its counterpart in `plugins/*/skills/<name>`, using
+`diff -rq --strip-trailing-cr` (CRLF noise otherwise flags whole files). Resolve
+the local path once — `find plugins -maxdepth 3 -type d -name <name>` — because a
+skill can sit in any category:
 
 - **SAME** — nothing to do
 - **DIFF** — count divergent lines (`diff | grep -c '^[<>]'`); inspect small
   diffs inline before deciding
-- **MISSING-LOCAL** — upstream skill not installed (adoption candidate)
+- **MISSING-LOCAL** — upstream skill absent from every plugin (adoption candidate;
+  adopting it means choosing which category plugin it joins)
 - **LOCAL-ONLY** — the user's own skills; upstream irrelevant
 
 Watch for upstream **renames** (e.g. diagnose → diagnosing-bugs): a MISSING +
@@ -89,8 +103,14 @@ Verify with a final grep — zero leftovers.
   adopted, protected.
 - New skills go on the pending list for a `/skill-audit` pass.
 
-### 7. Commit
+### 7. Commit and republish
 
-Changes land in the D: repo working tree automatically (symlink). Ask the
-user before committing; Conventional Commits, English. The vault auto-commits
-via its Obsidian Git hook.
+1. **Bump the `version` in each touched plugin's `.claude-plugin/plugin.json`.**
+   The runtime is pinned to a version and a commit; without a bump, `update` has
+   nothing to install and the pull silently never reaches any machine.
+2. Ask the user before committing; Conventional Commits, English.
+3. `claude plugin update <plugin>@jgbriel` on this machine to land it, then the
+   same on the others. `claude plugin validate .` before pushing catches a broken
+   manifest earlier than any of them.
+
+The vault auto-commits via its Obsidian Git hook.
