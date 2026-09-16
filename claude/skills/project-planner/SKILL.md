@@ -1,6 +1,6 @@
 ---
 name: project-planner
-description: Conversational project planning: asks one question at a time (grill-me style), suggests technical details when user doesn't know, and scaffolds wiki pages in wiki/Projetos/ after confirmation. Use when user says "quero planejar um projeto", "tenho uma ideia de projeto", "documenta esse projeto", "cria página do projeto X", "novo projeto no wiki", "vou começar um projeto", or starts describing a project idea — even casually. User can share what they already know; Claude fills gaps with suggestions. This is Phase 1 of project-kickoff — for the full idea-to-implementation workflow use project-kickoff instead; for projects with existing docs/ on disk use project-sync.
+description: Scaffolds a project's wiki pages in wiki/Projetos/ — index.md with frontmatter, subpage stubs and ADRs — from a direction that is already settled, collecting any missing field first. Use when user says "documenta esse projeto", "cria página do projeto X", "novo projeto no wiki", or wants a project recorded in the vault. Thinking the idea through before it gets written is `discuss`; this is Phase 1 of project-kickoff; for projects with existing docs/ on disk use project-sync.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 disable-model-invocation: true
 ---
@@ -32,18 +32,13 @@ Sinal para nível completo: usuário menciona stack, repos, módulos, migração
 
 ---
 
-## Passo 1 — Diálogo (estilo grill-me, não questionário fixo)
+## Passo 1 — Insumos
 
-Fluxo conversacional: Claude pergunta **uma coisa por vez**, sugere quando o usuário não souber, avança quando o usuário já trouxer a info. Não despeja lista de perguntas.
+**A conversa é do `discuss`.** Ele constrói a direção uma decisão por vez, com intenção, audiência, cenários, precedentes, opções e fronteiras, e fecha num brief confirmado — é mais fundo do que esta skill precisa fazer sozinha. Se o usuário chegou aqui com um brief do `discuss`, extraia os campos abaixo dele e não pergunte de novo.
 
-### Regras do diálogo
+Sem brief, colete o que falta você mesmo: o usuário trouxe a info → aceita; não sabe → **sugere** com base no contexto e confirma; quer avançar logo → respeita e marca o resto como `> [!gap]`. Nunca mais de 1–2 perguntas por turno. Para uma ideia ainda crua que precisa ser pensada antes de virar página, mande pro `discuss` primeiro.
 
-- Usuário trouxe a info → aceitar, não perguntar de novo.
-- Usuário não sabe / não mencionou → **sugerir** com base no contexto e perguntar se confirma.
-- Nunca fazer mais de 1-2 perguntas por turno.
-- Se o usuário quiser avançar logo → respeitar, preencher o resto como `> [!gap]`.
-
-### Tópicos essenciais (todo projeto)
+### Campos exigidos pelo scaffold (todo projeto)
 
 1. **Nome** — se ainda não foi dito, sugerir baseado na descrição.
 2. **Objetivo** — o que resolve / entrega em 1 frase. Sugerir se não estiver claro.
@@ -64,23 +59,9 @@ Fluxo conversacional: Claude pergunta **uma coisa por vez**, sugere quando o usu
 9. **Papéis de usuário** — roles e permissões, se o sistema tiver auth.
 10. **Decisões já tomadas** — arquitetura, monorepo vs polyrepo, hosting… Cada decisão relevante e não-óbvia vira **ADR** (ver Passo 3b).
 
-### Exemplo de turno bom
+### Confirmar antes de escrever
 
-```
-Usuário: "quero fazer um app de rastreamento de hábitos, ainda é ideia"
-
-Claude: "Nome de trabalho: **Habit Tracker**. Objetivo: rastrear hábitos diários e ver progresso ao longo do tempo.
-
-Pra stack — você tem preferência ou quer sugestão?"
-
-Usuário: "sugestão"
-
-Claude: "Para app web simples: Next.js + Supabase (auth + DB) + Tailwind. Faz sentido ou prefere mobile/outra abordagem?"
-```
-
-### Encerrar diálogo
-
-Quando tiver: nome, objetivo, stack (mesmo que parcial) e subpáginas → apresentar resumo final:
+Com nome, objetivo, stack (mesmo que parcial) e subpáginas em mãos → apresentar resumo final:
 
 ```
 Resumo antes de criar:
@@ -318,7 +299,7 @@ Criado:
 Próximos passos:
 - Preencher seções marcadas com > [!gap]
 - Se tiver docs em D:/Projetos/..., rodar project-sync pra enriquecer
-- Stress-testar a ideia agora: /grill-me
+- [se não veio de um brief] Fechar a direção: /discuss · ou pressionar o que já existe: /grill-me
 - Fluxo completo (spec → design → implementação): project-kickoff — esta skill foi a Fase 1
 ```
 

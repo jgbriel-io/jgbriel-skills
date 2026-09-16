@@ -46,6 +46,15 @@ LOCAL-ONLY pair with near-identical content is a rename, not two skills.
 - `obsidian-vault` — full local rewrite for the user's actual vault
 - `setup-pre-commit` — local ask-before-committing rule (step 8)
 - `diagnose` — local name kept (upstream calls it diagnosing-bugs)
+- `grill-me` — local name kept, but the content tracks upstream **`grilling`**,
+  not upstream `grill-me`. Diffing it against the same-named skill will always
+  show total divergence; diff against `grilling` instead.
+- **The core loop — `discuss`, `research`, `plan`, `implement`, `diagnose`,
+  `pr-acceptance`, `resolve-review`.** Each is a three-way merge of this repo's
+  version, `mattpocock/skills` and [`lucasmonstrox/utevo-lux`](https://github.com/lucasmonstrox/utevo-lux),
+  and utevo-lux is a **second upstream** for them. A wholesale pull from Matt
+  reverts that merge. `plan` and `pr-acceptance` have no upstream counterpart at
+  Matt's at all. Treat divergence here as intentional until diffed against both.
 - Any skill whose divergence IS a local fix from an audit — check
   `wiki/Tools/Claude Code/docs/Skills Quality Criteria.md` audit history when unsure
 
@@ -71,9 +80,11 @@ Verify with a final grep — zero leftovers.
 
 ### 6. Mirror and record
 
-- Run `scripts/mirror-to-vault.sh` (repo root) to sync every changed skill to the vault; new skills also get
-  a row in the vault `skills/index.md` (and update the counts there and in the
-  Claude `index.md`).
+- Mirror every changed skill into the vault docs copy by hand
+  (`Obsidian Vault\wiki\Tools\Claude Code\skills\<categoria>\<name>\`); new
+  skills also get a row in the vault `skills/index.md`, and the counts there and
+  in the Claude `index.md` get updated. The old `mirror-to-vault.sh` was removed —
+  it hardcoded one machine's vault path and only ever ran from Git Bash.
 - Append a sync entry to `Critérios de Qualidade das Skills.md`'s audit section: date, pulled,
   adopted, protected.
 - New skills go on the pending list for a `/skill-audit` pass.

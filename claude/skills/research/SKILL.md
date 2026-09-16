@@ -19,7 +19,9 @@ Effort is decided here, not discovered halfway through.
 | **Comparison** | 2–5 nameable options | a few subagents, one per option or angle | a document |
 | **Broad** | a whole domain, or code + history + external landscape | subagents per front | a document |
 
-Then compress the request into a **3–6 line brief**: scope, the questions that must be answered, and what "answered" means. Every search and the final summary get judged against it.
+Then compress the request into a **3–6 line brief**: scope, the questions that must be answered, and what "answered" means. Every search and the final summary get judged against it. Reuse the `discuss` brief when one exists — preserve its decisions, constraints and open questions instead of re-deriving them; no sibling skill is a prerequisite.
+
+**Before the first tool call, write one line: what would settle this question, and what would count as enough evidence.** Sometimes that is a single page, opened. Sometimes it is the same criteria applied to options that already have names. Sometimes the options are not known yet and finding them is the work. Then spend to that line **in both directions** — a question one page settles does not deserve a campaign, and a broad question is not answered by three searches either. **Under-spending is the more expensive mistake, because the result still looks finished.**
 
 **Name the implicit requirements the request didn't state** but the project imposes — the constraints any recommendation must satisfy to be usable here. Ignoring one is roughly half of all research-agent failures: the answer is correct and unusable.
 
@@ -34,7 +36,8 @@ Pressure to go faster lowers the **tier**; it never removes verification. A look
 
 The repo usually knows more than it appears to.
 
-- **Code**: search conceptually first, then by symbol and its references, then read narrowly. Separate **real** from **stubbed** from **documented-but-absent**. Existing code is not proof of a current pattern — check it against what's been decided since it was written.
+- **Code**: search conceptually first, then by symbol and its references, then read narrowly. Lexical and semantic search do not subsume each other — exact match is the stronger tool for identifiers, strings and dynamic references, and the one that still works after a rename. Separate **real** from **stubbed** from **documented-but-absent**: a signature does not prove complete behaviour, and a passing test does not prove the behaviour the test claims to cover. Existing code is not proof of a current pattern — check it against what's been decided since it was written.
+- **An empty search does not prove absence.** It usually means the search was wrong. After two failed formulations, change the **strategy**, not the words: another layer, another representation, the consumer instead of the definition, history instead of the working tree. Report "not found" as a limitation, naming what was searched.
 - **History as a source**: `git log --grep`, `git log -S "<excerpt>"` to find when something entered or left, `git log --follow` across renames. Merged PRs and closed issues carry decisions that never made it into docs.
 - **Delegate the sweeps.** Mapping how X connects to Y, or reading N candidate files, goes to subagents — read-only, one per front. The main thread should receive conclusions, not file contents. Direct search is for an exact string.
 - **A multi-step survey is a script, not thirty tool calls.** Counting, cross-referencing, measuring — write it, run it, print the result.
@@ -43,12 +46,15 @@ The repo usually knows more than it appears to.
 
 ## 3. External research
 
+**First, decide whether it's warranted.** Go external when the answer depends on current APIs, libraries, markets, rules or other facts the repo doesn't own. An entirely internal lookup does not need market research, and a stable, well-known fact does not need a citation hunt.
+
 - **Fan out by perspective**, not by keyword. Each front generates its own sub-questions; the ones that pay off become sections.
-- **Brief each subagent in four fields**: objective, exact output format, allowed sources, and what *not* to cover. Vague delegation returns four copies of the same angle. Subagents return **distilled notes and sources — never prose to paste**.
+- **Brief each subagent in four fields**: objective, exact output format, allowed sources, and what *not* to cover. Vague delegation returns four copies of the same angle. Delegate a track only when it is genuinely **independent** — separate question, separate sources, nothing to hand back mid-way; work that depends on another track in flight belongs in one place. Subagents return **distilled notes and sources — never prose to paste**: parallel research with parallel writing reads as if several people wrote it, because several did. Do not require a specific provider, model or agent count.
 - **Broad, then narrow.** Short general queries to map the terrain, then targeted ones. Search in more than one language where the topic warrants it.
 - **Two failed phrasings means change strategy** — different terms, different source type, different language — not "it doesn't exist". And **"no reliable source found" is a valid finding**, recorded as a gap. It beats citing something weak.
 - **Between batches, write one line**: answered X · still missing Y · next Z. A new sub-question goes to the front of the queue; the parent question closes only when the queue below it drains.
 - **Source ladder**: official documentation > the source code of the thing itself (behaviour's only real oracle) > dated technical forums and issue trackers > third-party posts and videos, which are **never sufficient alone**. If the behaviour is testable locally, **test it** — that outranks every citation.
+- **Distinguish inspiration from requirements.** A competitor having something does not establish that this project needs it. Check compatibility, maintenance, licensing, limits and costs where they bear on the recommendation.
 
 ## 4. Verification — where research agents actually fail
 
@@ -58,7 +64,7 @@ The repo usually knows more than it appears to.
 - **Triangulate with real independence.** Twenty posts reciting one announcement is one source. A behavioural claim wants two genuinely independent sources, or one local test.
 - **Extra rigour on the first sources of each front** — an early error anchors everything after it.
 - **Freshness matters most where things move fastest.** An old page about a current limit is suspect; when sources conflict, the newer primary wins and the conflict gets noted.
-- **Label every finding**: `verified-fetch` · `tested-locally` · `read-in-code` · `snippet` · `inference` — with a date.
+- **Label every finding**: `verified-fetch` · `tested-locally` · `read-in-code` · `snippet` · `inference` — with a date. Put the check next to the label so a reader can re-run it: the file and line, the commit, the query, the URL opened. A claim marked verified that nobody can re-check is still just an assertion.
 - **Budget spent → conclusion mode.** Write what's verified; what isn't becomes an open question. Chasing "just one more" past the budget is how investigations die undelivered.
 
 ## 5. Counter-review — when the answer carries a decision
@@ -86,4 +92,4 @@ Dispatch one subagent **role-locked to refute** your preliminary recommendation,
 - Does the document answer every question in the §0 brief?
 - Refuted and empty-search sections filled in, even if "none"?
 
-Few solid citations beat many weak ones. Close by proposing the next step — usually a plan — and surface any decision the work now requires.
+Few solid citations beat many weak ones. Close by proposing the next step — usually `plan` — and surface any decision the work now requires. **If the evidence invalidates the brief's own direction, say so and revisit it with the user; do not silently substitute your own.**

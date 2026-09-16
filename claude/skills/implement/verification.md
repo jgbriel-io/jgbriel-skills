@@ -4,13 +4,16 @@ Proof is typed by the surface the diff actually touched. Identify the surfaces f
 
 | Surface | What counts as proof |
 | --- | --- |
-| **Data / schema** | The migration applies cleanly against a real instance. A new constraint is proven by violating it and seeing the failure. If the store enforces access rules, prove the rule is *on*: the unauthorised read returns nothing **and** the authorised one returns the expected rows — silence alone is ambiguous, since "correct refusal" and "misconfigured and broken" look identical |
+| **Data / schema** | The migration applies cleanly against a real instance. A new constraint is proven by violating it and seeing the failure. If the store enforces access rules, prove the rule is *on*: the unauthorised read returns nothing **and** the authorised one returns the expected rows — silence alone is ambiguous, since "correct refusal" and "misconfigured and broken" look identical. Restore whatever state the check created |
 | **Backend / API** | The endpoint exercised end to end with a real request; response body and status both checked. A new error path proven to produce the intended shape, from the central handler rather than assembled at the call site. A validation rule proven by sending something invalid. A queue or event consumer proven **idempotent**: same message twice, effect once |
 | **Frontend** | Run the app, reach the screen, capture it. A form proven to reject invalid input *before* it reaches the network. Empty, loading and error states rendered — not just the happy path with data present |
 | **Infrastructure / config** | Exercised locally against the real runtime where one exists, with the command and its output pasted. A new secret present only in the ignored env file or the secret store, never in the diff. A performance claim carries a before/after number — "faster" without one is not a result |
 | **Pure logic** | A test next to the code, run, with output shown. New parsing, normalisation, computation or resolution logic that arrived without one means §3 was skipped — go back and write it |
+| **Model / AI** | The output and the action it triggers, judged against the product criterion — not that the call returned. Running without errors proves the pipe works, never that the answer was right. Fix the input and the relevant state; use a fresh session when accumulated context would carry the result |
 
-A surface you touched but genuinely cannot test declares **why**, explicitly. Silence is not a pass.
+A surface you touched but genuinely cannot test declares **why**, explicitly. Silence is not a pass. With no browser available, UI verification is **pending**, not passed.
+
+Use the project's own infrastructure throughout — never another repository's language, framework, database, ports or commands.
 
 ## The scenario ladder
 

@@ -74,8 +74,12 @@ For tier 3, use [templates.md](templates.md) — dossier first, `## Plan` last, 
 - **Inject the conventions into the step that touches them**, as text. A rule referenced by link is a rule that won't be followed. Paste only the subset that step needs.
 - **Every step declares its "Don't"** — the forbidden side effect, the responsibility belonging to another symbol, the case deliberately unhandled. "Don't break anything" doesn't count; name a concrete, plausible error *of that step*.
 - **Every proof is mechanical**: a runnable command and its expected result. A step that ends "should work" has no proof.
-- **Tests are layered by surface touched**, and a surface with no possible test says why. Silence is not coverage.
+- **Tests are layered by surface touched**, and a surface with no possible test says why. Silence is not coverage. The proof has to exercise the surface that changed — UI in a real browser, with the variants and the console; API through the actual route or handler, waiting on asynchronous effects; data against schema and queries showing integrity and compatibility; logic through a test that separates correct from incorrect behaviour on the existing harness; a model's output against its contract, not merely that it answered. Typechecking and linting complement these; they don't replace them.
+- **A proof whose harness doesn't exist yet is not a runnable command.** Either plan the setup as its own step, or state the limitation — don't write a command that cannot be run.
 - **Steps express intent** — what changes, where, why — not finished code. Include a snippet only where the exact shape *is* the contract.
+- **The fields record a decision already taken in §2 and §3; they are not where the thinking happens.** When a step's shape is still unsettled, work it out in prose first and fill the fields afterwards. A form filled top to bottom produces a target before an intent, and the rest of the step bends to fit it.
+- **Don't invent stubs to conceal a dependency.** Where a stub is genuinely part of the design, state its contract, what replaces it, and what it makes testable in the meantime.
+- **For data changes, separate expansion, migration and removal**, with a proof before each transition rather than one at the end.
 - **Declare dependencies only where they're real.** Most plans are graphs; forcing a queue invents constraints and hides parallelism.
 
 ### Budget
@@ -88,5 +92,6 @@ For tier 3, use [templates.md](templates.md) — dossier first, `## Plan` last, 
 
 1. Tier 3 → save the file and link it from the target's spec, one line. Tier 1 and 2 stay in the conversation.
 2. **Spot-check your own citations**: reopen two or three `path:line` and confirm the line still says what the plan claims. Manual, and not optional.
-3. Something deliberately cut → record it as out of scope **with the condition that would bring it back**. A cut with no re-entry condition is forgetting, not deciding.
-4. Answer with: the steps one line each, blast radius in a few lines, the main risks, test coverage per layer (what exists, what the implementation must create), and **the `[PENDING-n]` items before suggesting implementation** — a question whose wrong answer throws work away gets resolved now, not mid-build.
+3. **Test the quality bar step by step, not by re-reading.** Reviewing your own plan tends to ratify it. Instead, walk the steps one at a time and name what an executor who never saw this conversation would still have to guess. Every name that surfaces is missing context — it goes into the plan before delivery.
+4. Something deliberately cut → record it as out of scope **with the condition that would bring it back**. A cut with no re-entry condition is forgetting, not deciding.
+5. Answer with: the steps one line each, blast radius in a few lines, the main risks, test coverage per layer (what exists, what the implementation must create), and **the `[PENDING-n]` items before suggesting implementation** — a question whose wrong answer throws work away gets resolved now, not mid-build. Where the work carries operational risk, say what the rollback is and which effects are irreversible; don't force that section onto a trivial edit.
