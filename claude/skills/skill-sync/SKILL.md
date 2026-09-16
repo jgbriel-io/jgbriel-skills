@@ -80,9 +80,11 @@ Verify with a final grep — zero leftovers.
 
 ### 6. Mirror and record
 
-- Run `scripts/mirror-to-vault.sh` (repo root) to sync every changed skill to the vault; new skills also get
-  a row in the vault `skills/index.md` (and update the counts there and in the
-  Claude `index.md`).
+- Mirror every changed skill into the vault docs copy by hand
+  (`Obsidian Vault\wiki\Tools\Claude Code\skills\<categoria>\<name>\`); new
+  skills also get a row in the vault `skills/index.md`, and the counts there and
+  in the Claude `index.md` get updated. The old `mirror-to-vault.sh` was removed —
+  it hardcoded one machine's vault path and only ever ran from Git Bash.
 - Append a sync entry to `Critérios de Qualidade das Skills.md`'s audit section: date, pulled,
   adopted, protected.
 - New skills go on the pending list for a `/skill-audit` pass.
