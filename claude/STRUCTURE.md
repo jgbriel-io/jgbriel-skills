@@ -18,7 +18,7 @@ Tudo que é versionável vive neste repo (`D:\Projetos\projetos-pessoais\jgabrie
 | `skills/` | — | **Não é mais symlink.** As skills viraram plugins em `plugins/<categoria>/skills/`, instalados por marketplace |
 | `agents/` | — | **Não é mais symlink.** Cada agent viaja no plugin de quem o usa: `researcher` em `core`, `planner` em `core-loop`, `tcc-orientador` em `tcc` |
 | `commands/` | — | **Não é mais symlink.** Commands de git/repo em `plugins/core/commands/`; os de TCC em `plugins/tcc/commands/` |
-| `hooks/` | symlink | `claude/hooks/` |
+| `hooks/` | — | **Não é mais symlink.** Os dois hooks viraram componentes do plugin `core`, declarados no `plugin.json` dele e conectados na instalação |
 
 **Não versionados** (ficam só em `~/.claude/`, nunca neste repo — contêm estado de máquina/segredos):
 
@@ -109,14 +109,16 @@ Namespace nos nomes (`caveman:cavecrew-builder`, `claude-obsidian:wiki-lint`) in
 
 ---
 
-## 5. Hooks (`hooks/`) — 2 scripts Node ativos
+## 5. Hooks — componentes do plugin `core`
 
-Wiring real em `settings.json` (não versionado) → `hooks.{SessionStart,PreToolUse}`.
+Não há mais fiação manual em `settings.json`: o `plugins/core/.claude-plugin/plugin.json` declara os dois, e instalar o plugin os conecta. O caminho usa `${CLAUDE_PLUGIN_ROOT}` normalizado (`/c/...` do Git Bash vira `c:/...`), então funciona nas duas plataformas — antes o template trazia o caminho do node cravado em `C:/Program Files/nodejs/node.exe`.
 
 | Hook | Dispara em | Função |
-|---|---|---|
+|------|-----------|--------|
 | `context-mode-cache-heal.mjs` | `SessionStart` | Self-heal do cache do plugin context-mode (corrige paths quebrados por auto-update — issues #46915, #727, #577) |
 | `guard-dangerous-bash.mjs` | `PreToolUse` (matcher `Bash`) | Bloqueia comandos catastróficos que escapariam do allowlist de permissions (ex.: `bash -c 'rm -rf /'`) — exit 2 + stderr bloqueia a tool call |
+
+O `settings.template.json` ainda declara um hook `Stop` apontando para `stop-beep.ps1`, **arquivo que nunca foi versionado** — é local da máquina Windows. Ou versiona no `core`, ou remove a entrada do template.
 
 ---
 
