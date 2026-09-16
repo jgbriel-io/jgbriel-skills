@@ -271,9 +271,8 @@ When the skill is done:
    commands the skill uses.
 5. Mirror the skill to the vault docs copy
    (`Obsidian Vault\wiki\Tools\Claude Code\skills\<categoria>\<name>\`) and
-   add it to `skills/index.md` there. **A new skill must get its vault folder
-   by hand once** — `mirror-to-vault.sh` only refreshes folders that already
-   exist, so a skill that skips this step never syncs at all.
+   add it to `skills/index.md` there. The mirror is manual: a skill that skips
+   this step is simply absent from the vault docs.
 6. **Write it to both `~/.claude/skills/` and the D: repo, then commit.**
    Unlike `agents/` and `commands/`, `skills/` is a real directory, **not** a
    junction — the two copies are independent and silently drift apart.
