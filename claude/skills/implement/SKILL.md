@@ -1,69 +1,58 @@
 ---
 name: implement
-description: Implement planned work — a plan, PRD, issue or agreed task. Resolves the target first, refuses to edit without one, works in vertical slices, verifies by the surface actually touched, and closes the record. Use when the user asks to build, implement or code something that has already been decided.
-argument-hint: <plan, PRD, issue or task> [scope notes]
-disable-model-invocation: true
+description: Execute an implementation plan through verifiable steps, respect dependencies and demonstrate results in the actual workflow. Use to execute a plan or implement a defined task.
 ---
 
-Implement: `$ARGUMENTS`
+# Implement
 
-## 0. Gate — resolve the target before touching anything
+Usage: `/implement <plan or defined task>`, or the agent's native skill invocation.
 
-**No resolved target, no edits.** Name what you are implementing and where it is written down: a plan file, a PRD, an issue, or an explicit instruction in this conversation. If you cannot point at one:
+Execute the plan from the conversation or identified by the user. Do not create or update documentation, wishlists, plan files or feature records. Keep progress and results in the conversation.
 
-- **Scope is large or the approach is undecided** → stop and produce a plan first (`plan`). This is the dominant case, not the exception. Planning is cheap; discovering at step 6 that step 1 was wrong is not.
-- **Scope is genuinely trivial** — one sentence, ≤2 files, no technical decision — → say so in one line and go straight ahead. Don't manufacture ceremony for a rename.
-- **The request is a question, not an instruction** ("how would we do X?", "can this work?") → answer it. Do not start editing.
+## 1. Confirm the starting point
 
-That last one matters most: this skill fires on its own, so the gate is what separates being invoked from being authorised.
+Read local instructions and relevant existing documentation. Check `git status --short`, recent history and the affected code. Preserve others' changes and commits.
 
-## 1. Pre-existence check — is it already built?
+- Already implemented and proven: report the evidence.
+- Partial: execute only what is missing after checking the actual state.
+- Plan available: read the objective, acceptance criteria, dependencies, steps and checks.
+- No plan: trivial, unambiguous work can proceed directly. Broad work or open decisions need planning before code.
+- Missing plan from another session: ask for its contents; do not pretend to know it.
 
-Before writing anything, find out whether the work exists. Search for the central symbols and their consumers.
+Compare assumptions with the current repository. If one no longer holds, pause the affected step, explain the discrepancy and adjust the plan in the conversation before continuing.
 
-- **Already done** (merged, issue closed, every step proven) → **do not reimplement.** Report: what exists and the proof; who would be affected if it changed; what would break; then ask what's actually wanted — extend it (new plan, declared dependency), or is this a regression (that's `diagnose`, not this).
-- **Partly done** → implement **only the open parts**. Confirm what the code already does before adding to it; half-finished work plus a fresh implementation is worse than either.
-- **Not started** → continue below.
+## 2. Execute in dependency order
 
-## 2. Pre-flight
+- Keep progress in the conversation. Update each step when its proof passes, and treat that step as finished — an agent with no signal that the code is already right keeps editing and starts breaking what worked.
+- Execute steps whose prerequisites are met; an open item blocks its dependents, not necessarily all work.
+- Before editing, find the source and consumers of the behavior. Use available search/LSP tools, or `rg` and targeted reads. Locate precisely and understand the surroundings broadly; pulling in more adjacent code than the change needs makes the edit worse, not safer.
+- Reuse patterns and infrastructure. Make the smallest change satisfying the plan in integrated, verifiable slices.
+- Reread each step's constraints before implementing. Do not import rules from another stack or introduce speculative abstractions.
+- For data migrations, prove the transition before removing the old format.
 
-- **Read the whole plan or spec first**, not just the step you're starting. The project's own conventions and any recorded decisions rule — a settled decision is not re-opened here, it's implemented.
-- **Follow the declared order.** A step blocked on an unmet dependency → stop and say so rather than improvising around it. If the plan explicitly authorises a stub to unblock it, build the stub first as its own step.
-- **Build the re-test list now**: for every symbol you will *change* (not merely call), find its callers. That list is the verification scope in §4, and it is much cheaper to collect now than to reconstruct later.
-- **A shared contract is additive-first.** A schema, type or signature consumed by more than one caller changes by adding an optional field, not by breaking a live consumer. If a breaking change is genuinely required, that's a decision to surface, not to make silently.
-- `git log` the area you're about to touch. Recent work there tells you what not to collide with.
+Use the project's actual commands and versions. New tests verify behavior; trivial edits do not need artificial test suites.
 
-## 3. Implement — thin vertical slices
+## 3. Handle failures
 
-- **A slice that compiles and runs beats a finished layer.** Cross the layers early on the smallest possible path; integration risk should fail on a small diff, not a large one.
-- **Type-check and run tests early and often**, not once at the end.
-- **Re-inject the rules at the point of use.** A rule read forty turns ago is not in force. Before writing each step's code, restate — in full, not as a link — the specific conventions that step touches, and the constraints the plan attached to it. A rule cited by name only does not count as re-injected. Every few steps, re-read the plan itself.
-- **New logic gets its test alongside it**, in the same step. Not "later".
-- **A new dependency is a rare, expensive event.** Check licence and transitive tree *before* installing, not after. Pin the version. If the project pins versions centrally, take it from there and never improvise one.
+When a test or analysis fails, record the exact error, locate the defect and fix its cause. Do not make random changes until checks turn green.
 
-### Failure protocol
+Most of the ways to turn a check green without fixing anything are subtractive, and they look like work: deleting an assertion, widening a type, catching and swallowing the exception, loosening the condition the test was guarding. Prefer `wrong → intended` over a vague warning here: `swallow the error so the suite passes → keep the error and fix why it is raised`. If a change makes a check pass by removing behavior, it is not a fix.
 
-The dominant failure mode is acting early and then insisting — not hallucinating.
+Two attempts with the same hypothesis and no progress call for reassessment: new evidence, a smaller reproduction or an explained blocker. Continue independent steps. Distinguish infrastructure failures from patch regressions.
 
-- **Name the defect literally.** When asking for a fix (of yourself or a subagent), paste the actual error and name the specific failure — "`accountId` is possibly undefined at `service.ts:142`" — never "fix the problem". Naming it is the difference between a coin flip and a fix.
-- **Two attempts on the same step, then stop.** If the second fix also fails, **halt and record state**: the step, both attempts with their real output, and your leading hypothesis. Refining against no oracle until it appears to pass produces something plausible and wrong.
-- **A premise collapsed → stop and re-plan.** Don't force the original step through a world that changed.
+Do not stash, reset, rebase, force-push or clear user data to simplify execution. Experiments with another Git state use an isolated checkout/worktree.
 
-## 4. Verify — by the surface you touched
+## 4. Verify
 
-Read [verification.md](verification.md) for the proof matrix, the scenario ladder and the reviewer protocol.
+Read [the verification matrix](verification.md). Each plan criterion needs proof or an explicit limitation.
 
-Non-negotiable:
+- Exercise the actual flow and run relevant checks.
+- Retest affected consumers.
+- Review the diff against the request and acceptance criteria. Use independent review when available and authorized; do not claim another reviewer when you reviewed it yourself.
+- Unresolved failures remain open. Passing typechecks does not substitute for behavioral proof — and neither does a green suite when the suite never covered the behavior in question. Ask what the passing test would still pass under if the fix were wrong.
 
-- **A green type-check closes no surface by itself.** Touching a route and watching it compile is indirect evidence, not proof.
-- **The plan's own verification section is the floor**, not the target — execute every entry and check every acceptance criterion.
-- **Re-test the consumer list** from §2.
-- **Report with pasted evidence** — command output, a log excerpt, a screenshot. Never an adjective. A failing test is reported as failing, with its output.
+## 5. Deliver
 
-## 5. Close the record
+Report changes, checks, results and open items in the conversation, with useful paths and evidence.
 
-1. Mark the executed steps done **as you close each one**, not in a batch at the end — that's what makes the work resumable by someone else.
-2. Run the project's pre-merge checklist, whatever it is.
-3. A decision made while implementing that outlives this task → write it down where the project keeps decisions, and say you did.
-4. **Propose the commit; don't create it unasked.** An explicit "implement this" authorises the work, not the commit — and never a push.
-5. Summarise per surface: what was built, what was deliberately left out and where that's recorded, the verification result, and anything the reviewer flagged.
+Respect session authorization for commits and remote actions. Implementation alone does not authorize publishing a PR, pushing, deploying or merging. When commits are authorized, include only this task's work and follow repository conventions.

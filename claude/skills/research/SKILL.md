@@ -1,89 +1,70 @@
 ---
 name: research
-description: Investigate a question or topic against primary sources and the repo's own history, then capture verified findings as a Markdown file. Use when the user asks to research or investigate something, asks "does this already exist / how did we do it before", or wants reading legwork delegated.
-argument-hint: <topic or question> [focus]
-disable-model-invocation: true
+description: Investigate a software problem through code and Git history, external research and evidence verification. Use to discover what exists, assess feasibility or compare approaches before planning.
 ---
 
-Investigate: `$ARGUMENTS`
+# Research
 
-The deliverable is the investigation. **Implement nothing.** Where the project has already settled something in a recorded decision, this does not re-open it — new evidence may contest it, but contesting ends in a proposed decision, never a silent reversal.
+Usage: `/research <topic or question>`, or the agent's native skill invocation.
 
-## 0. Tier and budget — declare before spending anything
+Investigate to answer the request. Deliver research **in the conversation**; do not create or update documentation, wishlists, feature records or product code.
 
-Effort is decided here, not discovered halfway through.
+## 1. Scope the investigation
 
-| Tier | Signal | Budget | Deliverable |
-| --- | --- | --- | --- |
-| **Lookup** | one verifiable fact | yourself, a handful of fetches | a direct answer with its source — **no document** |
-| **Comparison** | 2–5 nameable options | a few subagents, one per option or angle | a document |
-| **Broad** | a whole domain, or code + history + external landscape | subagents per front | a document |
+Read local instructions and relevant product documentation where available. Reuse the `discuss` brief if present; preserve decisions, constraints and open questions. Otherwise, extract these from the request. Another skill is not a prerequisite.
 
-Then compress the request into a **3–6 line brief**: scope, the questions that must be answered, and what "answered" means. Every search and the final summary get judged against it.
+Before the first tool call, write one line: what would settle this question, and what would count as enough evidence. Sometimes that is a single page, opened. Sometimes it is the same criteria applied to options that already have names. Sometimes the options are not known yet and finding them is the work.
 
-**Name the implicit requirements the request didn't state** but the project imposes — the constraints any recommendation must satisfy to be usable here. Ignoring one is roughly half of all research-agent failures: the answer is correct and unusable.
+Then spend to that line, in both directions. A question one opened page settles does not deserve a campaign. A question whose options are still unknown is not answered by three searches either — on a broad topic, depth is most of what separates a useful answer from a plausible one, and under-spending is the more expensive mistake because the result still looks finished. Keep a short brief alongside it: central question, constraints and what remains open. Ask one question at a time about ambiguity that changes the direction; verify discoverable facts yourself.
 
-Pressure to go faster lowers the **tier**; it never removes verification. A lookup still cites a source it actually fetched.
+Delegate a track only when it is genuinely independent — separate question, separate sources, nothing to hand back mid-way. Work that shares context or depends on another track in flight belongs in one place. Give each track its objective, its boundaries, what it must not cover, and what evidence it must return. A track returns compressed findings and their sources, never finished prose: parallel research with parallel writing produces a report that reads as if several people wrote it, because several did. Compose the answer once, in one pass, from what came back. Do not require a specific provider, model or agent count.
 
-## 1. What's already known
+## 2. Investigate the repository
 
-- **Prior work is mandatory reading, not optional.** Search existing notes, decisions and docs for the topic before searching the web. **A question already answered — or a finding already refuted — is not re-researched without new evidence.** Re-litigating settled ground is the most common way a long investigation produces nothing.
-- Anything explicitly ruled out stays out unless its stated re-entry condition has actually occurred. Wanting it again is not the condition.
+- Inspect code, tests, schemas, migrations, dependencies and relevant history. Read existing investigations and decisions before repeating work.
+- Search lexically and semantically; neither subsumes the other. Exact match is the stronger tool for identifiers, strings and dynamic references, and it is the one that still works after a rename. Conceptual search and LSP tools find what you could not name. Confirm anything decisive with a direct read.
+- Distinguish working behavior, partial implementations/mocks and documentation-only claims. A signature does not prove complete behavior, and a passing test does not prove the behavior the test claims to cover.
+- Trace consumers and effects of shared contracts. Confirm data models in the actual schema; do not infer columns from the UI.
+- Use `git log -- <paths>`, `git log --follow -- <file>` and `git log -S <term> -- <paths>` when history explains a decision.
 
-## 2. Internal archaeology — before the web
+Internal findings cite files/lines read in this session; cite a commit hash when history supports the conclusion. Data findings include the query and context without exposing secrets or unnecessary personal information.
 
-The repo usually knows more than it appears to.
+**An empty search does not prove absence.** It usually means the search was wrong, not that the thing is missing. After two failed formulations, change the strategy rather than the words: another layer, another representation, the consumer instead of the definition, history instead of the working tree. Report "not found" as a limitation, with what was searched. Revisit a refuted hypothesis only with new evidence.
 
-- **Code**: search conceptually first, then by symbol and its references, then read narrowly. Separate **real** from **stubbed** from **documented-but-absent**. Existing code is not proof of a current pattern — check it against what's been decided since it was written.
-- **History as a source**: `git log --grep`, `git log -S "<excerpt>"` to find when something entered or left, `git log --follow` across renames. Merged PRs and closed issues carry decisions that never made it into docs.
-- **Delegate the sweeps.** Mapping how X connects to Y, or reading N candidate files, goes to subagents — read-only, one per front. The main thread should receive conclusions, not file contents. Direct search is for an exact string.
-- **A multi-step survey is a script, not thirty tool calls.** Counting, cross-referencing, measuring — write it, run it, print the result.
+## 3. Research external facts when needed
 
-**Citation is mandatory and internal findings are not exempt.** On first mention: code as `path/from/root.ts:line`; a decision by its number; a commit by short hash plus one sentence on what it proves. **The line number must come from a read in this session** — never from an older document or from memory, because line numbers drift and a wrong citation is worse than none.
+Search when the answer depends on current APIs, libraries, markets, rules or external facts. An entirely internal lookup does not need market research, and a stable, well-known fact does not need a citation hunt.
 
-## 3. External research
+- Derive searches from open questions and affected actors.
+- Start broadly and narrow; change terms, language or source type when needed.
+- Prefer official documentation, source code, changelogs, issues and primary research. Secondary sources can help locate or supplement evidence.
+- Read the actual page before relying on a decisive claim. Snippets and model memory are not proof. A URL enters the answer only if it was fetched in this session or appeared verbatim in a search result here — a plausible-looking link assembled from memory is the most common way a research answer turns out to be fiction.
+- Check compatibility, maintenance, licensing, limits and costs where they matter.
+- Distinguish inspiration from requirements: a competitor having something does not establish that this project needs it.
 
-- **Fan out by perspective**, not by keyword. Each front generates its own sub-questions; the ones that pay off become sections.
-- **Brief each subagent in four fields**: objective, exact output format, allowed sources, and what *not* to cover. Vague delegation returns four copies of the same angle. Subagents return **distilled notes and sources — never prose to paste**.
-- **Broad, then narrow.** Short general queries to map the terrain, then targeted ones. Search in more than one language where the topic warrants it.
-- **Two failed phrasings means change strategy** — different terms, different source type, different language — not "it doesn't exist". And **"no reliable source found" is a valid finding**, recorded as a gap. It beats citing something weak.
-- **Between batches, write one line**: answered X · still missing Y · next Z. A new sub-question goes to the front of the queue; the parent question closes only when the queue below it drains.
-- **Source ladder**: official documentation > the source code of the thing itself (behaviour's only real oracle) > dated technical forums and issue trackers > third-party posts and videos, which are **never sufficient alone**. If the behaviour is testable locally, **test it** — that outranks every citation.
+Search in batches, and stop between them. After each batch write three short lines — what is now answered, what is still unverified, what to search next — before running the next query. Searching continuously without that pause is how a session drifts from the question it started on. Stop when new results no longer change the decision or the budget ends; state the gaps.
 
-## 4. Verification — where research agents actually fail
+## 4. Verify and try to disprove
 
-- **Fetch, don't trust the snippet.** Any claim carrying the recommendation gets the real page opened. Search snippets are stale and sometimes fabricated.
-- **URLs only from this session's tool results.** Zero from memory: a meaningful share of agent-cited URLs don't exist.
-- **A verdict per atomic claim** — supported (with source and date) · refuted (which is worth as much) · not-established (goes to open questions, **never** to the summary).
-- **Triangulate with real independence.** Twenty posts reciting one announcement is one source. A behavioural claim wants two genuinely independent sources, or one local test.
-- **Extra rigour on the first sources of each front** — an early error anchors everything after it.
-- **Freshness matters most where things move fastest.** An old page about a current limit is suspect; when sources conflict, the newer primary wins and the conflict gets noted.
-- **Label every finding**: `verified-fetch` · `tested-locally` · `read-in-code` · `snippet` · `inference` — with a date.
-- **Budget spent → conclusion mode.** Write what's verified; what isn't becomes an open question. Chasing "just one more" past the budget is how investigations die undelivered.
+Label decisive claims as verified, refuted, inferred or inconclusive, and put the check next to the label so a reader can run it: the file and line, the commit, the query, the URL that was opened. The label is a pointer to evidence, not a substitute for it — a claim marked verified that nobody can re-check is still just an assertion.
 
-## 5. Counter-review — when the answer carries a decision
+Cite sources and access dates for facts that age. Check material numbers against independent sources; several articles repeating one announcement are still one origin. Explain disagreements between sources rather than picking the convenient one.
 
-Dispatch one subagent **role-locked to refute** your preliminary recommendation, with its own fresh searches and without your reasoning — it gets the recommendation and the brief, nothing else. Quota: **three real problems**, or you go back and examine it yourself. What survives becomes the recommendation's strength; what doesn't becomes a declared risk.
+Then attack the recommendation, and do it from outside the work that produced it. Re-reading your own conclusion tends to confirm it. Prefer a check that has an independent source of truth: run the thing, query the data, open the competing document, or delegate the attack to a track that never saw the draft and has to find its own evidence. Look for the adverse scenario, the hidden cost, the incompatibility, the simpler alternative. Do not invent problems to fill quotas.
 
-## 6. Deliver
+When the answer is drafted, audit the citations as their own pass rather than trusting the writing to have got them right. Walk the decisive claims one at a time: does the cited source exist, does it say this, and does it still say it. Citation is the weakest part of every research pipeline that has been measured, including the ones built to be careful.
 
-**Write it in one pass**, from the brief and the distilled notes — never as a collage of subagent output. Spine:
+If evidence invalidates the brief's direction, explain the conflict and revisit the decision with the user. Do not silently replace their intent.
 
-- **Summary and a firm recommendation** — only verified or locally-tested claims reach this section
-- Context, and the implicit requirements you assumed
-- **What's actually true in the code today**, with citations, gaps included
-- External findings — atomic claims, each with source, confidence label and date
-- **Options with trade-offs**, then the recommendation, including what the counter-review raised
-- Risks and gotchas
-- **Refuted**, with the evidence that killed each one, and **Open questions** — emptiness is stated, not omitted
+## 5. Deliver in the conversation
 
-**Then audit the citations as a separate pass**, not while drafting:
+When one fact was the whole question: the answer, its source and its limitation. For a broader investigation:
 
-- Did every URL come from this session?
-- Reopen three cited claims — does the source still say that?
-- Reopen two cited `path:line` — does the line still show what you claim?
-- Did load-bearing claims come from a fetch or a test, not a snippet?
-- Does the document answer every question in the §0 brief?
-- Refuted and empty-search sections filled in, even if "none"?
+- recommendation and confidence;
+- what already exists, with evidence;
+- options and material differences;
+- gaps, risks and refuted hypotheses;
+- decisive sources near the claims they support;
+- questions that still prevent a decision.
 
-Few solid citations beat many weak ones. Close by proposing the next step — usually a plan — and surface any decision the work now requires.
+Do not write a full implementation plan here. With a supported direction, suggest `plan`; if unavailable, supply enough context to continue. Do not create report files or invoke the next stage automatically.
