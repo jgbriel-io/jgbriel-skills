@@ -1,9 +1,0 @@
-{
-  "name": "backend",
-  "version": "1.0.0",
-  "description": "Estrutura de serviço, API, validação, filas, rate limiting e camada de dados no cliente.",
-  "author": {
-    "name": "João Gabriel",
-    "url": "https://github.com/jgbriel-io"
-  }
-}

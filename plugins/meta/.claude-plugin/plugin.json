@@ -1,9 +1,0 @@
-{
-  "name": "meta",
-  "version": "1.0.0",
-  "description": "Criar, auditar e sincronizar as próprias skills; custo de token; wizards de setup.",
-  "author": {
-    "name": "João Gabriel",
-    "url": "https://github.com/jgbriel-io"
-  }
-}

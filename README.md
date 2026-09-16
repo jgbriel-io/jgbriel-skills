@@ -106,7 +106,7 @@ Lista com descrição completa: `claude/STRUCTURE.md`.
 
 Templates pra copiar como arquivo novo em qualquer projeto (não são config do Claude Code):
 
-- `CONTEXT.template.md` — glossário de domínio de um contexto só. Formato e regras de uso: a skill `domain-modeling` (`plugins/core-loop/skills/domain-modeling/`).
+- `CONTEXT.template.md` — glossário de domínio de um contexto só. Formato e regras de uso: a skill `domain-modeling` (`skills/core-loop/domain-modeling/`).
 - `CONTEXT-MAP.template.md` — pra repo com múltiplos contextos (monorepo/DDD), lista os contextos e como se relacionam.
 
 
