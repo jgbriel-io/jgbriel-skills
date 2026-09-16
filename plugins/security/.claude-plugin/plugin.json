@@ -1,0 +1,9 @@
+{
+  "name": "security",
+  "version": "1.0.0",
+  "description": "Auth, segredos, OWASP, dependências, LGPD e isolamento multi-tenant.",
+  "author": {
+    "name": "João Gabriel",
+    "url": "https://github.com/jgbriel-io"
+  }
+}

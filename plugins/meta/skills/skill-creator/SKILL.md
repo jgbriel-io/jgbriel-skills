@@ -73,9 +73,10 @@ alone.
 
 ### Collision check (before drafting)
 
-Grep the frontmatter descriptions of installed skills
-(`~/.claude/skills/*/SKILL.md`) plus the plugin skills you can see in context
-for the new skill's trigger territory. Two skills answering the same trigger =
+Grep the frontmatter descriptions of the whole fleet
+(`plugins/*/skills/*/SKILL.md` in the repo — that is every skill, installed or
+not) plus any third-party plugin skills you can see in context, for the new
+skill's trigger territory. Two skills answering the same trigger =
 invocation lottery — the top defect found in the 2026-07 audit. If territory
 overlaps: rename, narrow the description, or add mutual negative cases before
 writing any body.
@@ -263,19 +264,23 @@ enough for most skills.
 
 When the skill is done:
 
-1. Confirm path: `~/.claude/skills/<name>/SKILL.md` (or `%USERPROFILE%\.claude\skills\<name>\SKILL.md` on Windows) for global,
-   or `<project>/.claude/skills/<name>/SKILL.md` for project-local.
-2. Tell them to restart Claude Code (or open a new session) so it loads — skills are read at session start.
-3. Suggest a test invocation: `/<skill-name>` or a natural-language trigger.
-4. Note if they need to add tool permissions to `settings.json` for any
+1. **Confirm where it was written.** A fleet skill goes in the repo, inside the
+   category plugin it belongs to: `plugins/<categoria>/skills/<name>/SKILL.md`.
+   Choosing the category is part of creating the skill — say which one and why.
+   A project-local skill stays at `<project>/.claude/skills/<name>/SKILL.md` and
+   none of the publishing below applies to it.
+2. **Publish it**, or it exists only in the repo: bump the plugin's `version` in
+   `plugins/<categoria>/.claude-plugin/plugin.json`, commit, then
+   `claude plugin update <categoria>@jgbriel`. The runtime is a versioned copy
+   pinned to a commit — without the bump, nothing reaches any machine.
+3. Tell them to restart Claude Code (or open a new session) so it loads — skills are read at session start.
+4. Suggest a test invocation: `/<skill-name>` or a natural-language trigger.
+5. Note if they need to add tool permissions to `settings.json` for any
    commands the skill uses.
-5. Mirror the skill to the vault docs copy
+6. Mirror the skill to the vault docs copy
    (`Obsidian Vault\wiki\Tools\Claude Code\skills\<categoria>\<name>\`) and
    add it to `skills/index.md` there. The mirror is manual: a skill that skips
    this step is simply absent from the vault docs.
-6. **Write it to both `~/.claude/skills/` and the D: repo, then commit.**
-   Unlike `agents/` and `commands/`, `skills/` is a real directory, **not** a
-   junction — the two copies are independent and silently drift apart.
 
 ---
 
