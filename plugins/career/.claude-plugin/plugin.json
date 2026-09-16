@@ -1,0 +1,9 @@
+{
+  "name": "career",
+  "version": "1.0.0",
+  "description": "Currículo, análise de vaga e adaptação de CV por posição.",
+  "author": {
+    "name": "João Gabriel",
+    "url": "https://github.com/jgbriel-io"
+  }
+}

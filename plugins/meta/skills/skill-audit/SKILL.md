@@ -1,6 +1,6 @@
 ---
 name: skill-audit
-description: Audit installed Claude Code skills against the C1–C11 quality rubric — per-skill scores, automatic blockers, trigger-collision analysis across sibling skills, and fixes applied to both scopes. Use when the user says "auditar skills", "revisar as skills", "skill audit", "minhas skills estão boas?", after importing skills from external repos (imported skills are never ready as-is), or as periodic maintenance. Audits one category at a time by default.
+description: Audit installed Claude Code skills against the C1–C11 quality rubric — per-skill scores, automatic blockers, trigger-collision analysis across sibling skills, and fixes applied in the repo and republished to the runtime. Use when the user says "auditar skills", "revisar as skills", "skill audit", "minhas skills estão boas?", after importing skills from external repos (imported skills are never ready as-is), or as periodic maintenance. Audits one category at a time by default.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
@@ -11,40 +11,50 @@ scoring rationale, and audit history live in the vault:
 `wiki/Tools/Claude Code/docs/Skills Quality Criteria.md` — read it first if available,
 and append results there when done.
 
-## The three-point system (where skills live)
+## Where skills live
 
-1. `C:\Users\jgabriel\.claude\skills\<name>\` — runtime. NOT a git repo, but
-   symlinked to point 2: editing one edits the other.
-2. `D:\Projetos\projetos-pessoais\jgabriel-skills\claude\skills\` — the git
-   repo. Commits happen here (Conventional Commits, English).
+1. `plugins/<categoria>/skills/<name>/` in the repo — **the only place to edit,
+   and the only place to fix anything this audit finds.** Commits happen here
+   (Conventional Commits, English).
+2. `~/.claude/plugins/cache/<marketplace>/<plugin>/<versão>/` — the runtime, a
+   versioned copy. Audit **reads** it only to confirm what is actually loaded;
+   never write there, since the next `plugin update` replaces the version dir.
 3. `Obsidian Vault\wiki\Tools\Claude Code\skills\<categoria>\<name>\` —
-   documentation mirror, manual copy. The only side needing explicit sync.
+   documentation mirror, manual copy.
+
+A fix therefore lands as: edit the repo → bump the plugin's `version` → commit →
+`claude plugin update`. An audit that edits the cache fixes nothing.
 
 Vendor packs (Cloudflare) are tracked in the repo but deliberately not
 mirrored to the vault.
 
 ## Process
 
-1. **Diff the sides first.** Per skill:
-   `diff -rq --strip-trailing-cr <global> <vault-mirror>`.
-   CRLF vs LF makes whole files look changed — always strip. Drift found?
-   Global is usually canonical (upstream updates land there); vault may hold
-   skills never installed globally. Decide the canonical side before scoring —
-   otherwise you audit a stale copy.
+1. **Confirm you are scoring what actually loads.** The repo is canonical, but
+   the runtime is a pinned copy, so a repo edit that was never published is not
+   in play yet: `diff -rq --strip-trailing-cr plugins/<cat>/skills/<name> ~/.claude/plugins/cache/<marketplace>/<cat>/<versão>/skills/<name>`.
+   CRLF vs LF makes whole files look changed — always strip. A difference means
+   the plugin needs a version bump and an update, and it is worth saying so
+   before scoring. Then diff the vault mirror the same way; it may hold skills
+   that were never published at all.
 2. **Score each skill** against the rubric (below). Check automatic blockers
    first — they fail the skill regardless of score.
 3. **Audit the category as a set**, not just skill by skill. Trigger overlap
    and contradictions between siblings (two skills both claiming "code
    review"; one mandating what another bans) only show up when descriptions
    and rules are compared side by side.
-4. **Apply fixes to both scopes**: edit the global copy (lands in the D: repo
-   automatically), then copy to the vault mirror. Big files: split by line
-   ranges (`sed -n 'A,Bp'`) into `references/` + pointer stubs — content moves
-   verbatim, nothing gets rewritten or loaded into context.
+4. **Apply fixes in the repo only**, then publish: edit
+   `plugins/<cat>/skills/<name>/`, bump that plugin's `version`, and copy to the
+   vault mirror. Editing the runtime cache fixes nothing — the next update
+   overwrites it. Big files: split by line ranges (`sed -n 'A,Bp'`) into
+   `references/` + pointer stubs — content moves verbatim, nothing gets rewritten
+   or loaded into context.
 5. **Deletions always need explicit user confirmation.** Recommend, wait, then
-   delete from both scopes and prune index references.
-6. **Commit in the D: repo** when the user asks; the vault auto-commits via
-   its Obsidian Git hook (watch for stale 0-byte `.git/index.lock`).
+   delete from the repo and the vault mirror, prune index references, and bump
+   the plugin so the removal actually reaches the runtime.
+6. **Commit in the repo** when the user asks, then `claude plugin update`; the
+   vault auto-commits via its Obsidian Git hook (watch for stale 0-byte
+   `.git/index.lock`).
 7. **Record results** in `Critérios de Qualidade das Skills.md`'s audit section: date, per-category
    state, unresolved items.
 

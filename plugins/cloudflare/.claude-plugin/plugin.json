@@ -1,0 +1,9 @@
+{
+  "name": "cloudflare",
+  "version": "1.0.0",
+  "description": "Workers, Wrangler, e-mail e best practices da plataforma Cloudflare.",
+  "author": {
+    "name": "João Gabriel",
+    "url": "https://github.com/jgbriel-io"
+  }
+}
