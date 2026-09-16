@@ -1,0 +1,75 @@
+{
+  "name": "jgbriel",
+  "owner": {
+    "name": "João Gabriel",
+    "url": "https://github.com/jgbriel-io"
+  },
+  "description": "Skills do Claude Code agrupadas por domínio — habilite só o que o projeto usa.",
+  "plugins": [
+    {
+      "name": "core-loop",
+      "source": "./plugins/core-loop",
+      "description": "O loop de trabalho: discutir, investigar, planejar, implementar, diagnosticar e revisar."
+    },
+    {
+      "name": "delivery",
+      "source": "./plugins/delivery",
+      "description": "Da ideia ao ticket: PRD, issues, triagem, estimativa, postmortem e proposta."
+    },
+    {
+      "name": "frontend",
+      "source": "./plugins/frontend",
+      "description": "Convenções e performance de frontend, formulários, estados de erro, a11y e SEO."
+    },
+    {
+      "name": "backend",
+      "source": "./plugins/backend",
+      "description": "Estrutura de serviço, API, validação, filas, rate limiting e camada de dados no cliente."
+    },
+    {
+      "name": "data",
+      "source": "./plugins/data",
+      "description": "Postgres e Supabase: schema, índices, RLS, migrations, performance de query, seed e backup."
+    },
+    {
+      "name": "devops",
+      "source": "./plugins/devops",
+      "description": "Pipeline, containers, envs, deploy, rollback, merge, pre-commit, scaffold e observabilidade."
+    },
+    {
+      "name": "security",
+      "source": "./plugins/security",
+      "description": "Auth, segredos, OWASP, dependências, LGPD e isolamento multi-tenant."
+    },
+    {
+      "name": "quality",
+      "source": "./plugins/quality",
+      "description": "TDD, testes de integração e e2e, e o checklist de review do stack."
+    },
+    {
+      "name": "cloudflare",
+      "source": "./plugins/cloudflare",
+      "description": "Workers, Wrangler, e-mail e best practices da plataforma Cloudflare."
+    },
+    {
+      "name": "tcc",
+      "source": "./plugins/tcc",
+      "description": "Fluxo acadêmico do TCC: fragmentos, rascunho, revisão, arguição, banca e defesa."
+    },
+    {
+      "name": "vault",
+      "source": "./plugins/vault",
+      "description": "Obsidian: notas, páginas de projeto e sincronização com docs em disco."
+    },
+    {
+      "name": "career",
+      "source": "./plugins/career",
+      "description": "Currículo, análise de vaga e adaptação de CV por posição."
+    },
+    {
+      "name": "meta",
+      "source": "./plugins/meta",
+      "description": "Criar, auditar e sincronizar as próprias skills; custo de token; wizards de setup."
+    }
+  ]
+}

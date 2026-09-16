@@ -15,7 +15,7 @@ and append results there when done.
 
 1. `C:\Users\jgabriel\.claude\skills\<name>\` — runtime. NOT a git repo, but
    symlinked to point 2: editing one edits the other.
-2. `D:\Projetos\projetos-pessoais\jgabriel-skills\claude\skills\` — the git
+2. `D:\Projetos\projetos-pessoais\jgabriel-skills\plugins\<categoria>\skills\` — the git
    repo. Commits happen here (Conventional Commits, English).
 3. `Obsidian Vault\wiki\Tools\Claude Code\skills\<categoria>\<name>\` —
    documentation mirror, manual copy. The only side needing explicit sync.

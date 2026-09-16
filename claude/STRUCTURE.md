@@ -15,7 +15,7 @@ Tudo que é versionável vive neste repo (`D:\Projetos\projetos-pessoais\jgabrie
 | `CLAUDE.md` | symlink | `claude/CLAUDE.md` (regras globais) |
 | `GUIDE.md` | symlink | `claude/GUIDE.md` (cheatsheet) |
 | `settings.template.json` | symlink | `claude/settings.template.json` |
-| `skills/` | symlink | `claude/skills/` |
+| `skills/` | — | **Não é mais symlink.** As skills viraram plugins em `plugins/<categoria>/skills/`, instalados por marketplace |
 | `agents/` | symlink | `claude/agents/` |
 | `commands/` | symlink | `claude/commands/` |
 | `hooks/` | symlink | `claude/hooks/` |
@@ -31,7 +31,7 @@ Tudo que é versionável vive neste repo (`D:\Projetos\projetos-pessoais\jgabrie
 | `plugins/` | Plugins instalados (cache + dados, gerenciados pelo CLI — ver seção 4) |
 | `.agents/` | Estado interno de subagents (não confundir com `agents/` symlink, que são as definições .md) |
 
-Editar algo em `~/.claude/skills/foo.md` é o mesmo arquivo que `claude/skills/foo.md` neste repo — symlink, não cópia. Commitar aqui é o fluxo correto; editar direto em `~/.claude/` também funciona pois é o mesmo inode.
+Isso vale para `CLAUDE.md`, `agents/` e `commands/`. As skills saíram desse esquema: viraram plugins (ver seção 2) e chegam pelo marketplace, não por symlink. Commitar aqui é o fluxo correto; editar direto em `~/.claude/` também funciona pois é o mesmo inode.
 
 ---
 
