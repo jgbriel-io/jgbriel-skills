@@ -46,6 +46,15 @@ LOCAL-ONLY pair with near-identical content is a rename, not two skills.
 - `obsidian-vault` — full local rewrite for the user's actual vault
 - `setup-pre-commit` — local ask-before-committing rule (step 8)
 - `diagnose` — local name kept (upstream calls it diagnosing-bugs)
+- `grill-me` — local name kept, but the content tracks upstream **`grilling`**,
+  not upstream `grill-me`. Diffing it against the same-named skill will always
+  show total divergence; diff against `grilling` instead.
+- **The core loop — `discuss`, `research`, `plan`, `implement`, `diagnose`,
+  `pr-acceptance`, `resolve-review`.** Each is a three-way merge of this repo's
+  version, `mattpocock/skills` and [`lucasmonstrox/utevo-lux`](https://github.com/lucasmonstrox/utevo-lux),
+  and utevo-lux is a **second upstream** for them. A wholesale pull from Matt
+  reverts that merge. `plan` and `pr-acceptance` have no upstream counterpart at
+  Matt's at all. Treat divergence here as intentional until diffed against both.
 - Any skill whose divergence IS a local fix from an audit — check
   `wiki/Tools/Claude Code/docs/Skills Quality Criteria.md` audit history when unsure
 
