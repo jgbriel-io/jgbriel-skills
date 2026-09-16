@@ -15,10 +15,10 @@ Tudo que é versionável vive neste repo (`D:\Projetos\projetos-pessoais\jgabrie
 | `CLAUDE.md` | symlink | `claude/CLAUDE.md` (regras globais) |
 | `GUIDE.md` | symlink | `claude/GUIDE.md` (cheatsheet) |
 | `settings.template.json` | symlink | `claude/settings.template.json` |
-| `skills/` | — | **Não é mais symlink.** As skills viraram plugins em `plugins/<categoria>/skills/`, instalados por marketplace |
-| `agents/` | — | **Não é mais symlink.** Cada agent viaja no plugin de quem o usa: `researcher` em `core`, `planner` em `core-loop`, `tcc-orientador` em `tcc` |
-| `commands/` | — | **Não é mais symlink.** Commands de git/repo em `plugins/core/commands/`; os de TCC em `plugins/tcc/commands/` |
-| `hooks/` | — | **Não é mais symlink.** Os dois hooks viraram componentes do plugin `core`, declarados no `plugin.json` dele e conectados na instalação |
+| `skills/` | — | **Não é mais symlink.** As skills vêm no plugin, em `skills/<categoria>/<nome>/`, instalado por marketplace |
+| `agents/` | — | **Não é mais symlink.** Os 3 agents vêm no plugin, em `agents/` na raiz do repo |
+| `commands/` | — | **Não é mais symlink.** Os 11 commands vêm no plugin, em `commands/` na raiz do repo |
+| `hooks/` | — | **Não é mais symlink.** Os dois hooks viraram componentes do plugin, declarados no `plugin.json` e conectados na instalação |
 
 **Não versionados** (ficam só em `~/.claude/`, nunca neste repo — contêm estado de máquina/segredos):
 
@@ -80,15 +80,15 @@ Lista completa com descrição exata (extraída do frontmatter `description:` de
 
 ---
 
-## 3. Agents — 3 definições, cada uma no plugin de quem a usa
+## 3. Agents — 3 definições, em `agents/` na raiz
 
-Diferente de skill (que injeta instruções no thread principal), agent roda em subagent isolado. Cada um mora junto do seu consumidor, para que o plugin funcione instalado sozinho:
+Diferente de skill (que injeta instruções no thread principal), agent roda em subagent isolado. Todos vêm no mesmo plugin:
 
-| Agent | Plugin | Uso |
+| Agent | | Uso |
 |---|---|---|
-| `planner` | `core-loop` | Quebra feature em plano ordenado com deps/riscos/critérios de saída. Read-only, nunca executa. Despachado pelo tier 1 da skill `plan` |
-| `researcher` | `core` | Localizador read-only — "onde X é definido", "o que chama Y", mapeia diretório. Nunca propõe fix. Usado por `/map` e `/where` |
-| `tcc-orientador` | `tcc` | Orientador severo de TCC — argumento/evidência/coesão/estrutura/aderência ABNT. Não edita, só dá parecer. Usado por `/tcc-revisar` e pela skill `tcc-auditoria-banca` |
+| `planner` | — | Quebra feature em plano ordenado com deps/riscos/critérios de saída. Read-only, nunca executa. Despachado pelo tier 1 da skill `plan` |
+| `researcher` | — | Localizador read-only — "onde X é definido", "o que chama Y", mapeia diretório. Nunca propõe fix. Usado por `/map` e `/where` |
+| `tcc-orientador` | — | Orientador severo de TCC — argumento/evidência/coesão/estrutura/aderência ABNT. Não edita, só dá parecer. Usado por `/tcc-revisar` e pela skill `tcc-auditoria-banca` |
 
 O agent `reviewer` não existe mais; review de diff é a skill `pr-acceptance` e o `/code-review` nativo.
 
@@ -109,9 +109,9 @@ Namespace nos nomes (`caveman:cavecrew-builder`, `claude-obsidian:wiki-lint`) in
 
 ---
 
-## 5. Hooks — componentes do plugin `core`
+## 5. Hooks — componentes do plugin
 
-Não há mais fiação manual em `settings.json`: o `plugins/core/.claude-plugin/plugin.json` declara os dois, e instalar o plugin os conecta. O caminho usa `${CLAUDE_PLUGIN_ROOT}` normalizado (`/c/...` do Git Bash vira `c:/...`), então funciona nas duas plataformas — antes o template trazia o caminho do node cravado em `C:/Program Files/nodejs/node.exe`.
+Não há mais fiação manual em `settings.json`: o `.claude-plugin/plugin.json` declara os dois, e instalar o plugin os conecta. O caminho usa `${CLAUDE_PLUGIN_ROOT}` normalizado (`/c/...` do Git Bash vira `c:/...`), então funciona nas duas plataformas — antes o template trazia o caminho do node cravado em `C:/Program Files/nodejs/node.exe`.
 
 | Hook | Dispara em | Função |
 |------|-----------|--------|

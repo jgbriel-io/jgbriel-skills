@@ -13,7 +13,7 @@ and append results there when done.
 
 ## Where skills live
 
-1. `plugins/<categoria>/skills/<name>/` in the repo — **the only place to edit,
+1. `skills/<categoria>/<name>/` in the repo — **the only place to edit,
    and the only place to fix anything this audit finds.** Commits happen here
    (Conventional Commits, English).
 2. `~/.claude/plugins/cache/<marketplace>/<plugin>/<versão>/` — the runtime, a
@@ -32,7 +32,7 @@ mirrored to the vault.
 
 1. **Confirm you are scoring what actually loads.** The repo is canonical, but
    the runtime is a pinned copy, so a repo edit that was never published is not
-   in play yet: `diff -rq --strip-trailing-cr plugins/<cat>/skills/<name> ~/.claude/plugins/cache/<marketplace>/<cat>/<versão>/skills/<name>`.
+   in play yet: `diff -rq --strip-trailing-cr skills/<cat>/<name> ~/.claude/plugins/cache/<marketplace>/<cat>/<versão>/skills/<name>`.
    CRLF vs LF makes whole files look changed — always strip. A difference means
    the plugin needs a version bump and an update, and it is worth saying so
    before scoring. Then diff the vault mirror the same way; it may hold skills
@@ -44,7 +44,7 @@ mirrored to the vault.
    review"; one mandating what another bans) only show up when descriptions
    and rules are compared side by side.
 4. **Apply fixes in the repo only**, then publish: edit
-   `plugins/<cat>/skills/<name>/`, bump that plugin's `version`, and copy to the
+   `skills/<cat>/<name>/`, bump that plugin's `version`, and copy to the
    vault mirror. Editing the runtime cache fixes nothing — the next update
    overwrites it. Big files: split by line ranges (`sed -n 'A,Bp'`) into
    `references/` + pointer stubs — content moves verbatim, nothing gets rewritten

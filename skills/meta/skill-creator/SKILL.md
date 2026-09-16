@@ -74,7 +74,7 @@ alone.
 ### Collision check (before drafting)
 
 Grep the frontmatter descriptions of the whole fleet
-(`plugins/*/skills/*/SKILL.md` in the repo — that is every skill, installed or
+(`skills/*/*/SKILL.md` in the repo — that is every skill, installed or
 not) plus any third-party plugin skills you can see in context, for the new
 skill's trigger territory. Two skills answering the same trigger =
 invocation lottery — the top defect found in the 2026-07 audit. If territory
@@ -265,12 +265,12 @@ enough for most skills.
 When the skill is done:
 
 1. **Confirm where it was written.** A fleet skill goes in the repo, inside the
-   category plugin it belongs to: `plugins/<categoria>/skills/<name>/SKILL.md`.
+   category plugin it belongs to: `skills/<categoria>/<name>/SKILL.md`.
    Choosing the category is part of creating the skill — say which one and why.
    A project-local skill stays at `<project>/.claude/skills/<name>/SKILL.md` and
    none of the publishing below applies to it.
 2. **Publish it**, or it exists only in the repo: bump the plugin's `version` in
-   `plugins/<categoria>/.claude-plugin/plugin.json`, commit, then
+   `.claude-plugin/plugin.json`, commit, then
    `claude plugin update <categoria>@jgbriel`. The runtime is a versioned copy
    pinned to a commit — without the bump, nothing reaches any machine.
 3. Tell them to restart Claude Code (or open a new session) so it loads — skills are read at session start.

@@ -1,9 +1,0 @@
-{
-  "name": "frontend",
-  "version": "1.0.0",
-  "description": "Convenções e performance de frontend, formulários, estados de erro, a11y e SEO.",
-  "author": {
-    "name": "João Gabriel",
-    "url": "https://github.com/jgbriel-io"
-  }
-}
