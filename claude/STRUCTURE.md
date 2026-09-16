@@ -73,7 +73,6 @@ Lista completa com descrição exata (extraída do frontmatter `description:` de
 | `to-prd` | Conversa atual → PRD publicado no tracker |
 | `triage` | State machine de triagem de issues |
 | `ui-ux-pro-max` | 50 estilos, 21 paletas, 50 pares de fonte, 9 stacks — design system completo |
-| `zoom-out` | Contexto mais amplo/perspectiva de alto nível sobre trecho de código |
 
 **Assets extras** (não são skills, são recursos usados pelas skills acima):
 `diagnose/scripts/hitl-loop.template.sh` · `skill-creator/references/*.md` + `templates/SKILL.template.md` · `ui-ux-pro-max/data/*.csv` + `scripts/*.py`.
