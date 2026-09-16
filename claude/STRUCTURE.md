@@ -16,8 +16,8 @@ Tudo que é versionável vive neste repo (`D:\Projetos\projetos-pessoais\jgabrie
 | `GUIDE.md` | symlink | `claude/GUIDE.md` (cheatsheet) |
 | `settings.template.json` | symlink | `claude/settings.template.json` |
 | `skills/` | — | **Não é mais symlink.** As skills viraram plugins em `plugins/<categoria>/skills/`, instalados por marketplace |
-| `agents/` | symlink | `claude/agents/` |
-| `commands/` | symlink | `claude/commands/` |
+| `agents/` | — | **Não é mais symlink.** Cada agent viaja no plugin de quem o usa: `researcher` em `core`, `planner` em `core-loop`, `tcc-orientador` em `tcc` |
+| `commands/` | — | **Não é mais symlink.** Commands de git/repo em `plugins/core/commands/`; os de TCC em `plugins/tcc/commands/` |
 | `hooks/` | symlink | `claude/hooks/` |
 
 **Não versionados** (ficam só em `~/.claude/`, nunca neste repo — contêm estado de máquina/segredos):
@@ -29,9 +29,9 @@ Tudo que é versionável vive neste repo (`D:\Projetos\projetos-pessoais\jgabrie
 | `.credentials.json` | Tokens — **nunca ler/exibir** |
 | `history.jsonl`, `sessions/`, `projects/`, `shell-snapshots/`, `paste-cache/`, `plans/`, `tasks/`, `ide/`, `daemon/`, `session-env/` | Estado runtime/sessão |
 | `plugins/` | Plugins instalados (cache + dados, gerenciados pelo CLI — ver seção 4) |
-| `.agents/` | Estado interno de subagents (não confundir com `agents/` symlink, que são as definições .md) |
+| `.agents/` | Estado interno de subagents (não confundir com as definições `.md`, que hoje vivem nos plugins) |
 
-Isso vale para `CLAUDE.md`, `agents/` e `commands/`. As skills saíram desse esquema: viraram plugins (ver seção 2) e chegam pelo marketplace, não por symlink. Commitar aqui é o fluxo correto; editar direto em `~/.claude/` também funciona pois é o mesmo inode.
+Symlink vale hoje só para `CLAUDE.md`, `GUIDE.md` e `settings.template.json` — aí sim editar de um lado edita o outro. Skills, agents e commands saíram desse esquema: viraram plugins (seção 2) e chegam pelo marketplace, numa cópia versionada que **não** é o mesmo inode. Para esses, editar é sempre no repo.
 
 ---
 
@@ -80,18 +80,17 @@ Lista completa com descrição exata (extraída do frontmatter `description:` de
 
 ---
 
-## 3. Agents do projeto (`agents/`) — 4 definições
+## 3. Agents — 3 definições, cada uma no plugin de quem a usa
 
-Diferente de skill (que injeta instruções no thread principal), agent roda em subagent isolado.
+Diferente de skill (que injeta instruções no thread principal), agent roda em subagent isolado. Cada um mora junto do seu consumidor, para que o plugin funcione instalado sozinho:
 
-| Agent | Uso |
-|---|---|
-| `planner` | Quebra feature em plano ordenado com deps/riscos/critérios de saída. Read-only, nunca executa |
-| `researcher` | Localizador read-only — "onde X é definido", "o que chama Y", mapeia diretório. Nunca propõe fix |
-| `reviewer` | Review de diff/PR — 1 finding por linha, severity-tagged, local+fix. Silêncio = OK |
-| `tcc-orientador` | Orientador severo de TCC — argumento/evidência/coesão/estrutura/aderência ABNT. Não edita, só dá parecer |
+| Agent | Plugin | Uso |
+|---|---|---|
+| `planner` | `core-loop` | Quebra feature em plano ordenado com deps/riscos/critérios de saída. Read-only, nunca executa. Despachado pelo tier 1 da skill `plan` |
+| `researcher` | `core` | Localizador read-only — "onde X é definido", "o que chama Y", mapeia diretório. Nunca propõe fix. Usado por `/map` e `/where` |
+| `tcc-orientador` | `tcc` | Orientador severo de TCC — argumento/evidência/coesão/estrutura/aderência ABNT. Não edita, só dá parecer. Usado por `/tcc-revisar` e pela skill `tcc-auditoria-banca` |
 
-`/plan`, `/map`, `/review`, `/tcc-revisar` (em `commands/`) são as portas de entrada pra esses agents — ver `COMMANDS.md`.
+O agent `reviewer` não existe mais; review de diff é a skill `pr-acceptance` e o `/code-review` nativo.
 
 ---
 
