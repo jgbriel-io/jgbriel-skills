@@ -7,6 +7,11 @@
   "description": "Skills do Claude Code agrupadas por domínio — habilite só o que o projeto usa.",
   "plugins": [
     {
+      "name": "core",
+      "source": "./plugins/core",
+      "description": "Commands de git e repositório do dia a dia, e o subagent researcher que dois deles usam."
+    },
+    {
       "name": "core-loop",
       "source": "./plugins/core-loop",
       "description": "O loop de trabalho: discutir, investigar, planejar, implementar, diagnosticar e revisar."

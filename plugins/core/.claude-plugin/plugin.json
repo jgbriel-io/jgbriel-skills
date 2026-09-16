@@ -1,0 +1,9 @@
+{
+  "name": "core",
+  "version": "1.0.0",
+  "description": "Commands de git e repositório do dia a dia, e o subagent researcher que dois deles usam.",
+  "author": {
+    "name": "João Gabriel",
+    "url": "https://github.com/jgbriel-io"
+  }
+}
