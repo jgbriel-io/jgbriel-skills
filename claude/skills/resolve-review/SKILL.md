@@ -1,17 +1,18 @@
 ---
-name: exura
-description: Address a PR's change requests by reading the full description, issues, reviews and discussions. Fix and test each change in its own commit, update the PR, and reply at the source with the commit and the evidence. Use when the user asks to address review feedback or requested changes.
+name: resolve-review
+description: Address the change requests a human reviewer left on a PR — read the full description, issues, reviews and discussions, then fix and verify each request in its own commit, push, and reply at the source with the commit and the evidence. Use when the user asks to address review feedback, resolve requested changes, or respond to a reviewer. Applying the findings of an automated review is `/code-review --fix`; judging whether a PR can be accepted is `/pr-acceptance`.
+argument-hint: <PR URL or number> [--local]
 ---
 
-# Exura
+# Resolve Review
 
-Usage: `/exura <PR URL or number> [--local]`.
+Usage: `/resolve-review <PR URL or number> [--local]`.
 
 Invoking the command explicitly asks for the whole cycle: read the requests, fix, verify, make **one commit per change**, push those commits to the PR's branch, and reply in the discussions they came from. `--local` prepares the commits and the replies without pushing or publishing. For requests in natural language, respect the actions that were authorized; this skill being selected automatically does not widen that authorization. Finish the local work and draft the replies before asking for a publishing authorization that is genuinely missing; never ask again for one already granted.
 
 ## 1. Read the whole context
 
-Read [the GitHub context protocol](references/github-pr.md) and gather the same material as `look`: description, linked issues and their comments, relevant specs and plans, commits, diff, complete reviews, general comments, inline discussions with every reply, and checks.
+Read [the GitHub context protocol](references/github-pr.md) and gather the same material as `pr-acceptance`: description, linked issues and their comments, relevant specs and plans, commits, diff, complete reviews, general comments, inline discussions with every reply, and checks.
 
 - Record the current base and head, the PR's source repository and branch, and the state of the local tree. Confirm the PR is open and that the branch you will change is its own, including when it comes from a fork.
 - Check whether the PR branch is behind its actual base branch (`out-of-date`) and whether it has merge conflicts: a branch can be behind without conflicts. Use fresh base/head data and treat an unknown status as unverified.

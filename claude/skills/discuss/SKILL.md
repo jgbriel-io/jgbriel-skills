@@ -1,11 +1,13 @@
 ---
-name: hi
-description: Develop a software idea through structured discussion, one decision at a time, until intent, audience, scenarios, precedents, options and trade-offs are clear. Use to discuss or explore an idea before research or implementation planning; deliver the brief in the conversation.
+name: discuss
+description: Develop an idea through structured discussion — one decision at a time, down a decision tree, until intent, audience, scenarios, precedents, options, trade-offs and boundaries are settled, closing on a confirmed brief. Use when the user wants to think an idea through before building it, explore a direction, or reach shared understanding on something with several open decisions. A quick stress-test of a plan that already exists is `grill-me`; open factual questions are `research`; turning a settled direction into ordered steps is `plan`.
+argument-hint: <idea or task> [constraints]
+disable-model-invocation: true
 ---
 
-# Hi
+# Discuss
 
-Discuss the idea or task presented by the user. Usage: `/hi <idea>` (or the agent's native skill invocation).
+Discuss the idea or task presented by the user. Usage: `/discuss <idea>` (or the agent's native skill invocation).
 
 First read local instructions (`AGENTS.md`, `CLAUDE.md` or equivalents) and the product documentation they identify. Resolve this skill's links relative to its `SKILL.md` directory.
 
@@ -13,11 +15,12 @@ The result is an **understood and confirmed decision**. Discuss until you can ex
 
 ## Responsibilities
 
-- **`/hi` decides:** why, for whom, in which scenarios, what behavior we want, which options exist, what must never happen and which costs we accept.
-- **`/mission` establishes facts:** the actual product/code state, feasibility, market, competitors, patterns and external facts with evidence. `hi` can make focused inquiries to unblock a decision; broad investigation belongs to `/mission`.
-- **`/equip` makes it executable:** architecture that fits the repository, paths, symbols, final contracts, steps, proofs, tests and **implementation** `Don't:` constraints next to each function or step.
-- **`/hunt` implements and verifies.** Do not write code during `hi`.
-- Code review belongs to a separate skill.
+- **`/discuss` decides:** why, for whom, in which scenarios, what behavior we want, which options exist, what must never happen and which costs we accept.
+- **`/research` establishes facts:** the actual product/code state, feasibility, market, competitors, patterns and external facts with evidence. `discuss` can make focused inquiries to unblock a decision; broad investigation belongs to `/research`.
+- **`/plan` makes it executable:** architecture that fits the repository, paths, symbols, final contracts, steps, proofs, tests and **implementation** `Don't:` constraints next to each function or step.
+- **`/implement` implements and verifies.** Do not write code during `discuss`.
+- **`grill-me` is the light version of this conversation.** A plan or design that already exists and just needs pressure goes there; `discuss` is for building the direction from scratch, and it costs accordingly. If the user arrives with something already formed, say so and offer the cheaper one.
+- Judging a finished PR is `pr-acceptance`; the diff itself is `/code-review`.
 
 Do not assume something already exists to "improve." First classify the transformation: a new capability, behavior change, correction, risk reduction, maintenance/refactoring, infrastructure or developer feedback. In a new project, the baseline may simply be "this does not exist yet"; look for adjacent capabilities and constraints instead of inventing a current state.
 
@@ -29,7 +32,7 @@ Model the conversation as a **decision tree**, but never dump the tree on the us
 2. Keep an internal record of `confirmed`, `provisional`, `rejected`, `factual hypothesis` and `open` items.
 3. Each step contains **exactly one question and one decision**. Give minimal context, ask the question, recommend an answer and wait. Do not advance to or preview the next decisions in the same message.
 4. Verifiable facts are the agent's work. Inspect available sources or label the hypothesis; do not turn "how do competitors do this?" or "does this already exist?" into a preference question. Value, priority and accepted risk belong to the user.
-5. If the user says "you choose," choose, explain the criterion and record the decision. If evidence cannot support a choice, recommend an experiment or `/mission` instead of false certainty.
+5. If the user says "you choose," choose, explain the criterion and record the decision. If evidence cannot support a choice, recommend an experiment or `/research` instead of false certainty.
 6. Challenge vague or contradictory premises with concrete scenarios. "Simple," "fast," "intuitive," "secure" and "best practice" only count when expressed as observable behavior or criteria.
 7. Do not repeat answered questions. One answer may close several branches; discard those that no longer matter.
 8. If a question contains two dimensions that could receive different answers, split it. Configuration, surface, automation, scope and risk are separate steps when each can change independently.
@@ -44,7 +47,7 @@ Model the conversation as a **decision tree**, but never dump the tree on the us
 - Do not recap the previous decision. If the next question depends on it, mention only the indispensable consequence.
 - Context: at most one short sentence containing only facts that change this choice.
 - Recommendation and reason: preferably one sentence. Give the conclusion and decisive reason, not the whole reasoning process.
-- Alternatives are optional. Show only real options, one line each; introduce them progressively if they need more explanation.
+- Always one recommendation, then none, one or two alternatives. Show only real options, one line each; drop a second that restates the first. Introduce them progressively if they need more explanation.
 - Do not cite IDs, paths, dependencies, benchmarks or examples just to demonstrate research. Include them only when they change the current decision.
 - Concision must preserve meaning: keep information whose removal could change the choice or cause misunderstanding. If two sentences teach the same thing, keep the clearer one.
 - Every sentence should supply a decisive fact, distinguish options, recommend or ask. Otherwise, remove it.
@@ -58,7 +61,8 @@ Preferred message format:
 
 **Recommendation:** <Concrete answer>, because <decisive reason>.
 
-<Brief alternatives, only if needed to answer.>
+- <Optional alternative, one line.>
+- <Optional second alternative, one line, only if genuinely different.>
 ```
 
 After this block, **stop and wait for the answer**. Do not add "and we also need to decide..." or hide a second question in the alternatives.
@@ -94,18 +98,18 @@ Perform a **mandatory, current web search** before settling precedents or genera
 Keep it shallow on purpose. A handful of sources, queried from the audience and the concrete scenario rather than the feature name, is enough to unblock a choice.
 
 - **Open the pages.** Search snippets are not proof, and a source the user provided still needs verification when its information may have changed.
-- Stop as soon as new results stop changing the options. Do not chase a quota and do not start a survey — breadth, competing sources and quantitative comparison are `/mission`'s work.
+- Stop as soon as new results stop changing the options. Do not chase a quota and do not start a survey — breadth, competing sources and quantitative comparison are `/research`'s work.
 - If web access is unavailable, say so in one sentence and leave precedents as an open question. Do not invent findings or claim verification.
 
 A precedent is **evidence for a decision**. For each useful one keep `source + context + observed pattern + difference from our scenario`, and classify it as `adopt`, `adapt`, `reject` or `experiment`. Show only the one to three findings that change the current decision, and preserve their URLs in the final brief.
 
-**Why after scenarios:** without an audience and situation, we copy solutions built for another problem. `/hi` always performs a focused search sufficient to support the decision; broad competitive research, deep feasibility work or inconclusive evidence belong to `/mission`. Handing the topic on does not excuse skipping the search here — a decision taken with no precedent at all is worse than one taken on a shallow read.
+**Why after scenarios:** without an audience and situation, we copy solutions built for another problem. `/discuss` always performs a focused search sufficient to support the decision; broad competitive research, deep feasibility work or inconclusive evidence belong to `/research`. Handing the topic on does not excuse skipping the search here — a decision taken with no precedent at all is worse than one taken on a shallow read.
 
 ### 5. Options: meaningfully different ways to satisfy the intent
 
 Generate alternatives that change experience, contracts, guarantees, risk, cost or reversibility; cosmetic variations do not count. Include keeping the current state when that is an honest option, and an experiment when uncertainty is central. Compare all options against the same scenarios and criteria.
 
-**Why after precedents:** options combine evidence with context. Settle **what** to do and **how it should behave** here; implementation mechanisms belong to `/equip`.
+**Why after precedents:** options combine evidence with context. Settle **what** to do and **how it should behave** here; implementation mechanisms belong to `/plan`.
 
 ### 6. Don'ts: make plausible mistakes explicit
 
@@ -125,8 +129,8 @@ There are two related layers:
 
 | Layer | Question it answers | Example | Location |
 |---|---|---|---|
-| **Discussion constraint** | Which behavior, outcome or boundary must the product/system avoid? | "Do not message a lead without human confirmation." | `/hi` brief in the conversation |
-| **Plan `Don't:`** | Which implementation mistake must this function or step prevent? | "Do not dispatch before the transaction commits." | The relevant `/equip` step |
+| **Discussion constraint** | Which behavior, outcome or boundary must the product/system avoid? | "Do not message a lead without human confirmation." | `/discuss` brief in the conversation |
+| **Plan `Don't:`** | Which implementation mistake must this function or step prevent? | "Do not dispatch before the transaction commits." | The relevant `/plan` step |
 
 Keep behavioral constraints here. Do not anticipate function names, file paths or implementation details unless they change the actual decision.
 
@@ -148,7 +152,7 @@ Do not force an artificial answer for an irrelevant dimension. The audit should 
 Stop opening branches when:
 
 - no remaining owner decision materially changes experience, contracts, scope or risk;
-- remaining factual uncertainties are named and assigned to a lookup, experiment or `/mission`;
+- remaining factual uncertainties are named and assigned to a lookup, experiment or `/research`;
 - direction, constraints and trade-offs are consistent;
 - future ideas are separate from the current scope.
 
@@ -168,11 +172,11 @@ Confirming costs the user attention, so spend it where being wrong is expensive.
 **Accepted trade-offs:** ...
 **Out of scope / later:** ...
 **How we will know it worked:** ...
-**Hypotheses and questions for `/mission`:** ...
+**Hypotheses and questions for `/research`:** ...
 ```
 
 ## Handoff
 
 The confirmed brief stays in the conversation. Keep hypotheses labeled; do not invent priority, urgency or approved scope.
 
-Recommend `mission` for open factual questions and `equip` when the direction is supported and ready for implementation planning. If another skill is not installed, the brief must still support continuation. Do not create documentation files, install skills or invoke the next stage automatically.
+Recommend `research` for open factual questions and `plan` when the direction is supported and ready for implementation planning. If another skill is not installed, the brief must still support continuation. Do not create documentation files, install skills or invoke the next stage automatically.
