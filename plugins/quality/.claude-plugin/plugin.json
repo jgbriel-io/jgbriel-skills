@@ -1,9 +1,0 @@
-{
-  "name": "quality",
-  "version": "1.0.0",
-  "description": "TDD, testes de integração e e2e, e o checklist de review do stack.",
-  "author": {
-    "name": "João Gabriel",
-    "url": "https://github.com/jgbriel-io"
-  }
-}

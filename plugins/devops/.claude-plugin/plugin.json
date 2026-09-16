@@ -1,9 +1,0 @@
-{
-  "name": "devops",
-  "version": "1.0.0",
-  "description": "Pipeline, containers, envs, deploy, rollback, merge, pre-commit, scaffold e observabilidade.",
-  "author": {
-    "name": "João Gabriel",
-    "url": "https://github.com/jgbriel-io"
-  }
-}
