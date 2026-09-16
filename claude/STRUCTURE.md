@@ -35,61 +35,211 @@ Symlink vale hoje só para `CLAUDE.md`, `GUIDE.md` e `settings.template.json` �
 
 ---
 
-## 2. Skills do projeto (`skills/`) — 33 pastas
+## 2. Skills
 
-Lista completa com descrição exata (extraída do frontmatter `description:` de cada `SKILL.md` — fonte de verdade, não resumo):
+Geradas a partir da árvore por `scripts/gen-inventory.py` — não editar à mão.
 
-| Skill | Trigger / uso |
+<!-- inventory:skills:start -->
+**87 skills**, em 13 pastas de categoria:
+
+<details><summary><code>backend</code> — 8 skills</summary>
+
+| Skill | Uso |
 |---|---|
-| `code-reviewer` | Code review full-stack — arquitetura, qualidade, segurança, performance, UI/UX, TS |
-| `design-direction` | Landing pages/portfolios anti-slop — direção de design real, audit-first em redesign |
-| `diagnose` | Loop disciplinado de diagnóstico (reproduzir→minimizar→hipótese→instrumentar→fix→regressão) |
-| `docs-writing` | Style guide pra README/docs/ADR/JSDoc — não cobre escrita acadêmica TCC |
-| `edit-article` | Reestruturar/clarear/apertar prosa de artigo |
-| `grill-me` | Interroga plano/design até alinhamento, resolvendo cada ramo da árvore de decisão |
-| `grill-me-tcc` | Stress-test pré-banca do TCC SyncClass |
-| `grill-with-docs` | Grilling que atualiza CONTEXT.md/ADRs inline conforme decisões cristalizam |
-| `handoff` | Compacta conversa atual em doc de handoff pra outro agente |
-| `high-end-visual-design` | Fontes/spacing/shadows/cards de agência premium — bloqueia defaults genéricos |
-| `image-to-code` | Image-to-code elite pra Codex — gera própria imagem de design antes de implementar |
-| `improve-codebase-architecture` | Oportunidades de deepening informadas por CONTEXT.md/docs/adr |
-| `minimalist-ui` | Editorial monochromo, tipografia, bento grid flat — sem gradiente/shadow pesado |
-| `obsidian-vault` | Buscar/criar/organizar notas no vault Obsidian com wikilinks |
-| `prototype` | Prototype descartável — terminal app (lógica) ou múltiplas variações de UI |
-| `react-best-practices` | Bundle size, re-renders, waterfalls, subscriptions — React 18 + Vite |
-| `redesign-existing-projects` | Upgrade de site/app existente pra qualidade premium sem quebrar funcionalidade |
-| `senior-backend` | Padrões Supabase + TanStack Query — hooks, mutations, real-time |
-| `senior-frontend` | Componentes React, estado, Tailwind, acessibilidade, organização de arquivos |
-| `seo-optimizer` | Keyword research, on-page/technical SEO, Core Web Vitals, schema |
-| `setup-pre-commit` | Husky + lint-staged (Prettier) + type-check + tests |
-| `skill-creator` | Criar/melhorar skills — scaffolding de SKILL.md |
-| `supabase-postgres` | Índices, RLS, schema design, queries, connection pooling |
-| `tcc-auditoria-banca` | Parecer simulado de banca avaliadora sobre o TCC já redigido |
-| `tcc-fragmentos` | Captura matéria-prima bruta do TCC antes de virar texto formal |
-| `tcc-rascunho` | Transforma fragmentos em texto formal de capítulo, parágrafo a parágrafo |
-| `tcc-revisao-impessoal` | Varredura final — 1ª pessoa, clichês, citações órfãs, termos não explicados |
-| `tdd` | Red-green-refactor, testes de integração |
-| `to-issues` | Plano/PRD → issues independentes via vertical slices |
-| `to-prd` | Conversa atual → PRD publicado no tracker |
-| `triage` | State machine de triagem de issues |
-| `ui-ux-pro-max` | 50 estilos, 21 paletas, 50 pares de fonte, 9 stacks — design system completo |
+| `api-design` | Applies stack-agnostic REST API design conventions — resource naming, HTTP verbs, status codes, error envelope, version… |
+| `backend-service-conventions` | Framework-agnostic conventions for backend service structure — layering (controller/service/repository), dependency inj… |
+| `background-jobs` | Designs asynchronous background work — job queues, retry/backoff policies, idempotency keys, dead-letter handling — ind… |
+| `caching-strategy` | Applies stack-agnostic caching strategy — layers (client, server, CDN), invalidation policy, cache-aside vs write-throu… |
+| `input-validation` | Validates untrusted input at every system boundary — API requests, queue messages, uploads, CLI args — via schema defin… |
+| `rate-limiting` | Stack-agnostic rate limiting and throttling — token bucket vs sliding/fixed window algorithms, where to enforce limits … |
+| `supabase-hooks` | Data-layer patterns for Supabase + TanStack Query — custom hooks, mutations, queries, real-time subscriptions, error ha… |
+| `tanstack-query-patterns` | Frontend data layer patterns with TanStack Query 5 + Axios — service pattern, module-prefixed query keys, mutations, ca… |
 
-**Assets extras** (não são skills, são recursos usados pelas skills acima):
-`diagnose/scripts/hitl-loop.template.sh` · `skill-creator/references/*.md` + `templates/SKILL.template.md` · `ui-ux-pro-max/data/*.csv` + `scripts/*.py`.
+</details>
+<details><summary><code>career</code> — 3 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `cv-sync` | Pipeline de atualização do currículo — edita os .tex canônicos, recompila com pdflatex, renomeia para os nomes de distr… |
+| `job-description-analyzer` | Analyze job postings, calculate match scores, identify gaps, and create application strategy. |
+| `resume-tailor` | Customize resume for specific job postings while maintaining truthfulness. |
+
+</details>
+<details><summary><code>cloudflare</code> — 4 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `cloudflare` | Comprehensive Cloudflare platform skill covering Workers, Pages, storage (KV, D1, R2), AI (Workers AI, Vectorize, Agent… |
+| `cloudflare-email-service` | Send and receive transactional emails with Cloudflare Email Service (Email Sending + Email Routing). |
+| `workers-best-practices` | Reviews and authors Cloudflare Workers code against production best practices. |
+| `wrangler` | Cloudflare Workers CLI for deploying, developing, and managing Workers, KV, R2, D1, Vectorize, Hyperdrive, Workers AI, … |
+
+</details>
+<details><summary><code>core-loop</code> — 13 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `codebase-design` | Shared vocabulary for designing deep modules. |
+| `codebase-memory` | Use the codebase knowledge graph for structural code queries. |
+| `diagnose` | Diagnosis loop for hard bugs and performance regressions. |
+| `discuss` | Develop an idea through structured discussion — one decision at a time, down a decision tree, until intent, audience, s… |
+| `domain-modeling` | Build and sharpen a project's domain model and ubiquitous language. |
+| `fable-method` | A step-by-step problem-solving loop (classify the ask, define done, gather evidence, decide, act surgically, verify by … |
+| `grill-me` | Grill the user relentlessly about a plan, decision or idea that already exists, working the design tree in rounds until… |
+| `handoff` | Compact the current conversation into a handoff document for another agent to pick up. |
+| `implement` | Implement planned work — a plan, PRD, issue or agreed task. |
+| `plan` | Produce an implementation plan — ordered steps, explicit dependencies, mechanical proofs, risks and exit criteria. |
+| `pr-acceptance` | Judge whether a PR delivers what was asked — loads the originating issue/spec, the PR description and its discussions, … |
+| `research` | Investigate a question or topic against primary sources and the repo's own history, then capture verified findings as a… |
+| `resolve-review` | Address the change requests a human reviewer left on a PR — read the full description, issues, reviews and discussions,… |
+
+</details>
+<details><summary><code>data</code> — 6 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `backup-restore` | Explains backup strategy and restore testing for relational databases — full vs. |
+| `postgres-conventions` | Apply Postgres best practices — schema design, indexes, RLS policies, SQL queries, connection pooling. |
+| `query-performance` | Diagnoses slow SQL queries by reading execution plans and picking the right index strategy — composite, partial, coveri… |
+| `safe-migrations` | Explains zero-downtime schema migrations for relational databases — expand-contract pattern, batch data backfills, lock… |
+| `seed-data` | Explains reproducible seed data per environment — determinism, idempotency, dependency ordering, and masking real data … |
+| `supabase-postgres` | Apply Supabase/Postgres best practices — indexes, RLS, schema design, queries, connection pooling. |
+
+</details>
+<details><summary><code>delivery</code> — 8 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `docs-writing` | Technical documentation style guide for README, docs/, ADRs, JSDoc/TSDoc, and inline code comments. |
+| `estimation` | Applies effort-estimation technique to any deliverable, technical or not — task decomposition, three-point estimation (… |
+| `incident-postmortem` | Runs a blameless incident postmortem — timeline with timestamps, impact, root cause (5 whys), and corrective actions wi… |
+| `proposta-comercial` | Transforma um briefing de cliente em proposta comercial de freela — escopo fechado (incluído/excluído), entregáveis, cr… |
+| `to-issues` | Break a plan, spec, or PRD into independently-grabbable issues on the project issue tracker using tracer-bullet vertica… |
+| `to-prd` | Turn the current conversation into a PRD and publish it to the project issue tracker — no interview, just synthesis of … |
+| `triage` | Move issues and external PRs through a state machine of triage roles — categorise, verify, grill if needed, and write a… |
+| `wish` | Capture, enrich and organise future ideas in a project's wishlist file, before they become tracked work. |
+
+</details>
+<details><summary><code>devops</code> — 11 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `ci-cd-pipeline` | Defines standard CI/CD pipeline stages (lint, type-check, test, build), dependency caching, running migrations in CI, a… |
+| `container-conventions` | Defines multi-stage Docker builds, minimal base images, non-root users, .dockerignore, layer cache ordering, and docker… |
+| `environment-config` | Environment-based configuration conventions — .env.example, startup-time env validation (fail fast, not mid-request), a… |
+| `error-tracking` | Apply production error tracking patterns — unhandled exception capture, contextual metadata, release/version tagging, t… |
+| `health-checks-metrics` | Apply health check (readiness vs. |
+| `project-deploy` | Executa o deploy de um projeto do usuário seguindo o runbook documentado no vault — checklist passo a passo, confirmaçã… |
+| `resolving-merge-conflicts` | Use when you need to resolve an in-progress git merge/rebase conflict. |
+| `rollback-runbook` | Defines a deploy-tool-agnostic rollback runbook — reverting a code deploy (blue-green/canary/previous artifact), why re… |
+| `setup-pre-commit` | Set up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. |
+| `stack-scaffold` | Scaffold a new project with the user's standard stack — React 18 + TypeScript + Tailwind + shadcn/ui, on Vite + Supabas… |
+| `structured-logging` | Apply structured (JSON) logging practices — log levels, request/tenant correlation IDs, context propagation, and what m… |
+
+</details>
+<details><summary><code>frontend</code> — 8 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `accessibility-audit` | Guides accessibility (a11y) auditing — automated tooling (axe-core) wired into CI as a floor not a substitute for manua… |
+| `client-state-management` | Defines the boundary between server state, local UI state, and URL state as an architecture decision independent of sta… |
+| `error-ux` | Defines client-side error handling — render error boundaries that isolate failure without crashing the whole tree, the … |
+| `forms-validation` | Defines form validation as a single schema shared between client and server, with Brazilian document masks (CPF, CNPJ, … |
+| `frontend-conventions` | Conventions for WRITING new frontend code — component structure and extraction, page files that only compose components… |
+| `image-to-code` | Elite website image-to-code skill for Codex. |
+| `react-best-practices` | React 18 + Vite performance rules — bundle size, re-renders, waterfalls, subscriptions. |
+| `web-perf` | Analyzes web performance using Chrome DevTools MCP. |
+
+</details>
+<details><summary><code>meta</code> — 6 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `skill-audit` | Audit installed Claude Code skills against the C1–C11 quality rubric — per-skill scores, automatic blockers, trigger-co… |
+| `skill-creator` | Create new Claude Code skills from scratch and iteratively improve existing ones. |
+| `skill-sync` | Sync the skill fleet against its upstreams — mattpocock/skills and lucasmonstrox/utevo-lux — diffing repo vs upstream, … |
+| `token-audit` | Audit Claude Code token consumption across all sessions and projects — weekly trend, heaviest sessions/projects, marath… |
+| `wizard` | Generates an interactive bash wizard for setup steps only a human can do — dashboards, credentials, CI secrets, one-off… |
+| `writing-great-skills` | Reference for writing and editing skills well — the vocabulary and principles that make a skill predictable. |
+
+</details>
+<details><summary><code>quality</code> — 4 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `code-reviewer` | Stack-specific review checklist for React + TanStack Query + Supabase multi-tenant apps — hook architecture, RLS/tenant… |
+| `e2e-testing` | Guides writing reliable end-to-end tests — programmatic auth fixtures instead of UI login, per-run data isolation, acce… |
+| `integration-testing` | Guides writing integration tests against real dependencies — disposable containers for database/services instead of moc… |
+| `tdd` | Test-driven development. |
+
+</details>
+<details><summary><code>security</code> — 6 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `auth-patterns` | Authentication and authorization patterns — OTP/password/OAuth/OIDC flows, session vs JWT, RBAC/ABAC, MFA, token refres… |
+| `dependency-audit` | Audits third-party dependencies for security and maintainability — lockfile discipline, upgrade cadence (automatic patc… |
+| `lgpd-checklist` | LGPD compliance checklist for projects handling personal data — data inventory, legal basis, retention/anonymization, d… |
+| `multi-tenant-isolation-audit` | Audits multi-tenant systems for cross-tenant data leakage — missing isolation filters, privileged-role bypass (service_… |
+| `secrets-management` | Manage secrets and sensitive config across environments and CI — classify sensitive vs. |
+| `security-review-checklist` | Broad OWASP-style security sweep of a PR or release — injection, XSS, SSRF, IDOR/broken access control, CSRF, insecure … |
+
+</details>
+<details><summary><code>tcc</code> — 6 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `tcc-auditoria-banca` | Simula o parecer escrito de uma banca avaliadora de TCC sobre o documento já redigido. |
+| `tcc-defesa` | Monta a apresentação de defesa do TCC SyncClass a partir dos capítulos escritos — arco narrativo, roteiro slide a slide… |
+| `tcc-fragmentos` | Captura matéria-prima bruta de TCC acadêmico — anotações de leitura, observações sobre código do projeto, decisões técn… |
+| `tcc-grill` | Arguição acadêmica do TCC SyncClass — questiona hipóteses, metodologia, recorte, lacunas bibliográficas e validade dos … |
+| `tcc-rascunho` | Transforma arquivo de fragmentos brutos em seção formal de TCC parágrafo a parágrafo, aplicando normas ABNT/FEPI, voz i… |
+| `tcc-revisao-impessoal` | Varredura final de capítulo de TCC procurando primeira pessoa, clichês acadêmicos, informalidade, vocabulário fraco, ci… |
+
+</details>
+<details><summary><code>vault</code> — 4 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `obsidian-vault` | Create, search, and link notes in jgabriel's personal Obsidian vault (C:\Users\jgabriel\Documents\Obsidian Vault) follo… |
+| `project-kickoff` | Orchestrates the full workflow for starting a project from scratch — idea to production-ready spec, design system, and … |
+| `project-planner` | Scaffolds a project's wiki pages in wiki/Projetos/ — index.md with frontmatter, subpage stubs and ADRs — from a directi… |
+| `project-sync` | Reads docs/ from a project on D:/Projetos and creates or updates wiki/Projetos/<name>/ pages in the Obsidian vault. |
+
+</details>
+<!-- inventory:skills:end -->
 
 ---
 
-## 3. Agents — 3 definições, em `agents/` na raiz
+## 3. Agents e commands
 
-Diferente de skill (que injeta instruções no thread principal), agent roda em subagent isolado. Todos vêm no mesmo plugin:
+<!-- inventory:agents:start -->
+**3 agents** — rodam em subagent isolado:
 
-| Agent | | Uso |
-|---|---|---|
-| `planner` | — | Quebra feature em plano ordenado com deps/riscos/critérios de saída. Read-only, nunca executa. Despachado pelo tier 1 da skill `plan` |
-| `researcher` | — | Localizador read-only — "onde X é definido", "o que chama Y", mapeia diretório. Nunca propõe fix. Usado por `/map` e `/where` |
-| `tcc-orientador` | — | Orientador severo de TCC — argumento/evidência/coesão/estrutura/aderência ABNT. Não edita, só dá parecer. Usado por `/tcc-revisar` e pela skill `tcc-auditoria-banca` |
+| Agent | Uso |
+|---|---|
+| `planner` | Breaks a task or feature into an ordered implementation plan with explicit dependencies, risks, and exit criteria. |
+| `researcher` | Read-only code locator and codebase mapper. |
+| `tcc-orientador` | Revisor acadêmico no papel de orientador severo de TCC. |
+<!-- inventory:agents:end -->
 
-O agent `reviewer` não existe mais; review de diff é a skill `pr-acceptance` e o `/code-review` nativo.
+<!-- inventory:commands:start -->
+**11 slash commands:**
+
+| Comando | Descrição |
+|---|---|
+| `/branch` | Cria branch nova a partir de main/master (atualizado) e faz switch. |
+| `/commit` | Gera commit message Conventional Commits a partir do diff staged. |
+| `/diff` | Diff resumido contra ref (branch, sha, HEAD~N). |
+| `/map` | Mapa de um diretório — listagem por arquivo com responsabilidade detectada. |
+| `/sync` | Sincroniza branch atual com remote — fetch, pull rebase, status final. |
+| `/tcc-revisar` | Revisão acadêmica de capítulo do TCC via agent tcc-orientador. |
+| `/tcc-status` | Snapshot do progresso do TCC SyncClass — status de cada capítulo (1-10), pendências, próximos passos. |
+| `/undo` | Desfaz último commit (soft reset) — mantém mudanças staged, só remove o commit. |
+| `/where` | Localiza onde símbolo, função, classe ou string é definido/usado. |
+| `/why` | Contexto histórico de uma linha ou trecho — git blame + log + último commit que tocou. |
+| `/wip` | Commit rápido WIP pra salvar progresso. |
+<!-- inventory:commands:end -->
 
 ---
 
