@@ -14,6 +14,7 @@ Implement: `$ARGUMENTS`
 - **Scope is large or the approach is undecided** → stop and produce a plan first (`plan`). This is the dominant case, not the exception. Planning is cheap; discovering at step 6 that step 1 was wrong is not.
 - **Scope is genuinely trivial** — one sentence, ≤2 files, no technical decision — → say so in one line and go straight ahead. Don't manufacture ceremony for a rename.
 - **The request is a question, not an instruction** ("how would we do X?", "can this work?") → answer it. Do not start editing.
+- **The plan lives in a session you cannot see** → ask for its contents. Never implement against a plan you are reconstructing from memory of what it probably said.
 
 That last one matters most: this skill fires on its own, so the gate is what separates being invoked from being authorised.
 
@@ -36,6 +37,8 @@ Before writing anything, find out whether the work exists. Search for the centra
 ## 3. Implement — thin vertical slices
 
 - **A slice that compiles and runs beats a finished layer.** Cross the layers early on the smallest possible path; integration risk should fail on a small diff, not a large one.
+- **Locate precisely, understand broadly.** Find the source and consumers of the behaviour before editing — but pulling more adjacent code into the change than it needs makes the edit worse, not safer.
+- **Close each step out loud when its proof passes.** Besides keeping the work resumable, it is the signal that stops you editing code that is already right; without it an agent keeps going and breaks what worked.
 - **Type-check and run tests early and often**, not once at the end.
 - **Re-inject the rules at the point of use.** A rule read forty turns ago is not in force. Before writing each step's code, restate — in full, not as a link — the specific conventions that step touches, and the constraints the plan attached to it. A rule cited by name only does not count as re-injected. Every few steps, re-read the plan itself.
 - **New logic gets its test alongside it**, in the same step. Not "later".
@@ -48,6 +51,8 @@ The dominant failure mode is acting early and then insisting — not hallucinati
 - **Name the defect literally.** When asking for a fix (of yourself or a subagent), paste the actual error and name the specific failure — "`accountId` is possibly undefined at `service.ts:142`" — never "fix the problem". Naming it is the difference between a coin flip and a fix.
 - **Two attempts on the same step, then stop.** If the second fix also fails, **halt and record state**: the step, both attempts with their real output, and your leading hypothesis. Refining against no oracle until it appears to pass produces something plausible and wrong.
 - **A premise collapsed → stop and re-plan.** Don't force the original step through a world that changed.
+- **Green by subtraction is not a fix.** Most ways to turn a check green without fixing anything are subtractive, and they look like work: deleting the assertion, widening the type, catching and swallowing the exception, loosening the condition the test was guarding. `swallow the error so the suite passes → keep the error and fix why it is raised`. If a change makes a check pass by removing behaviour, it did not fix anything.
+- **Never clear the way with Git.** No stash, reset, rebase, force-push or wiping user data to simplify execution. An experiment that needs another Git state gets an isolated checkout or worktree.
 
 ## 4. Verify — by the surface you touched
 
@@ -55,7 +60,7 @@ Read [verification.md](verification.md) for the proof matrix, the scenario ladde
 
 Non-negotiable:
 
-- **A green type-check closes no surface by itself.** Touching a route and watching it compile is indirect evidence, not proof.
+- **A green type-check closes no surface by itself.** Touching a route and watching it compile is indirect evidence, not proof. Nor does a green suite, when the suite never covered the behaviour in question — ask what the passing test would still pass under if the fix were wrong.
 - **The plan's own verification section is the floor**, not the target — execute every entry and check every acceptance criterion.
 - **Re-test the consumer list** from §2.
 - **Report with pasted evidence** — command output, a log excerpt, a screenshot. Never an adjective. A failing test is reported as failing, with its output.
