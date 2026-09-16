@@ -12,7 +12,7 @@ Validated workflow from the 2026-07-08 sync.
 ## The three points
 
 1. `~/.claude/skills/` — runtime (symlinked to point 2; editing one edits both)
-2. `D:\Projetos\projetos-pessoais\jgabriel-skills\claude\skills\` — git repo, where commits happen
+2. `D:\Projetos\projetos-pessoais\jgabriel-skills\plugins\<categoria>\skills\` — git repo, where commits happen
 3. `Obsidian Vault\wiki\Tools\Claude Code\skills\<categoria>\` — docs mirror, manual copy
 
 Upstream: `https://github.com/mattpocock/skills` (skills under

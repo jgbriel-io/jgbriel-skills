@@ -1,0 +1,9 @@
+{
+  "name": "vault",
+  "version": "1.0.0",
+  "description": "Obsidian: notas, páginas de projeto e sincronização com docs em disco.",
+  "author": {
+    "name": "João Gabriel",
+    "url": "https://github.com/jgbriel-io"
+  }
+}
