@@ -1,6 +1,6 @@
 ---
 name: project-kickoff
-description: Orchestrates the full workflow for starting a project from scratch — idea to production-ready spec, design system, and implementation plan. Runs 5 phases in order: ideation, spec, design, implementation, maintenance. Invokes project-planner, grill-me, domain-modeling, design-direction, setup-pre-commit, and project-sync at the right moment. Use when user says "novo projeto", "vou começar um projeto", "quero criar X do zero", "fluxo completo de projeto", "como começo o projeto X", or starts describing a project idea and wants to build it properly without rework.
+description: Orchestrates the full workflow for starting a project from scratch — idea to production-ready spec, design system, and implementation plan. Runs 5 phases in order: ideation, spec, design, implementation, maintenance. Invokes discuss, project-planner, domain-modeling, design-direction, setup-pre-commit, and project-sync at the right moment. Use when user says "novo projeto", "vou começar um projeto", "quero criar X do zero", "fluxo completo de projeto", "como começo o projeto X", or starts describing a project idea and wants to build it properly without rework.
 ---
 
 # project-kickoff
@@ -13,14 +13,12 @@ Guia o usuário pelo fluxo completo de criação de projeto, fase por fase, gara
 
 **Objetivo:** entender o que é o projeto e o que NÃO é.
 
-1. Invocar `/project-planner` para capturar a ideia conversacionalmente e criar o wiki em `wiki/Projetos/<nome>/`.
-   - Ao final do planner, o index.md e stubs das subpáginas já existem.
+1. Invocar `/discuss` para construir a direção — uma decisão por vez, até intenção, audiência, cenários, precedentes, opções e fronteiras fecharem num brief confirmado. É aqui que a ideia vira direção defensável.
+   - Ideia já formada e só precisando de pressão? `/grill-me` é o caminho barato (trabalha a fronteira em rodadas). O `/discuss` é pra construir do zero, e custa de acordo.
 
-2. Após o planner, invocar `/grill-me` para stress-test da ideia:
-   - Quem é o usuário real? Como chega ao produto?
-   - Como monetiza? O modelo sustenta?
-   - O que pode dar errado na v1?
-   - Qual o diferencial concreto vs. o que já existe?
+2. Invocar `/project-planner` para transformar o brief nas páginas do vault em `wiki/Projetos/<nome>/`.
+   - Ele extrai os campos do brief do `discuss`; o que faltar, ele pergunta.
+   - Ao final, o index.md e os stubs das subpáginas já existem.
 
 3. **Definir fora do escopo explicitamente** — criar seção `## Fora do escopo (v1)` no index.md com lista em texto (sem emoji — regra do vault). Isso evita scope creep durante o desenvolvimento.
 
@@ -151,8 +149,8 @@ Invocar `/setup-pre-commit` — lint, type-check e testes no pre-commit. Não de
 
 ```
 Fase 1 — Ideação
+  [ ] /discuss fechado — brief confirmado
   [ ] /project-planner executado — wiki stub criado
-  [ ] /grill-me feito — ideia stress-testada
   [ ] Fora do escopo documentado no index.md
 
 Fase 2 — Spec
