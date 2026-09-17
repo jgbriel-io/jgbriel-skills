@@ -1,35 +1,25 @@
 ---
 name: project-sync
-description: Reads docs/ from a project on D:/Projetos and creates or updates wiki/Projetos/<name>/ pages in the Obsidian vault. Use when user says "sincroniza projeto X", "atualiza wiki do projeto", "ingesta docs do X", "cria página pro X", "documenta o X no vault", "bate no D: do projeto", or names a known project (SyncClass, her-website, jgabriel.dev, Getfy, Baruk CRM, epagpos, etc.). Also use when user points to a D:/Projetos path directly. Creates index.md + subpages mirroring docs/ structure. Updates existing pages without overwriting manual content. Only for project docs/ folders — loose sources (transcripts, URLs, single files) go to obsidian-vault.
+description: Lê a pasta `docs/` de um projeto e cria ou atualiza as páginas dele em `wiki/Projetos/` no vault do Obsidian, espelhando a estrutura e preservando conteúdo manual já escrito. Use quando o usuário disser "sincroniza projeto X", "atualiza wiki do projeto", "documenta o X no vault", ou apontar o caminho de um projeto direto. Fonte solta — transcrição, URL, arquivo único — é obsidian-vault.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # project-sync
 
-Lê `docs/` de um projeto em `D:/Projetos/` e cria ou atualiza `wiki/Projetos/<nome>/` seguindo as convenções do vault.
+Lê a `docs/` de um projeto e cria ou atualiza `wiki/Projetos/<nome>/` seguindo as convenções do vault.
 
 ---
 
-## Catálogo de projetos conhecidos
+## Catálogo de projetos
 
-| Nome wiki | Pasta no vault | Path em D: | Status |
-|-----------|----------------|-----------|--------|
-| SyncClass | `Pessoais/syncclass-plataforma-saas/` | `D:/Projetos/projetos-pessoais/tcc/SyncClass-Plataforma-SaaS/` | evergreen |
-| Plataforma HER (her-website) | `Clientes/her-website/` | `D:/Projetos/Freelas/LARISSA-GISGNON/her-website/` | evergreen |
-| jgabriel.dev | `Pessoais/jgabriel.dev/` | `D:/Projetos/projetos-pessoais/jgbriel-dev/` | developing |
-| Getfy | — | `D:/Projetos/Freelas/BARUK/getfy/` | active |
-| Baruk CRM | — | `D:/Projetos/Freelas/BARUK/HubLabel - n8n/` | active |
-| epagpos-front | — | `D:/Projetos/B2ml/epag/epagpos-front/` | active |
-| new-epag-website | — | `D:/Projetos/B2ml/epag/new-epag-website/` | active |
-| timer-b2ml | — | `D:/Projetos/B2ml/timer-b2ml/timer-b2ml-api/` | active |
-| Bom Cristão | `Clientes/bom-cristao/` | `D:/Projetos/Freelas/SMARTX/bom-cristao-v2/` | active |
-| colab473-erp | `Clientes/colab473-erp/` | `D:/Projetos/Freelas/LARISSA-GISGNON/colab473-erp/` | developing |
-| fast-brain-check | — | `D:/Projetos/Freelas/SMARTX/fast-brain-check/` | active |
+O mapa projeto → pasta no disco → pasta no vault é **dado de máquina, não de
+skill**: muda quando um cliente entra ou um repo é renomeado, e não pertence a um
+repositório público. Ele vive em `~/.claude/projects-map.md`, fora deste repo.
 
-Notas:
-- `wiki/Projetos/` é organizado em subpastas de categoria (`Clientes/`, `Pessoais/`, `Backlog/`) — o path do vault na tabela é relativo a `wiki/Projetos/`.
-- Bom Cristão: o repo no D: ainda se chama `bom-cristao-v2` (rename pendente pelo usuário); o produto e a pasta do vault são só "Bom Cristão"/`bom-cristao`. O antigo bom-cristao (Next.js, descontinuado) foi excluído do vault e do D:.
-- Se projeto não estiver na tabela, pedir o path D: ao usuário.
+Leia esse arquivo primeiro. Cada linha é `<nome> | <caminho do projeto> | <pasta no vault>`.
+Se o arquivo não existir, ou o projeto pedido não estiver nele, **pergunte o
+caminho ao usuário** e ofereça acrescentar a linha — nunca adivinhe um caminho
+nem escreva o mapa aqui dentro.
 
 ---
 
