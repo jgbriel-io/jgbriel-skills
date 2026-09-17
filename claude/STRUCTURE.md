@@ -84,7 +84,7 @@ Geradas a partir da árvore por `scripts/gen-inventory.py` — não editar à m�
 | `diagnose` | Diagnosis loop for hard bugs and performance regressions. |
 | `discuss` | Develop an idea through structured discussion — one decision at a time, down a decision tree, until intent, audience, s… |
 | `domain-modeling` | Build and sharpen a project's domain model and ubiquitous language. |
-| `fable-method` | A step-by-step problem-solving loop (classify the ask, define done, gather evidence, decide, act surgically, verify by … |
+| `fable-method` | An evidence-first problem-solving loop for work outside code — money and pricing decisions, marketing and content, rese… |
 | `grill-me` | Grill the user relentlessly about a plan, decision or idea that already exists, working the design tree in rounds until… |
 | `handoff` | Compact the current conversation into a handoff document for another agent to pick up. |
 | `implement` | Implement planned work — a plan, PRD, issue or agreed task. |
