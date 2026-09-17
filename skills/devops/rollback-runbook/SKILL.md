@@ -5,119 +5,157 @@ description: Defines a deploy-tool-agnostic rollback runbook — reverting a cod
 
 # Rollback Runbook
 
-Rollback é procedimento, não ferramenta. O que muda entre Vercel, Cloudflare Pages/Workers, Kubernetes, ECS, Heroku ou um bare-metal com systemd é só o comando — a decisão (o quê reverter, em que ordem, quando não reverter) é sempre a mesma. Este runbook assume qualquer stack (Vite/Next.js, NestJS, Supabase/Postgres, Python, Go).
+Rollback is a procedure, not a tool. Vercel, Cloudflare Pages and Workers,
+Kubernetes, ECS, Heroku and a bare-metal box with systemd differ only in the
+command; the decisions — what to revert, in what order, and when not to — are the
+same everywhere. This runbook assumes any stack: Vite/Next.js, NestJS,
+Supabase/Postgres, Python, Go.
 
-## Decisão: rollback vs forward-fix
+## Deciding: rollback or forward fix
 
-| Situação | Ação |
+| Situation | Action |
 |---|---|
-| Causa raiz óbvia, fix de 1 linha, já testado | Forward-fix — mais rápido que orquestrar rollback |
-| Causa raiz incerta, ou fix não trivial | Rollback — parar o sangramento primeiro, investigar depois |
-| Migration destrutiva já rodou e sujou dados | Rollback de código não resolve sozinho — ver seção Migration |
-| Feature isolada atrás de flag | Desligar a flag — mais rápido que rollback completo |
-| Incidente afetando cliente/SLA, tempo é crítico | Rollback, sem debate — investigar com o sistema já estável |
+| Obvious root cause, a one-line fix, already tested | Forward fix — faster than orchestrating a rollback |
+| Uncertain root cause, or a non-trivial fix | Rollback — stop the bleeding first, investigate after |
+| A destructive migration already ran and dirtied data | A code rollback does not solve it alone — see the migration section |
+| An isolated feature behind a flag | Turn the flag off, which beats a full rollback |
+| A client or SLA is affected and time matters | Rollback, no debate. Investigate with the system already stable |
 
-Regra prática: se a dúvida "reverto ou conserto?" ainda existe depois de 5 minutos olhando o incidente, a resposta é reverter. Forward-fix sob pressão tem taxa de erro alta.
+Rule of thumb: if "revert or fix?" is still an open question five minutes into the
+incident, the answer is revert. Forward fixes under pressure have a high error
+rate.
 
-## Reverter o deploy de código
+## Reverting the code deploy
 
-| Estratégia | Como reverte | Velocidade | Observação |
+| Strategy | How it reverts | Speed | Note |
 |---|---|---|---|
-| Blue-green | Troca de roteamento pro ambiente antigo (que continua de pé) | Segundos | Exige manter os dois ambientes ativos — custo dobrado durante a janela |
-| Canary | Corta o tráfego pro canary, 100% volta pro estável | Segundos-minutos | Se o canary já se expandiu além de uma fração pequena, tratar como deploy completo |
-| Artefato/deployment anterior | Reaplica a versão N-1 (mesmo build, mesma tag) | Minutos | Nunca faz rebuild — reusa o artefato já testado, é isso que faz o rollback ser rápido |
-| Rolling update em execução | Pausa o rollout, reverte a versão-alvo, deixa o orquestrador convergir | Minutos | Rollback de um rolling update parado no meio some com estado misto até convergir |
+| Blue-green | Switch routing back to the old environment, which is still up | Seconds | Requires keeping both environments alive — double cost during the window |
+| Canary | Cut traffic to the canary; 100% returns to stable | Seconds to minutes | If the canary already expanded past a small fraction, treat it as a full deploy |
+| Previous artifact | Reapply version N-1, the same build and tag | Minutes | Never rebuilds — reusing the tested artifact is what makes rollback fast |
+| Rolling update in flight | Pause the rollout, set the target version back, let the orchestrator converge | Minutes | Rolling back a half-finished rollout leaves mixed state until it converges |
 
-Princípios que valem para qualquer ferramenta:
+Principles that hold for any tool:
 
-- Rollback de código reaplica um artefato já validado — nunca é "git revert + rebuild + redeploy" sob pressão. Se o rollback depende de build, o pipeline está errado.
-- Reverter para a versão anterior conhecida-boa, não para "uma versão mais antiga qualquer" — confirmar qual foi o último deploy saudável antes de reverter.
-- Rollback muda o código que roda, não o schema do banco — os dois são independentes por design (ver `safe-migrations`).
-- Depois do rollback, travar novos deploys até a causa raiz ser entendida (freeze), senão o bug é reintroduzido sem perceber.
+- A code rollback reapplies an already-validated artifact. It is never "git revert,
+  rebuild, redeploy" under pressure. If rollback depends on a build, the pipeline
+  is wrong.
+- Revert to the last known-good version, not to "some earlier one". Confirm which
+  deploy was healthy before reverting.
+- Rollback changes the running code, not the database schema. The two are
+  independent by design — see `safe-migrations`.
+- After rolling back, freeze further deploys until the root cause is understood, or
+  the bug gets reintroduced unnoticed.
 
-## Feature flag: o rollback mais rápido é não fazer rollback
+## Feature flags: the fastest rollback is not rolling back
 
-Se a mudança problemática está atrás de flag, desligar a flag é mais rápido e mais seguro que reverter o deploy inteiro:
+When the problematic change sits behind a flag, turning the flag off is faster and
+safer than reverting the whole deploy:
 
-- Não depende de pipeline de deploy, orquestrador ou propagação de infra — é uma escrita no provider de flags (GrowthBook, LaunchDarkly, Unleash, Flagsmith, ou uma tabela própria em Postgres/Supabase).
-- Efeito em segundos, sem redeploy, sem restart de instância.
-- Reverte só o comportamento novo — não perde outras mudanças que foram no mesmo deploy (fix de outro bug, dependência atualizada etc.).
-- Exige que a feature nova tenha sido lançada atrás de flag desde o início — não dá pra criar a flag depois que o incidente já começou.
+- It does not depend on the deploy pipeline, the orchestrator or infrastructure
+  propagation. It is one write to the flag provider — GrowthBook, LaunchDarkly,
+  Unleash, Flagsmith, or a table of your own in Postgres.
+- It takes effect in seconds, with no redeploy and no restart.
+- It reverts only the new behaviour, so other changes in the same deploy — another
+  bug fix, an updated dependency — survive.
+- It requires the feature to have shipped behind a flag from the start. You cannot
+  add the flag once the incident has begun.
 
-Quando a flag não é opção (mudança não estava flagueada, ou o bug é em código de infraestrutura compartilhado), cai no rollback de deploy normal.
+Where a flag is not an option — the change was not flagged, or the bug is in shared
+infrastructure code — fall back to a normal deploy rollback.
 
-## Migration: por que raramente é a estratégia de rollback
+## Migrations: rarely the rollback strategy
 
-Reverter uma migration de schema em produção, no meio de um incidente, quase sempre piora a situação:
+Reverting a schema migration in production, mid-incident, almost always makes
+things worse:
 
-- Se a migration seguiu expand-contract (ver `safe-migrations`), o schema nunca precisou ser revertido — o código velho e o novo convivem no mesmo schema durante toda a operação. Rollback de código sozinho já resolve.
-- `DROP COLUMN`/`DROP TABLE` não tem volta — dado apagado não retorna sem restore de backup (ver `backup-restore`). "Reverter a migration" nesse caso significa restore, não `migrate down`.
-- Rodar `down` de uma migration que já rodou `up` em produção, com dado real gravado depois, corrompe ou perde dado que não existia quando o `up` rodou.
-- Migration com lock ainda em andamento: cancelar/matar a query é mais seguro que tentar reverter no meio.
+- If the migration followed expand-contract (see `safe-migrations`), the schema
+  never needed reverting: old and new code coexist on the same schema throughout.
+  A code rollback alone resolves it.
+- `DROP COLUMN` and `DROP TABLE` have no undo. Deleted data does not return without
+  a restore (see `backup-restore`). "Reverting the migration" there means a
+  restore, not `migrate down`.
+- Running `down` on a migration whose `up` already ran in production, with real
+  data written afterwards, corrupts or loses data that did not exist when `up` ran.
+- With a migration's lock still held, cancelling the query is safer than trying to
+  revert halfway.
 
-Prática:
+In practice:
 
-- Primeiro, reverter o código para a versão que não depende da mudança de schema.
-- Só reverter a migration em si (schema) se ela realmente quebrou algo sozinha (ex: índice mal criado degradando performance) — e mesmo assim, com backup confirmado antes.
-- Se a migration destrutiva já rodou e não seguiu expand-contract, isso é a causa raiz a resolver depois do incidente (ver `incident-postmortem`): nenhuma migration destrutiva deveria ir para produção fora do padrão de fases.
+- First revert the code to the version that does not depend on the schema change.
+- Revert the schema itself only when the migration broke something on its own — a
+  badly built index degrading performance, say — and even then with a confirmed
+  backup first.
+- If a destructive migration already ran without expand-contract, that is the root
+  cause to address after the incident (see `incident-postmortem`). No destructive
+  migration should reach production outside the phased pattern.
 
-## Comunicação durante o incidente
+## Communication during the incident
 
-- Declarar o incidente (mesmo que só pra si mesmo/registro, em projeto solo; ou no canal do cliente, em projeto freela) antes de começar a mexer, não depois.
-- Anunciar a ação tomada ("revertendo deploy X para versão Y") antes de executar — evita ações conflitantes se houver mais de uma pessoa envolvida.
-- Confirmar quando o rollback terminou e o sistema voltou a operar normal.
-- Pós-incidente: postmortem sem culpa, causa raiz documentada (ver `incident-postmortem`), e se o rollback foi lento, isso vira item de ação (automatizar o passo manual, adicionar flag, etc.).
+- Declare the incident before touching anything — even if only for your own record
+  on a solo project, or in the client's channel on freelance work.
+- Announce the action ("reverting deploy X to version Y") before executing it,
+  which prevents conflicting actions when more than one person is involved.
+- Confirm when the rollback is done and the system is operating normally.
+- Afterwards: a blameless postmortem with the root cause documented (see
+  `incident-postmortem`). If the rollback was slow, that becomes an action item —
+  automate the manual step, add the flag.
 
 ## Checklist
 
-- [ ] Identificado o último deploy saudável antes de reverter (não "uma versão anterior qualquer")
-- [ ] Confirmado que a mudança problemática está atrás de flag antes de decidir por rollback completo
-- [ ] Rollback de código feito reaplicando artefato já testado, sem rebuild
-- [ ] Verificado se a migration em produção seguiu expand-contract — se sim, rollback de código já resolve, sem tocar no schema
-- [ ] Se migration destrutiva já rodou, confirmado backup antes de qualquer ação sobre o schema
-- [ ] Incidente declarado e ação comunicada antes de executar
-- [ ] Novos deploys travados (freeze) até causa raiz confirmada
-- [ ] Confirmação de que o sistema voltou ao normal
-- [ ] Postmortem agendado com causa raiz e ação de melhoria no processo de rollback
+- [ ] The last healthy deploy identified before reverting, not "some earlier version"
+- [ ] Checked whether the change sits behind a flag before choosing a full rollback
+- [ ] Code rollback done by reapplying a tested artifact, with no rebuild
+- [ ] Verified whether the production migration followed expand-contract; if so, a code rollback suffices and the schema stays untouched
+- [ ] Where a destructive migration already ran, a backup confirmed before any schema action
+- [ ] Incident declared and the action announced before execution
+- [ ] Further deploys frozen until the root cause is confirmed
+- [ ] Confirmation that the system is back to normal
+- [ ] A postmortem scheduled, with the root cause and an improvement to the rollback process
 
 ## Anti-patterns
 
-- ❌ Rollback que depende de build/compile sob pressão — se não é reaplicar artefato pronto, não é rollback rápido
-- ❌ Rodar `migrate down` em produção sem checar se dado novo foi gravado depois do `up`
-- ❌ Reverter deploy inteiro quando desligar uma feature flag resolveria em segundos
-- ❌ Migration destrutiva em produção sem seguir expand-contract, forçando rollback de schema no meio de um incidente
-- ❌ Executar rollback sem avisar ninguém envolvido, gerando ações conflitantes
-- ❌ Encerrar o incidente sem postmortem, repetindo a mesma causa raiz depois
-- ❌ Continuar fazendo deploys normais logo após o rollback, sem freeze, reintroduzindo o bug
+- ❌ A rollback that depends on building under pressure — if it is not reapplying a ready artifact, it is not a fast rollback
+- ❌ Running `migrate down` in production without checking whether new data was written after the `up`
+- ❌ Reverting a whole deploy when turning off a feature flag would take seconds
+- ❌ A destructive migration shipped without expand-contract, forcing a schema rollback mid-incident
+- ❌ Rolling back without telling anyone involved, producing conflicting actions
+- ❌ Closing the incident with no postmortem, and meeting the same root cause later
+- ❌ Resuming normal deploys right after the rollback, with no freeze, reintroducing the bug
 
-## Exemplos por stack
+## By stack
 
-**Vercel (Next.js)** — promover deployment anterior direto no dashboard/CLI, sem rebuild:
+**Vercel (Next.js)** — promote a previous deployment from the dashboard or CLI, no
+rebuild:
 ```bash
 vercel rollback <deployment-url-or-id>
 ```
 
-**Cloudflare Pages/Workers** — reverter pra um deployment anterior via dashboard, ou re-publicar a versão anterior via wrangler (ver skill `wrangler`):
+**Cloudflare Pages/Workers** — revert to an earlier deployment from the dashboard,
+or republish the previous version through wrangler (see the `wrangler` skill):
 ```bash
 wrangler rollback [deployment-id]
 ```
 
-**Kubernetes** — reverte o rollout para a revision anterior (reusa a imagem já testada):
+**Kubernetes** — roll the deployment back to its previous revision, reusing the
+tested image:
 ```bash
 kubectl rollout undo deployment/api
-kubectl rollout undo deployment/api --to-revision=42   # revision específica
+kubectl rollout undo deployment/api --to-revision=42   # a specific revision
 ```
 
-**Heroku / PaaS com releases** — reaplica um release anterior:
+**Heroku and PaaS with releases** — reapply an earlier release:
 ```bash
 heroku releases:rollback v122 -a api-prod
 ```
 
-**Feature flag (independente de plataforma)** — kill switch sem redeploy:
+**Feature flag (platform-independent)** — a kill switch with no redeploy:
 ```bash
 curl -X PATCH https://app.growthbook.io/api/v1/features/checkout-v2 \
   -H "Authorization: Bearer $GROWTHBOOK_API_KEY" \
   -d '{"environments":{"production":{"enabled":false}}}'
 ```
 
-**Supabase/Postgres — não reverter, checar expand-contract primeiro**: se a migration seguiu o padrão, o rollback é só reverter o deploy da aplicação; a coluna/tabela antiga continua no schema até o passo de `contract`, então não há schema para desfazer no meio do incidente.
+**Supabase/Postgres — do not revert; check expand-contract first.** If the
+migration followed the pattern, rollback means reverting the application deploy
+alone: the old column or table stays in the schema until the `contract` step, so
+there is no schema to undo mid-incident.

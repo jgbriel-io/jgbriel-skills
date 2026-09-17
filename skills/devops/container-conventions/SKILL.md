@@ -3,16 +3,20 @@ name: container-conventions
 description: Defines multi-stage Docker builds, minimal base images, non-root users, .dockerignore, layer cache ordering, and docker-compose for local dev dependencies — stack-agnostic, independent of the runtime inside the container. Use when user asks about Dockerfile, docker-compose, image size, non-root container, or build cache.
 ---
 
-# Convenções de Container
+# Container Conventions
 
-Conceito de imagem independe da linguagem de dentro (Node, Python, Java, Go, Ruby, .NET...). O que muda é só o comando de build/runtime. Objetivo sempre: imagem final pequena, sem ferramenta de build, rodando como usuário não-root.
+Image design is independent of the language inside it — Node, Python, Java, Go,
+Ruby, .NET. Only the build and runtime commands change. The goal is always the
+same: a small final image, with no build tooling, running as a non-root user.
 
-## Multi-stage: separar build de runtime
+## Multi-stage: separate build from runtime
 
-Um único estágio carrega compilador, dependências de dev e cache de build para dentro da imagem que vai pra produção — infla o tamanho e a superfície de ataque.
+A single stage carries the compiler, the dev dependencies and the build cache into
+the image that ships to production, inflating both its size and its attack
+surface.
 
 ```dockerfile
-# ❌ single-stage: SDK, devDependencies e cache de build viajam pra produção
+# ❌ single-stage: the SDK, devDependencies and build cache all travel to production
 FROM node:20
 WORKDIR /app
 COPY . .
@@ -21,7 +25,7 @@ CMD ["node", "dist/server.js"]
 ```
 
 ```dockerfile
-# ✅ multi-stage: estágio de build descartado, só o artefato final vai pra imagem runtime
+# ✅ multi-stage: the build stage is discarded; only the artifact reaches the runtime image
 FROM node:20 AS build
 WORKDIR /app
 COPY package*.json ./
@@ -36,29 +40,35 @@ COPY --from=build /app/node_modules ./node_modules
 CMD ["node", "dist/server.js"]
 ```
 
-O estágio `build` pode ter compilador, headers, devDependencies — nada disso é copiado pro estágio final, só o `COPY --from=build` explícito.
+The `build` stage may carry compilers, headers and devDependencies. None of it is
+copied into the final stage — only what `COPY --from=build` names explicitly.
 
-## Imagem base mínima
+## A minimal base image
 
-| Base | Tamanho | Shell/pacote gerenciador | Uso |
+| Base | Size | Shell and package manager | Use |
 |---|---|---|---|
-| `*-full` / `ubuntu` / `debian` | Centenas de MB | Sim, completo | Só se precisar de ferramenta de SO em runtime |
-| `*-slim` | Dezenas de MB | Sim, mínimo | Padrão pra maioria dos casos |
-| `*-alpine` | ~5-10MB | `sh`, `apk` | Quando não há dependência nativa incompatível com musl |
-| `distroless` / `scratch` | Poucos MB, sem shell | Nenhum | Runtime compilado (Go, binário estático), máxima redução de superfície |
+| `*-full`, `ubuntu`, `debian` | Hundreds of MB | Yes, complete | Only when OS tooling is needed at runtime |
+| `*-slim` | Tens of MB | Yes, minimal | The default for most cases |
+| `*-alpine` | ~5-10MB | `sh`, `apk` | When no native dependency is incompatible with musl |
+| `distroless` / `scratch` | A few MB, no shell | None | Compiled runtimes (Go, a static binary), for the smallest surface |
 
-- Cada pacote/lib a mais na imagem final é superfície de ataque e CVE em potencial — base mínima que atenda ao runtime, nada de "por garantia".
-- Alpine usa musl libc, não glibc — libs nativas compiladas pra glibc (algumas bindings Python/Node com C extension) podem quebrar; testar antes de trocar `slim` por `alpine`.
-- Distroless/scratch não tem shell nem package manager — bom pra binário estático (Go, Rust), inviável se a aplicação precisa de shell pra debug ou script de entrypoint.
+- Every extra package in the final image is attack surface and a potential CVE.
+  Take the smallest base the runtime needs, and nothing "just in case".
+- Alpine uses musl rather than glibc. Native libraries compiled for glibc — some
+  Python and Node C extensions — can break, so test before swapping `slim` for
+  `alpine`.
+- Distroless and scratch have no shell and no package manager. Excellent for a
+  static binary, unworkable when the application needs a shell for debugging or an
+  entrypoint script.
 
 ```dockerfile
-# ❌ imagem completa carregando ferramenta que nunca roda em produção
+# ❌ a full image carrying tooling that never runs in production
 FROM golang:1.22
 COPY . .
 RUN go build -o server .
 CMD ["./server"]
 
-# ✅ build compila, imagem final só tem o binário
+# ✅ build compiles; the final image holds only the binary
 FROM golang:1.22 AS build
 WORKDIR /app
 COPY . .
@@ -71,10 +81,12 @@ ENTRYPOINT ["/server"]
 
 ## Non-root user
 
-Container rodando como `root` por padrão: se a aplicação for comprometida, o processo dentro do container tem privilégio total dentro dele (e mais fácil de escapar pro host em runtime mal configurado).
+A container running as `root` by default means a compromised application has full
+privilege inside the container — and an easier path to the host on a poorly
+configured runtime.
 
 ```dockerfile
-# ❌ roda como root (padrão implícito se não declarar USER)
+# ❌ runs as root, which is the implicit default when USER is not declared
 FROM node:20-slim
 WORKDIR /app
 COPY . .
@@ -82,7 +94,7 @@ CMD ["node", "server.js"]
 ```
 
 ```dockerfile
-# ✅ cria usuário dedicado, sem privilégio de root
+# ✅ a dedicated user with no root privilege
 FROM node:20-slim
 RUN groupadd -r app && useradd -r -g app app
 WORKDIR /app
@@ -91,13 +103,18 @@ USER app
 CMD ["node", "server.js"]
 ```
 
-- Muitas imagens oficiais já trazem usuário não-root pronto (`node` na imagem `node`, `nonroot` na distroless) — só falta o `USER`.
-- `--chown` no `COPY`/`ADD` evita passo extra de `chown -R` depois (que duplica a camada e o tamanho).
-- Se a aplicação precisa bindar porta < 1024, redirecionar pra porta alta e mapear no compose/orquestrador, não rodar como root pra contornar.
+- Many official images already ship a non-root user (`node` in the node image,
+  `nonroot` in distroless). Often only the `USER` line is missing.
+- `--chown` on `COPY`/`ADD` avoids a later `chown -R`, which would duplicate the
+  layer and the size.
+- If the application must bind a port below 1024, redirect to a high port and map
+  it in compose or the orchestrator, rather than running as root to work around it.
 
 ## .dockerignore
 
-Sem `.dockerignore`, o `COPY . .` manda `node_modules`, `.git`, `.env`, artefato de build antigo e log local pro contexto de build — infla a imagem e pode vazar segredo local pra dentro da camada.
+Without a `.dockerignore`, `COPY . .` sends `node_modules`, `.git`, `.env`, old
+build artifacts and local logs into the build context — inflating the image and
+possibly baking a local secret into a layer.
 
 ```
 # .dockerignore
@@ -118,21 +135,24 @@ bin
 obj
 ```
 
-- `.env` local nunca deve entrar no contexto de build — se estiver ausente do `.dockerignore`, um `COPY . .` copia segredo de dev pra dentro da imagem (ver `secrets-management`).
-- Contexto de build menor também acelera o build (menos dado enviado ao daemon).
+- A local `.env` must never enter the build context. Missing from `.dockerignore`,
+  a `COPY . .` copies a dev secret into the image (see `secrets-management`).
+- A smaller context also speeds the build, since less data goes to the daemon.
 
-## Cache de layer — ordem importa
+## Layer cache — order matters
 
-Docker cacheia camada por camada; a primeira instrução que muda invalida ela e todas as seguintes. Copiar código-fonte antes de instalar dependências invalida o cache de instalação a cada mudança de linha de código.
+Docker caches layer by layer, and the first instruction that changes invalidates it
+and everything after. Copying source before installing dependencies invalidates the
+install cache on every line of code changed.
 
 ```dockerfile
-# ❌ qualquer mudança de código invalida a instalação de dependências (reinstala tudo)
+# ❌ any code change invalidates the dependency install, reinstalling everything
 FROM python:3.12-slim
 WORKDIR /app
 COPY . .
 RUN pip install -r requirements.txt
 
-# ✅ dependências só reinstalam quando o lockfile/manifest muda
+# ✅ dependencies reinstall only when the manifest changes
 FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
@@ -140,17 +160,26 @@ RUN pip install -r requirements.txt
 COPY . .
 ```
 
-- Regra geral: copiar primeiro o(s) arquivo(s) que descrevem dependências (`package.json`+lock, `requirements.txt`, `go.sum`, `Gemfile.lock`), instalar, só depois copiar o resto do código.
-- Instruções que mudam com mais frequência (código-fonte) sempre por último no Dockerfile.
-- Combinar `RUN apt-get update && apt-get install -y pacote && rm -rf /var/lib/apt/lists/*` numa única instrução — camadas separadas de `update`/`install`/`cleanup` deixam lixo de apt na imagem mesmo limpando depois, porque cada `RUN` vira uma camada imutável.
+- The general rule: copy the dependency manifests first (`package.json` plus its
+  lock, `requirements.txt`, `go.sum`, `Gemfile.lock`), install, and only then copy
+  the rest of the code.
+- Instructions that change most often — the source — go last.
+- Combine `RUN apt-get update && apt-get install -y package && rm -rf /var/lib/apt/lists/*`
+  into one instruction. Split across separate `RUN`s, the apt cache stays in an
+  earlier immutable layer even after being removed later.
 
-## Segredo em build time
+## Build-time secrets
 
-Não repetir aqui: usar `RUN --mount=type=secret` (BuildKit) pra segredo necessário só durante o build (token de registry privado, credencial de módulo privado) — nunca `ARG`/`ENV` com valor sensível, que persiste na camada mesmo se removido depois. Detalhe completo em `secrets-management`.
+Use `RUN --mount=type=secret` (BuildKit) for a secret needed only during the build
+— a private registry token, a private module credential. Never `ARG` or `ENV` with
+a sensitive value: it persists in the layer even when removed afterwards. The full
+detail is in `secrets-management`.
 
-## Compose para ambiente de dev local
+## Compose for local development
 
-Serviço de aplicação quase nunca roda sozinho — depende de banco, cache, fila. `docker-compose` sobe tudo junto, com rede e volume isolados por projeto.
+An application service rarely runs alone; it depends on a database, a cache, a
+queue. `docker-compose` brings them all up with a network and volumes isolated per
+project.
 
 ```yaml
 # docker-compose.yml
@@ -166,7 +195,7 @@ services:
         condition: service_started
     volumes:
       - .:/app
-      - /app/node_modules # evita node_modules do host sobrescrever o da imagem
+      - /app/node_modules # keeps the host's node_modules from shadowing the image's
 
   db:
     image: postgres:16
@@ -188,40 +217,47 @@ volumes:
   db_data:
 ```
 
-Para projetos Supabase, `supabase start` já sobe o equivalente local (Postgres + Auth + Storage + Studio) via Docker sem precisar montar esse compose manualmente — usar `docker-compose` direto só quando o projeto tem dependências além do stack Supabase (Redis, worker separado, etc).
+For Supabase projects, `supabase start` already brings up the local equivalent —
+Postgres, Auth, Storage and Studio — through Docker, with no compose file needed.
+Reach for `docker-compose` when the project has dependencies beyond the Supabase
+stack: Redis, a separate worker.
 
-- `depends_on` com `condition: service_healthy` espera o banco aceitar conexão, não só o container subir — sem isso, a aplicação tenta conectar antes do Postgres estar pronto e cai em retry/crash loop.
-- Volume nomeado (`db_data`) persiste dado entre `docker compose down`/`up`; `docker compose down -v` remove de propósito.
-- Bind mount do código-fonte (`.:/app`) é só pra dev (hot-reload); imagem de produção nunca monta o código de fora, ele já está copiado na imagem.
-- Um `.env` por ambiente de compose (dev local), nunca o mesmo `.env` usado em produção.
+- `depends_on` with `condition: service_healthy` waits for the database to accept
+  connections rather than merely for the container to start. Without it the
+  application connects too early and crash-loops on retries.
+- A named volume (`db_data`) survives `docker compose down` and `up`;
+  `docker compose down -v` removes it deliberately.
+- A source bind mount (`.:/app`) is for development hot-reload only. A production
+  image never mounts code from outside — it is already copied in.
+- One `.env` per compose environment, never the production one.
 
 ## Checklist
 
-- [ ] Build multi-stage: estágio final não tem compilador/SDK/devDependencies
-- [ ] Base mínima escolhida de forma consciente (slim/alpine/distroless), não a imagem "full" por padrão
-- [ ] `USER` não-root declarado no estágio final
-- [ ] `.dockerignore` cobre `.git`, `.env`, dependências instaladas, artefato de build antigo
-- [ ] Manifesto de dependências copiado e instalado antes do restante do código-fonte
-- [ ] Nenhum `ARG`/`ENV` carregando segredo — build secret via `--mount=type=secret`
-- [ ] Imagem final testada rodando como non-root (sem `sudo`/rebind de porta pra contornar)
-- [ ] `docker-compose.yml` de dev sobe todas as dependências (banco, cache, fila) com healthcheck
-- [ ] Volume nomeado para dado persistente; bind mount de código só em dev, nunca em produção
-- [ ] Tamanho final da imagem verificado (`docker images`) — sem salto inesperado após mudança
+- [ ] Multi-stage build: the final stage carries no compiler, SDK or devDependencies
+- [ ] The base image was chosen deliberately (slim, alpine, distroless), not defaulted to "full"
+- [ ] A non-root `USER` declared in the final stage
+- [ ] `.dockerignore` covers `.git`, `.env`, installed dependencies and old build output
+- [ ] Dependency manifests copied and installed before the rest of the source
+- [ ] No `ARG` or `ENV` carrying a secret; build secrets go through `--mount=type=secret`
+- [ ] The final image tested running as non-root, with no `sudo` or port rebinding to work around it
+- [ ] The development `docker-compose.yml` brings up every dependency with a healthcheck
+- [ ] Named volumes for persistent data; source bind mounts only in development
+- [ ] The final image size checked (`docker images`), with no unexplained jump after a change
 
 ## Anti-patterns
 
-- ❌ Single-stage build carregando compilador e devDependencies pra imagem de produção
-- ❌ Rodar container como root sem `USER` declarado
-- ❌ `.dockerignore` ausente ou incompleto, vazando `.env`/`.git` pro contexto de build
-- ❌ Copiar código-fonte antes do manifesto de dependências (invalida cache a cada commit)
-- ❌ Segredo de build em `ARG`/`ENV` em vez de `--mount=type=secret`
-- ❌ Trocar `slim` por `alpine` sem testar dependência nativa (quebra silenciosa em produção)
-- ❌ Bind mount de código-fonte em imagem de produção (mistura ambiente dev com runtime real)
-- ❌ `depends_on` sem healthcheck — aplicação sobe antes do banco aceitar conexão
-- ❌ Camada de `apt-get install` sem limpeza na mesma instrução, deixando cache de pacote na imagem
+- ❌ A single-stage build carrying the compiler and devDependencies into production
+- ❌ Running as root with no `USER` declared
+- ❌ A missing or incomplete `.dockerignore`, leaking `.env` or `.git` into the build context
+- ❌ Copying source before the dependency manifest, invalidating the cache on every commit
+- ❌ A build secret in `ARG`/`ENV` instead of `--mount=type=secret`
+- ❌ Swapping `slim` for `alpine` without testing native dependencies — the breakage is silent in production
+- ❌ A source bind mount in a production image, mixing the development environment into the real runtime
+- ❌ `depends_on` with no healthcheck, so the application starts before the database accepts connections
+- ❌ An `apt-get install` layer with no cleanup in the same instruction, leaving the package cache in the image
 
-## Exemplos por stack
+## By stack
 
-Dockerfile e compose prontos por stack — Node/Vite, Next.js, Python, Go — em
-[references/stacks.md](references/stacks.md). São ponto de partida, não gabarito:
-a versão base e as dependências nativas mudam por projeto.
+Ready Dockerfiles and compose files per stack — Node/Vite, Next.js, Python, Go —
+are in [references/stacks.md](references/stacks.md). They are a starting point
+rather than a template: base versions and native dependencies differ per project.

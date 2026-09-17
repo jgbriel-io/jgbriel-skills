@@ -1,67 +1,72 @@
 ---
 name: project-deploy
-description: Executa o deploy de um projeto seguindo o runbook documentado no vault — checklist passo a passo, confirmação antes de ação irreversível, verificação pós-deploy e registro da release. Use quando o usuário disser "publica o site", "sobe pra produção", "faz o deploy", ou nomear o deploy de um projeto dele. Se o runbook não existir, entrevista e cria. Tooling Cloudflare específico é wrangler/cloudflare.
+description: Deploys a project by following the runbook documented in the vault — a step-by-step checklist, confirmation before anything irreversible, post-deploy verification and a release record. Use when the user says "publica o site", "sobe pra produção", "faz o deploy", or names the deploy of one of their projects. Where no runbook exists, it interviews and writes one. Cloudflare-specific tooling is wrangler/cloudflare.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # Project Deploy
 
-Deploy guiado por runbook. A fonte de verdade de COMO cada projeto sobe é a
-página de deployment dele no vault — esta skill executa, verifica e registra.
+Deployment driven by a runbook. The source of truth for HOW each project ships is
+its deployment page in the vault; this skill executes it, verifies the result and
+records the release.
 
-## Processo
+## Process
 
-### 1. Localizar o runbook
+### 1. Find the runbook
 
-- Vault: `wiki/Projetos/<nome>/deployment/<Nome> - Deploy.md`
-- Fallback: `docs/deployment/` dentro do próprio projeto
+- Vault: `wiki/Projetos/<name>/deployment/<Name> - Deploy.md`
+- Fallback: `docs/deployment/` inside the project itself
 
-Se não existir: entrevistar (uma pergunta por vez) e criar a página antes de
-executar — onde hospeda, como builda, como sobe (git push / FTP / painel /
-wrangler), domínio/DNS, o que verificar depois. Deploy sem runbook escrito é
-como o erro entra.
+If neither exists, interview the user — one question at a time — and write the
+page before deploying: where it is hosted, how it builds, how it ships (git push,
+FTP, a control panel, wrangler), the domain and DNS, and what to check afterwards.
+A deploy with no written runbook is how the mistake gets in.
 
-### 2. Pré-deploy
+### 2. Pre-deploy
 
-- Working tree limpo? Mudança commitada? (nunca subir estado não versionado)
-- Build local passa? (`build` + type-check do projeto)
-- Algo no runbook marcado como "antes de subir" (env vars, migrations)?
+- Is the working tree clean, and the change committed? Never ship unversioned state
+- Does the local build pass, including the project's type-check?
+- Does the runbook mark anything as "before shipping" — environment variables,
+  migrations?
 
-### 3. Executar o checklist
+### 3. Work the checklist
 
-Seguir o runbook passo a passo, na ordem. Regras:
+Follow the runbook step by step, in order. Two rules:
 
-- **Ação irreversível ou voltada pro público** (apontar DNS, subir pra
-  produção, rodar migration em banco de produção) → confirmar com o usuário
-  antes, mesmo que o runbook autorize.
-- Passo falhou → parar, reportar o erro exato, não improvisar workaround por
-  conta própria.
+- **Anything irreversible or public-facing** — pointing DNS, shipping to
+  production, running a migration against the production database — is confirmed
+  with the user first, even where the runbook authorises it.
+- A failed step stops the process. Report the exact error, and do not improvise a
+  workaround.
 
-### 4. Verificação pós-deploy
+### 4. Post-deploy verification
 
-Mínimo, mesmo que o runbook não liste:
+The minimum, even when the runbook does not list it:
 
-- URL de produção responde e renderiza (não só HTTP 200)
-- Console do browser sem erro novo
-- Cache: mudança visível? (hard refresh / purge se o host cacheia)
-- Fluxo crítico do projeto funciona (login, form de contato — o runbook define)
+- The production URL responds and renders — not merely HTTP 200
+- No new errors in the browser console
+- Cache: is the change actually visible? Hard refresh, or purge where the host
+  caches
+- The project's critical flow works — login, the contact form, whatever the
+  runbook names
 
-### 5. Registrar a release
+### 5. Record the release
 
-Na página de deployment do vault, apender uma linha:
+Append a row on the vault's deployment page:
 
 ```
-| 2026-07-08 | <commit sha curto> | <o que mudou em 1 frase> |
+| 2026-07-08 | <short commit sha> | <what changed, in one sentence> |
 ```
 
-Criar a tabela `## Releases` se não existir. Atualizar `updated:` do frontmatter.
+Create the `## Releases` table if it is missing, and bump `updated:` in the
+frontmatter.
 
-## Qual projeto, e onde está o runbook
+## Which project, and where its runbook is
 
-Cada projeto tem o próprio runbook em `wiki/Projetos/<nome>/deployment/`, no
-vault. Resolva o nome pelo mapa em `~/.claude/projects-map.md` — arquivo de
-máquina, fora deste repo, o mesmo que `project-sync` lê. Projeto que não estiver
-lá: pergunte a hospedagem e o caminho, e ofereça acrescentar a linha.
+Each project has its own runbook under `wiki/Projetos/<name>/deployment/` in the
+vault. Resolve the name through the map in `~/.claude/projects-map.md` — a machine
+file outside this repo, the same one `project-sync` reads. For a project that is
+not there, ask for the host and the path, and offer to append the line.
 
-Nunca escreva o nome de um projeto de cliente aqui: este repositório é público, e
-uma tabela de clientes num arquivo versionado é exposição, não conveniência.
+Never write a client project's name here: this repository is public, and a table
+of clients in a versioned file is exposure, not convenience.
