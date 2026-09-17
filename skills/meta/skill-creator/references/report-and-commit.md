@@ -1,5 +1,11 @@
 # Report layout and commit style
 
+Shapes that keep a skill's output predictable. Each block below is what the
+skill's own body should contain, verbatim.
+
+## Defining output format
+
+```markdown
 Use this exact structure:
 
 # Title

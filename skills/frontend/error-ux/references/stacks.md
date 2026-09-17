@@ -65,3 +65,6 @@ export class OrderListComponent {
 {:else if $promise.data.length === 0}
   <EmptyState text="Nenhum pedido ainda" />
 {:else}
+  <ul>{#each $promise.data as o (o.id)}<li>{o.name}</li>{/each}</ul>
+{/if}
+```

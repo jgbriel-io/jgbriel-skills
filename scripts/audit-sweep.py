@@ -99,6 +99,9 @@ def audit(path):
         if n >= 8:
             out.append(("WARN", f"{n} rules shouted in caps — a rule with a reason generalizes, a shout does not"))
 
+    if len(re.findall(r"^```", text, re.M)) % 2:
+        out.append(("BLOCKER", "unbalanced code fence — a split cut through a block"))
+
     skill_dir = os.path.dirname(path)
     for link in re.findall(r"\[[^\]]+\]\(([^)]+\.md)\)", prose(text)):
         if link.startswith(("http", "#")):
@@ -129,6 +132,9 @@ def main():
     blocked = 0
     for path in paths:
         _, findings = audit(path)
+        for ref in sorted(glob.glob(os.path.join(os.path.dirname(path), "references", "*.md"))):
+            if len(re.findall(r"^```", open(ref, encoding="utf-8").read(), re.M)) % 2:
+                findings.append(("BLOCKER", f"unbalanced fence in references/{os.path.basename(ref)}"))
         if not findings:
             continue
         rel = os.path.relpath(path, ROOT)
