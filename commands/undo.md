@@ -1,48 +1,49 @@
 ---
-description: Desfaz último commit (soft reset) — mantém mudanças staged, só remove o commit. Mostra o que será desfeito antes.
+description: Undoes the last commit with a soft reset — keeps the changes staged, removes only the commit. Shows what is about to be undone first.
 allowed-tools: Bash(git log:*), Bash(git reset:*), Bash(git status:*)
 model: haiku
 ---
 
-Desfaz último commit via soft reset, mantendo as mudanças staged.
+Undo the last commit with a soft reset, keeping the changes staged.
 
-## Passos
+## Steps
 
-1. **Mostrar o que será desfeito:**
+1. **Show what will be undone:**
    ```
    git log -1 --stat
    ```
-   Exibir ao usuário. Se não há commits, parar e avisar.
+   Show it to the user. If there are no commits, stop and say so.
 
-2. **Conferir se o commit já foi pushed:**
+2. **Check whether the commit was already pushed:**
    ```
    git status --short --branch
    ```
-   Se houver `[ahead N]`, ok — só local, seguro desfazer.
-   Se houver `[behind ...]` ou já está em sync, **avisar**:
+   - `[ahead N]` → local only, safe to undo.
+   - No upstream at all (no `[ahead]`/`[behind]` marker and no tracking branch) → local only, safe to undo.
+   - Tracking branch in sync, or `[behind ...]` → **warn**:
    ```
-   ⚠️ Este commit já foi pushed ao remote (ou está em sync).
-   Desfazer localmente cria divergência. Você precisará force-push depois.
-   Continuar?
+   ⚠️ This commit is already on the remote (or the branch is in sync).
+   Undoing it locally creates a divergence. You will need a force-push afterwards.
+   Continue?
    ```
-   **Aguardar confirmação explícita** antes de prosseguir.
+   **Wait for explicit confirmation** before going on.
 
-3. **Se confirmado** ou commit é só local:
+3. **Once confirmed**, or when the commit is local only:
    ```
    git reset --soft HEAD~1
    ```
 
-4. **Mostrar resultado:**
+4. **Show the result:**
    ```
    git status
    ```
 
-5. **Lembrete final:**
-   - Mudanças do commit desfeito agora estão **staged**.
-   - Use `git restore --staged <file>` para tirar do staging.
-   - Use `git commit` para refazer com nova mensagem.
+5. **Closing reminder:**
+   - The undone commit's changes are now **staged**.
+   - `git restore --staged <file>` takes a file out of staging.
+   - `git commit` redoes it with a new message.
 
-## Limites
+## Limits
 
-- **Não** mexer com `--hard` — perde mudanças. Se usuário quer hard reset, pedir confirmação explícita extra e dizer "isto descarta todas as mudanças do commit, sem volta".
-- **Não** desfazer múltiplos commits sem pedido específico. Se quiser, pedir: "Quantos commits desfazer? (default 1)".
+- Do **not** reach for `--hard` — it loses changes. If the user wants a hard reset, ask for one extra explicit confirmation and say "this discards every change in the commit, with no way back".
+- Do **not** undo several commits without a specific request. If asked for more, ask: "How many commits to undo? (default 1)".

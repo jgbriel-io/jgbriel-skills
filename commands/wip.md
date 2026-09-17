@@ -1,38 +1,38 @@
 ---
-description: Commit rápido WIP pra salvar progresso. Sem ritual de mensagem, só descrição livre opcional.
-argument-hint: "[descrição curta opcional]"
+description: Quick WIP commit to save progress. No message ritual, just an optional free-form description.
+argument-hint: "[short optional description]"
 allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git add:*), Bash(git commit:*)
 model: haiku
 ---
 
-Commit WIP rápido para salvar progresso.
+Quick WIP commit to save progress.
 
-## Passos
+## Steps
 
-1. `git status --short` → mostrar o que será comitado.
-2. Se nada modificado, parar: "Nada para comitar."
-3. Se houver argumento, usar como descrição. Senão, gerar resumo curto do diff (1 frase, max 40 chars).
-4. Mensagem final: `WIP: <descrição>`.
-5. Stage tudo: `git add -A`.
-6. **Mostrar ao usuário antes de comitar:**
+1. `git status --short` → show what will be committed.
+2. If nothing is modified, stop: "Nothing to commit."
+3. If an argument was given, use it as the description. Otherwise generate a short summary of the diff (1 sentence, max 40 chars).
+4. Final message: `WIP: <description>`.
+5. Stage everything: `git add -A`.
+6. **Show the user before committing:**
    ```
    WIP commit:
-   Mensagem: WIP: <descrição>
-   Arquivos: <lista>
+   Message: WIP: <description>
+   Files: <list>
 
-   Confirma? (responda "sim" ou edite a mensagem)
+   Confirm? (answer "yes" or edit the message)
    ```
-7. Após confirmação, comitar.
+7. Commit after confirmation.
 
-## Avisos
+## Warnings
 
-- Não usar `--no-verify` mesmo em WIP. Se hook falha, dizer ao usuário, **não** pular.
-- WIP commits devem ser squashed antes de PR. Lembrar o usuário no fim:
+- Do not use `--no-verify`, not even for a WIP. If a hook fails, tell the user; do **not** skip it.
+- WIP commits are squashed before a PR. Remind the user at the end:
   ```
-  Commit feito. Lembre de fazer squash antes de abrir PR (use `git rebase -i`).
+  Committed. Remember to squash before opening the PR (`git rebase -i`).
   ```
 
-## Quando NÃO usar
+## When NOT to use
 
-- Mudança final pronta pra review → use `/commit` (mensagem Conventional).
-- Apenas um arquivo modificado e mudança pequena → use `git commit` direto.
+- The change is final and ready for review → use `/commit` (Conventional message).
+- A single file with a small change → plain `git commit`.
