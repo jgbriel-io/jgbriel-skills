@@ -428,8 +428,8 @@ That has two consequences nobody remembers until it bites:
 - **A child PR dies when its parent's branch is deleted.** Merging with
   `--delete-branch` closes any PR still targeting that branch, and GitHub refuses
   to reopen it (`GraphQL: Could not open the pull request`). **Retarget the child
-  to `main` before merging the parent** — or reopen it as a new PR from the same
-  branch, which is what happened to #40, reborn as #41.
+  to `main` before merging the parent**; once it is closed the only way back is a
+  new PR from the same branch.
 
 After the merge, `claude plugin update jgbriel-skills` pulls the new version and
 asks for a restart. The old version directories stay in
