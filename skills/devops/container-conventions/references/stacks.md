@@ -1,6 +1,6 @@
-# Exemplos por stack
+# By stack
 
-**Node/Vite ou Next.js** (multi-stage, `node_modules` só de produção):
+**Node/Vite or Next.js** (multi-stage, production-only `node_modules`):
 
 ```dockerfile
 FROM node:20-slim AS build

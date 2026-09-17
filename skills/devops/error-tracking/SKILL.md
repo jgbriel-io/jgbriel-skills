@@ -3,80 +3,91 @@ name: error-tracking
 description: Apply production error tracking patterns — unhandled exception capture, contextual metadata, release/version tagging, triage and grouping. Use when user asks about error monitoring, exception capture, Sentry/Datadog/Rollbar/New Relic setup, alert noise, or debugging production crashes.
 ---
 
-# Error Tracking em Produção
+# Production Error Tracking
 
-Rastreamento de erro é um padrão único, independente da ferramenta (Sentry, Datadog, Rollbar, New Relic, Bugsnag, GlitchTip...). Quatro pilares: captura, contexto, release tagging, triagem.
+Error tracking is one pattern, independent of the tool — Sentry, Datadog, Rollbar,
+New Relic, Bugsnag, GlitchTip. Four pillars: capture, context, release tagging,
+triage.
 
-## 1. Captura de exceção não tratada
+## 1. Capturing unhandled exceptions
 
-Todo processo tem 3 pontos de captura obrigatórios — sem os três, erros somem silenciosamente:
+Every process needs three capture points. Without all three, errors vanish
+silently:
 
-| Ponto | O que cobre | Exemplo de falha se ausente |
+| Point | What it covers | What goes missing without it |
 |---|---|---|
-| Global handler do processo | Exceções fora de qualquer try/catch | Processo Node/Python morre sem log; container reinicia sem rastro |
-| Middleware/boundary do framework | Erros dentro do request/response lifecycle | Erro 500 genérico sem stack trace no client |
-| Boundary de UI (frontend) | Erro de render que quebra a árvore de componentes | Tela branca sem nenhum evento registrado |
+| The process's global handler | Exceptions outside any try/catch | The process dies with no log; the container restarts leaving no trace |
+| The framework's middleware or boundary | Errors inside the request lifecycle | A generic 500 with no stack trace anywhere |
+| The UI boundary (frontend) | A render error that breaks the component tree | A blank screen and no recorded event |
 
-Checklist mínimo por processo:
+Minimum checklist per process:
 
-- [ ] Handler global de exceção não capturada registrado no bootstrap (antes de qualquer rota/listener)
-- [ ] Handler global de promise/rejeição não tratada (ex: `unhandledRejection`, `Task exception was never retrieved`)
-- [ ] Middleware de erro do framework HTTP captura e reporta antes de responder ao cliente
-- [ ] Erro de fila/worker/job assíncrono tem seu próprio ponto de captura — não herda o handler HTTP
-- [ ] Erro capturado e **suprimido de propósito** (ex: retry esperado) usa `captureMessage`/breadcrumb, nunca silêncio total
+- [ ] A global uncaught-exception handler registered at bootstrap, before any route or listener
+- [ ] A global handler for unhandled promise rejections (`unhandledRejection`, "Task exception was never retrieved")
+- [ ] The HTTP framework's error middleware captures and reports before responding
+- [ ] Queue, worker and job errors have their own capture point; they do not inherit the HTTP handler
+- [ ] An error caught and **suppressed on purpose** (an expected retry) still leaves a `captureMessage` or a breadcrumb, never total silence
 
 ```
-# Pseudocódigo — vale para qualquer runtime
+# Pseudocode — the same in any runtime
 on_process_start:
   register_global_exception_handler(report_to_tracker)
   register_unhandled_rejection_handler(report_to_tracker)
 
 on_http_request_error:
   report_to_tracker(error, context=request_context)
-  respond_generic_error_to_client()  # nunca stack trace cru pro cliente
+  respond_generic_error_to_client()  # never a raw stack trace to the client
 
 on_background_job_error:
   report_to_tracker(error, context=job_context)
   decide_retry_or_dead_letter()
 ```
 
-Regra dura: **nunca engolir um catch vazio**. Se o erro é esperado e tratado, ainda assim registra como evento de baixa severidade (breadcrumb/info) — silêncio total impede detectar quando o "esperado" vira frequente.
+The hard rule: **never swallow a catch**. If the error is expected and handled,
+record it as a low-severity event anyway. Total silence is what stops you noticing
+when "expected" becomes frequent.
 
-## 2. Contexto anexado
+## 2. Attached context
 
-Sem contexto, um stack trace é só ruído. Todo evento reportado precisa carregar:
+Without context, a stack trace is noise. Every reported event carries:
 
-- **Identificador de request/trace** — mesmo ID usado no log estruturado (correlação log ↔ erro)
-- **Tenant/owner** — id, nunca nome/domínio se for PII
-- **Usuário** — id interno, nunca email/nome/CPF/telefone
-- **Ambiente e release** — production/staging, versão do deploy
-- **Rota/operação** — endpoint, nome do job, nome do comando
-- **Breadcrumbs** — passos anteriores ao erro (queries, chamadas externas, mudanças de estado)
+- **A request or trace id** — the same one used in structured logs, so log and
+  error correlate
+- **Tenant or owner** — the id, never a name or domain if that is personal data
+- **User** — the internal id, never an email, name, CPF or phone number
+- **Environment and release** — production or staging, and the deployed version
+- **Route or operation** — the endpoint, the job's name, the command
+- **Breadcrumbs** — the steps before the error: queries, external calls, state
+  changes
 
 ```
-# Pseudocódigo de enriquecimento por request
+# Pseudocode: enrichment per request
 on_request_start:
   tracker.set_context({
-    request_id: req.id,          # mesmo id do log estruturado
+    request_id: req.id,          # the same id the structured log uses
     tenant_id: req.tenant.id,
-    user_id: req.user.id,        # nunca req.user.email
+    user_id: req.user.id,        # never req.user.email
     route: req.route,
   })
 ```
 
-Regra de PII: se o dado não pode aparecer em log estruturado, não pode aparecer em contexto de erro. Mesma política, mesmo `scrubber`/`beforeSend` de filtro. Ferramentas de tracking geralmente oferecem hook de sanitização antes do envio (`beforeSend`, `before_send`, `ScrubData`) — usar sempre, nunca confiar em "não vou logar isso" manual espalhado no código.
+The PII rule: what cannot appear in a structured log cannot appear in error
+context. Same policy, same scrubber. Tracking tools offer a sanitisation hook
+before sending (`beforeSend`, `before_send`, `ScrubData`) — use it, rather than
+trusting scattered manual care.
 
-## 3. Release / version tagging
+## 3. Release and version tagging
 
-Todo evento precisa apontar exatamente para qual build/commit ele veio — senão triagem vira arqueologia.
+Every event must point at exactly which build it came from, or triage becomes
+archaeology.
 
-- [ ] `release` = commit SHA curto ou `versao-semver+build` (não "latest", não vazio)
-- [ ] Deploy pipeline injeta o release no tracker (env var no build/deploy step, não hardcoded)
-- [ ] Source maps / debug symbols enviados no mesmo passo do deploy, associados ao mesmo release — sem isso, stack trace de frontend minificado é ilegível
-- [ ] Cada deploy marca o "início" do release no tracker (permite comparar taxa de erro antes/depois)
+- [ ] `release` is a short commit SHA, or `semver+build`. Never "latest", never empty
+- [ ] The deploy pipeline injects the release into the tracker, through a build or deploy environment variable rather than hardcoding it
+- [ ] Source maps and debug symbols are uploaded in the same deploy step, tied to the same release; without them a minified frontend stack trace is unreadable
+- [ ] Each deploy marks the release's start in the tracker, so error rates before and after can be compared
 
 ```
-# Passo de CI/CD — vale pra qualquer stack
+# A CI/CD step — the same shape in any stack
 export RELEASE_ID=$(git rev-parse --short HEAD)
 tracker-cli releases new "$RELEASE_ID"
 tracker-cli releases set-commits "$RELEASE_ID" --auto
@@ -87,44 +98,53 @@ deploy(RELEASE_ID)
 tracker-cli releases deploys new "$RELEASE_ID" --env production
 ```
 
-Sem release tagging, a pergunta "esse erro começou no deploy de hoje ou já existia?" não tem resposta.
+Without release tagging, "did this error start with today's deploy, or was it
+already there?" has no answer.
 
-## 4. Triagem — severidade, agrupamento, ruído vs. sinal
+## 4. Triage — severity, grouping, signal vs noise
 
-**Severidade** — nível de alerta proporcional a impacto real, não ao tipo de exceção:
+**Severity** is proportional to real impact, not to the kind of exception:
 
-| Nível | Critério | Ação |
+| Level | Criterion | Action |
 |---|---|---|
-| Crítico | Fluxo de pagamento/auth quebrado, taxa de erro em pico | Alerta imediato |
-| Erro | Exceção não tratada afetando usuário, sem crash total | Alerta em canal, revisão no dia |
-| Warning | Erro tratado/recuperável, mas indica degradação (retry, timeout, fallback acionado) | Revisão em batch, sem alerta síncrono |
-| Info | Evento esperado registrado para auditoria | Sem alerta, só visibilidade |
+| Critical | Payment or auth flow broken, error rate spiking | Immediate alert |
+| Error | An unhandled exception affecting users, short of a total crash | Alert to a channel, reviewed the same day |
+| Warning | A handled, recoverable error that still signals degradation — retries, timeouts, a fallback firing | Reviewed in batch, no synchronous alert |
+| Info | An expected event recorded for audit | No alert, visibility only |
 
-**Agrupamento** — eventos devem agrupar por assinatura estável (tipo + local do erro + stack normalizado), não por mensagem literal:
+**Grouping** happens by a stable signature — the error type, its location and a
+normalised stack — not by the literal message:
 
-- ❌ Agrupar por mensagem crua (`"Cannot read property 'id' of undefined at line 42"`) — cada valor de dado gera um grupo novo
-- ✅ Fingerprint customizado quando a ferramenta agrupa errado: normalizar IDs/valores dinâmicos da mensagem antes de gerar o grupo
+- ❌ Grouping by the raw message (`"Cannot read property 'id' of undefined at line 42"`): every data value spawns a new group
+- ✅ A custom fingerprint when the tool groups badly: normalise dynamic ids and values out of the message before grouping
 
-**Ruído vs. sinal** — antes de qualquer alerta síncrono, perguntar:
+**Signal vs noise** — before any synchronous alert, ask:
 
-- Esse erro é acionável agora, ou é ruído de terceiro (timeout de serviço externo já com retry)?
-- Esse erro se repete em volume alto e constante (sinal de bug estrutural) ou é pico isolado (deploy ruim, incidente externo)?
-- Existe uma regra de silenciamento/agrupamento para erros conhecidos e já triados (ex: erro de biblioteca externa sem fix disponível), para não reabrir triagem manual toda vez?
+- Is this actionable now, or is it third-party noise already covered by a retry?
+- Does it repeat at high, constant volume (a structural bug) or is it an isolated
+  spike (a bad deploy, an external incident)?
+- Is there a silencing or grouping rule for known, already-triaged errors — an
+  external library bug with no fix — so triage does not reopen every time?
 
-Checklist de triagem periódica:
+Periodic triage checklist:
 
-- [ ] Zero exceções não categorizadas (sem severidade/assignee) acumulando
-- [ ] Alertas síncronos só disparam para severidade crítico/erro — warning/info nunca acordam ninguém
-- [ ] Erros conhecidos e sem fix imediato têm ticket vinculado e status "aceito", não ficam reabrindo alerta
-- [ ] Taxa de erro por release comparada com o release anterior (regressão vs. ruído de fundo)
+- [ ] No uncategorised exceptions piling up without a severity or an owner
+- [ ] Synchronous alerts fire only for critical and error; warning and info never wake anyone
+- [ ] Known errors with no immediate fix carry a linked ticket and an "accepted" status rather than reopening alerts
+- [ ] Error rate per release compared against the previous one, separating a regression from background noise
 
-## Correlação com logging
+## Correlation with logging
 
-O `request_id`/`trace_id` é o mesmo dos logs — o formato e a propagação dele são `structured-logging`, e o que nunca pode ser logado vale igual aqui. Error tracker e logs estruturados devem compartilhar o mesmo `request_id`/`trace_id`. Um evento de erro sem log associado (ou vice-versa) quebra a investigação — ao configurar o tracker, garantir que o campo de correlação é o mesmo emitido no logger da aplicação (ver skill `structured-logging`).
+The `request_id`/`trace_id` is the one the logs use; its format and propagation are
+`structured-logging`, and what must never be logged applies here unchanged. The
+error tracker and the structured logs share that id. An error event with no
+matching log — or the reverse — breaks the investigation, so when configuring the
+tracker, make sure the correlation field is exactly what the application's logger
+emits.
 
-## Exemplos por stack
+## By stack
 
-**Vite/React ou Next.js (Sentry)**
+**Vite/React or Next.js (Sentry)**
 ```ts
 // instrumentation.ts
 Sentry.init({
@@ -132,13 +152,13 @@ Sentry.init({
   environment: import.meta.env.MODE,
   release: import.meta.env.VITE_RELEASE_ID,
   beforeSend(event) {
-    delete event.user?.email; // scrub PII, mantém user.id
+    delete event.user?.email; // scrub PII, keep user.id
     return event;
   },
 });
 ```
 
-**NestJS (Sentry + filtro global)**
+**NestJS (Sentry plus a global filter)**
 ```ts
 @Catch()
 export class SentryExceptionFilter implements ExceptionFilter {
@@ -146,7 +166,7 @@ export class SentryExceptionFilter implements ExceptionFilter {
     Sentry.captureException(exception, {
       tags: { request_id: host.switchToHttp().getRequest().id },
     });
-    // ... resposta genérica ao cliente
+    // ... generic response to the client
   }
 }
 ```
@@ -166,12 +186,12 @@ except Exception:
 
 ## Anti-patterns
 
-- ❌ Catch vazio ou `console.log` sem reportar ao tracker
-- ❌ Contexto com PII crua (email, nome, CPF) em vez de IDs
-- ❌ Release tag ausente, vazia ou fixa em "latest"
-- ❌ Deploy sem upload de source maps/debug symbols associado ao release
-- ❌ Agrupamento por mensagem literal em vez de fingerprint normalizado
-- ❌ Alerta síncrono disparando para severidade warning/info
-- ❌ Erro de job/worker assíncrono sem ponto de captura próprio
-- ❌ `request_id` do tracker divergente do `request_id` usado no log estruturado
-- ❌ Erros conhecidos sem triagem reabrindo alerta repetidamente sem ticket vinculado
+- ❌ An empty catch, or a `console.log` with nothing reported to the tracker
+- ❌ Context carrying raw PII (email, name, CPF) instead of ids
+- ❌ A release tag that is missing, empty or pinned to "latest"
+- ❌ A deploy with no source maps or debug symbols tied to the release
+- ❌ Grouping by literal message instead of a normalised fingerprint
+- ❌ Synchronous alerts firing on warning or info severity
+- ❌ Job and worker errors with no capture point of their own
+- ❌ The tracker's `request_id` differing from the one in the structured logs
+- ❌ Known, untriaged errors reopening alerts repeatedly with no linked ticket

@@ -5,35 +5,39 @@ description: Apply structured (JSON) logging practices — log levels, request/t
 
 # Structured Logging
 
-Log é dado, não texto solto. Cada linha de log é um evento JSON com campos fixos, pesquisável e correlacionável — nunca uma frase interpolada.
+A log line is data, not loose text. Each one is a JSON event with fixed fields,
+searchable and correlatable — never an interpolated sentence.
 
 ```
-// ❌ log de texto livre
-log("Usuário 123 fez login às 14:32 no tenant acme")
+// ❌ free-text logging
+log("User 123 logged in at 14:32 on tenant acme")
 
-// ✅ log estruturado
+// ✅ structured
 log.info("user_login", { user_id: "123", tenant_id: "acme", ts: "2026-07-14T14:32:00Z" })
 ```
 
-## Por que estruturado
+## Why structured
 
-- Texto livre exige regex/grep para extrair dado; JSON permite query direta no agregador (Loki, Datadog, CloudWatch Insights, ELK)
-- Campo com nome fixo (`user_id`, não "usuário" ou "uid" alternando) permite dashboard e alerta confiável
-- Sem estrutura, cada dev inventa um formato — correlação entre serviços fica impossível
+- Free text needs regex and grep to extract anything; JSON can be queried directly
+  in the aggregator (Loki, Datadog, CloudWatch Insights, ELK).
+- A field with a fixed name (`user_id`, not "user" and "uid" alternating) is what
+  makes a dashboard or an alert trustworthy.
+- Without structure every developer invents a format, and correlation across
+  services becomes impossible.
 
-## Anatomia do log
+## Anatomy of an event
 
-Todo evento carrega, no mínimo:
+Every event carries at least:
 
-| Campo | Obrigatório | Exemplo |
+| Field | Required | Example |
 |---|---|---|
-| `timestamp` | sim | `2026-07-14T14:32:00.123Z` (ISO 8601, UTC) |
-| `level` | sim | `info`, `warn`, `error` |
-| `message` | sim | chave de evento, curta e estável: `"order_created"` |
-| `request_id` | sim (se houver request) | id de correlação da requisição |
-| `tenant_id`/`owner_id` | sim (se multi-tenant) | isolamento e filtro por cliente |
-| `service` | sim | nome do serviço/processo emissor |
-| campos de contexto | conforme o evento | `order_id`, `duration_ms`, `status_code` |
+| `timestamp` | Yes | `2026-07-14T14:32:00.123Z` (ISO 8601, UTC) |
+| `level` | Yes | `info`, `warn`, `error` |
+| `message` | Yes | A short, stable event key: `"order_created"` |
+| `request_id` | Yes, where there is a request | The request's correlation id |
+| `tenant_id`/`owner_id` | Yes, in multi-tenant systems | Isolation and per-client filtering |
+| `service` | Yes | The emitting service or process |
+| Context fields | As the event needs | `order_id`, `duration_ms`, `status_code` |
 
 ```json
 {
@@ -49,71 +53,90 @@ Todo evento carrega, no mínimo:
 }
 ```
 
-## Níveis de log
+## Levels
 
-- `debug` — detalhe de desenvolvimento, desligado em produção por padrão
-- `info` — eventos de negócio relevantes (criação, mudança de estado, integração externa chamada)
-- `warn` — algo inesperado mas recuperável (retry, fallback usado, config ausente com default)
-- `error` — falha que impede o fluxo; sempre inclui stack trace e contexto suficiente pra reproduzir
-- Nunca usar `error` para validação de input do usuário (isso é `info`/`warn` — não é falha do sistema)
-- Nunca logar em `info` o que deveria ser `debug` — isso é o principal causador de ruído e custo de agregador
+- `debug` — development detail, off in production by default
+- `info` — meaningful business events: a creation, a state change, an external call
+- `warn` — something unexpected but recoverable: a retry, a fallback, missing config
+  that fell back to a default
+- `error` — a failure that stops the flow, always with a stack trace and enough
+  context to reproduce it
+- Never `error` for user input validation. That is `info` or `warn`; the system did
+  not fail.
+- Never log at `info` what belongs at `debug` — that is the main source of noise
+  and of aggregator cost.
 
-## Correlação: request-id e tenant-id
+## Correlation: request id and tenant id
 
-Todo request que entra no sistema recebe (ou propaga, se já vier de upstream) um `request_id`. Esse id:
+Every request entering the system receives, or propagates from upstream, a
+`request_id`. That id:
 
-1. É gerado/lido na borda (middleware/interceptor), uma vez por requisição
-2. É propagado no contexto de execução (não em variável global nem parâmetro manual em cada função)
-3. Viaja para serviços downstream via header (`X-Request-Id` ou `traceparent`)
-4. Aparece em **todo** log emitido durante aquela requisição, sem exceção
+1. Is generated or read at the boundary — middleware or an interceptor — once per
+   request
+2. Travels in the execution context, not in a global and not as a manual parameter
+   on every function
+3. Reaches downstream services through a header (`X-Request-Id` or `traceparent`)
+4. Appears in **every** log emitted during that request, without exception
 
 ```
-// ❌ id de correlação como parâmetro manual em cada log
+// ❌ the correlation id passed by hand to every log
 function processOrder(orderId, requestId) {
   log.info("processing", { requestId, orderId })
-  validate(orderId, requestId)   // precisa repassar em toda chamada
+  validate(orderId, requestId)   // and forwarded on every call
 }
 
-// ✅ id de correlação vive no contexto da requisição (thread-local, contextvar,
-// AsyncLocalStorage, request-scoped DI) e o logger o injeta automaticamente
+// ✅ the correlation id lives in the request context — thread-local, contextvar,
+// AsyncLocalStorage, request-scoped DI — and the logger injects it
 function processOrder(orderId) {
-  log.info("processing", { orderId })   // request_id já está no contexto
+  log.info("processing", { orderId })   // request_id is already in context
 }
 ```
 
-`tenant_id`/`owner_id` segue a mesma lógica em sistemas multi-tenant: extraído uma vez (auth/middleware) e propagado no mesmo contexto do `request_id`. Sem isso, debugar um incidente de um cliente específico exige grep manual em milhões de linhas.
+`tenant_id`/`owner_id` follows the same rule in multi-tenant systems: extracted
+once at auth or middleware, propagated in the same context as the `request_id`.
+Without it, debugging one client's incident means grepping by hand through
+millions of lines.
 
-Sem correlação, um erro em produção vira arqueologia: não dá pra saber que log de "serviço B" pertence à mesma requisição que gerou o erro em "serviço A".
+Without correlation, a production error becomes archaeology: there is no way to
+know which of service B's logs belong to the request that failed in service A.
 
-## O que NUNCA logar
+## What must NEVER be logged
 
-Isso é o cruzamento direto com segurança — vazamento de PII em log é incidente de segurança, não bug de observabilidade.
+This is where logging meets security directly: PII in a log is a security
+incident, not an observability bug.
 
-- ❌ Senha, token, API key, secret, cookie de sessão — mesmo mascarado parcialmente, não logar
-- ❌ CPF/CNPJ, número de cartão, dados bancários completos
-- ❌ Email, telefone, endereço completo do usuário final (usar `user_id`/hash como referência)
-- ❌ Corpo completo de request/response sem sanitização (payloads de cadastro, pagamento, etc. costumam carregar PII)
-- ❌ Headers de autorização (`Authorization`, `Cookie`, `X-Api-Key`) — nem em log de erro de integração
-- ✅ Se precisar correlacionar um usuário, logar `user_id` (identificador interno), nunca o dado pessoal em si
-- ✅ Se precisar depurar um payload, logar apenas as chaves presentes ou uma versão redigida (`{ email: "[REDACTED]" }`)
+- ❌ Passwords, tokens, API keys, secrets, session cookies — not even partially
+  masked
+- ❌ CPF/CNPJ, card numbers, full bank details
+- ❌ An end user's email, phone or full address — use a `user_id` or a hash instead
+- ❌ A full request or response body with no sanitisation; signup and payment
+  payloads carry PII
+- ❌ Authorization headers (`Authorization`, `Cookie`, `X-Api-Key`), not even in an
+  integration error log
+- ✅ To correlate a user, log `user_id` — the internal identifier, never the personal
+  data itself
+- ✅ To debug a payload, log the keys present, or a redacted version
+  (`{ email: "[REDACTED]" }`)
 
 ```
 // ❌
-log.error("login_failed", { email: "joao@cliente.com", password: "abc123" })
+log.error("login_failed", { email: "joao@client.com", password: "abc123" })
 
 // ✅
 log.error("login_failed", { user_id: "usr_442", reason: "invalid_credentials" })
 ```
 
-Configurar redaction automática no logger (lista de chaves sensíveis mascaradas antes de serializar) é mais seguro do que confiar em disciplina manual de cada `log.info` — todo stack tem esse mecanismo (ver exemplos abaixo).
+Configuring automatic redaction in the logger — a list of sensitive keys masked
+before serialisation — is safer than relying on every `log.info` being written
+carefully. Every stack has the mechanism; see the examples below.
 
-## Erros
+## Errors
 
-Sempre logar erro com stack trace e causa raiz, nunca só a mensagem:
+Always log an error with its stack trace and root cause, never the message alone:
 
 ```
 // ❌
-log.error("deu erro")
+log.error("something went wrong")
 
 // ✅
 log.error("order_processing_failed", {
@@ -124,25 +147,30 @@ log.error("order_processing_failed", {
 })
 ```
 
-Erro esperado (4xx de validação, negócio) e erro inesperado (5xx, exceção não tratada) merecem níveis diferentes — não tratar os dois como `error` genérico, senão alerta de erro vira ruído constante.
+An expected error (a 4xx, a business rule) and an unexpected one (a 5xx, an
+unhandled exception) deserve different levels. Treating both as a generic `error`
+turns the error alert into constant noise.
 
-## Performance e volume
+## Volume and performance
 
-- Logar em produção tem custo (I/O, ingestão, armazenamento) — não logar em loop apertado ou por item de coleção grande
-- Amostragem (sampling) para eventos de altíssimo volume e baixo valor individual (ex: 1 a cada 100 requisições de health-check)
-- Log síncrono bloqueante na hot path é anti-pattern — usar transporte assíncrono/buffered
+- Logging in production costs I/O, ingestion and storage. Do not log inside a tight
+  loop, or once per item of a large collection.
+- Sample very high-volume, low-individual-value events — one in a hundred
+  health-check requests.
+- Synchronous blocking logging on the hot path is an anti-pattern; use an
+  asynchronous or buffered transport.
 
-## Checklist de revisão
+## Review checklist
 
-- [ ] Log é JSON estruturado, não string interpolada
-- [ ] `request_id` presente em todo log de uma mesma requisição
-- [ ] `tenant_id`/`owner_id` presente quando o sistema é multi-tenant
-- [ ] Nenhum campo de PII/secret/token em nenhum log, nem em erro
-- [ ] Nível (`debug`/`info`/`warn`/`error`) condiz com a severidade real
-- [ ] Erro sempre com stack trace e contexto (não só mensagem)
-- [ ] Redaction automática configurada no logger, não dependente de disciplina manual
+- [ ] Logs are structured JSON, not interpolated strings
+- [ ] `request_id` present on every log within one request
+- [ ] `tenant_id`/`owner_id` present in multi-tenant systems
+- [ ] No PII, secret or token in any log, including error logs
+- [ ] The level (`debug`/`info`/`warn`/`error`) matches real severity
+- [ ] Errors always carry a stack trace and context, not just a message
+- [ ] Automatic redaction configured in the logger, rather than relying on discipline
 
-## Exemplos por stack
+## By stack
 
 **Node.js (pino):**
 ```js
@@ -165,15 +193,17 @@ Log.ForContext("RequestId", requestId)
    .Information("Order created {OrderId}", orderId);
 ```
 
-O padrão (JSON, correlação, redaction, níveis) é idêntico entre stacks — muda apenas a biblioteca (pino, structlog, Serilog, Logback/SLF4J com MDC, zerolog em Go).
+The pattern — JSON, correlation, redaction, levels — is identical across stacks.
+Only the library changes: pino, structlog, Serilog, Logback/SLF4J with MDC,
+zerolog in Go.
 
 ## Anti-patterns
 
-- ❌ Log de texto livre interpolado (`console.log("user " + id + " logged in")`)
-- ❌ Ausência de `request_id`/`tenant_id` correlacionando eventos entre serviços
-- ❌ PII, senha, token ou header de auth em qualquer log, incluso em erro
-- ❌ Usar `error` para validação de input do usuário
-- ❌ `console.log`/`print` direto em produção em vez do logger configurado da aplicação
-- ❌ Propagar id de correlação manualmente por parâmetro em vez de contexto/async-local
-- ❌ Logar payload completo de request/response sem sanitização
-- ❌ Nível `debug` habilitado em produção por padrão
+- ❌ Interpolated free-text logs (`console.log("user " + id + " logged in")`)
+- ❌ No `request_id` or `tenant_id` correlating events across services
+- ❌ PII, a password, a token or an auth header in any log, errors included
+- ❌ Using `error` for user input validation
+- ❌ `console.log`/`print` in production instead of the configured logger
+- ❌ Propagating the correlation id by parameter instead of through context
+- ❌ Logging a full request or response body with no sanitisation
+- ❌ `debug` enabled in production by default

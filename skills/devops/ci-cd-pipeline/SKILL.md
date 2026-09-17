@@ -3,73 +3,97 @@ name: ci-cd-pipeline
 description: Defines standard CI/CD pipeline stages (lint, type-check, test, build), dependency caching, running migrations in CI, and merge-blocking quality gates — stack-agnostic, with GitHub Actions as the default example. Use when user asks about pipeline stages, GitHub Actions workflows, .gitlab-ci.yml, Jenkinsfiles, CI caching, or quality gates for merge.
 ---
 
-# CI/CD Pipeline — Estágios e Boas Práticas
+# CI/CD Pipeline
 
-Conceito de pipeline independe da ferramenta (GitHub Actions, GitLab CI, Jenkins, CircleCI...). O que muda é só a sintaxe do arquivo de configuração.
+The pipeline is a concept independent of the tool — GitHub Actions, GitLab CI,
+Jenkins, CircleCI. Only the configuration syntax changes.
 
-## Estágios padrão (ordem importa)
+## Standard stages, in order
 
 ```
 lint → type-check → test → build → deploy
 ```
 
-| Estágio | O que verifica | Custo | Se falhar |
+| Stage | What it verifies | Cost | On failure |
 |---|---|---|---|
-| lint | Estilo, código morto, regras estáticas | Segundos | Bloqueia merge |
-| type-check | Tipos (TS, mypy, Go build, javac) | Segundos-baixo | Bloqueia merge |
-| test | Unit + integração | Médio | Bloqueia merge |
-| build | Compila/empacota artefato de produção | Médio-alto | Bloqueia merge |
-| deploy | Publica o artefato | Alto (efeito real) | Requer gate manual em prod |
+| lint | Style, dead code, static rules | Seconds | Blocks the merge |
+| type-check | Types (TS, mypy, Go build, javac) | Seconds | Blocks the merge |
+| test | Unit plus integration | Medium | Blocks the merge |
+| build | Compiles or packages the production artifact | Medium to high | Blocks the merge |
+| deploy | Publishes the artifact | High, with real effects | Manual gate in production |
 
-**Fail-fast**: ordenar do mais barato/rápido pro mais caro. Não faz sentido rodar a suíte de testes (minutos) antes do lint (segundos) — se o lint falha, o resto nem deveria começar. Cada estágio só roda se o anterior passou.
+**Fail fast**: order from cheapest to most expensive. Running a test suite for
+minutes before a lint that takes seconds makes no sense — if lint fails, the rest
+should never start. Each stage runs only when the previous one passed.
 
-Estágios independentes entre si (ex: lint de backend e lint de frontend num monorepo) rodam em paralelo, não em série.
+Stages independent of each other — backend lint and frontend lint in a monorepo —
+run in parallel rather than in series.
 
-## Cache de dependências
+## Dependency caching
 
-Sem cache, toda execução reinstala tudo do zero — minutos desperdiçados por run.
+Without a cache, every run reinstalls everything from scratch, wasting minutes per
+run.
 
-- Chave de cache = hash do lockfile (`package-lock.json`, `pnpm-lock.yaml`, `poetry.lock`, `go.sum`, `Gemfile.lock`) + versão da linguagem/runtime.
-- Cache muda só quando as dependências mudam — não a cada commit.
-- Restaura no início do job, salva no final (só se a instalação teve sucesso).
-- Cachear a pasta de dependências resolvidas (`node_modules`, `.venv`, `vendor`, `~/.m2`), nunca o artefato de build final — isso é output do estágio `build`, não input.
-- Cache por branch/chave errada trava versões antigas silenciosamente — sempre incluir o lockfile hash na chave, nunca uma chave fixa tipo `cache-v1`.
+- The cache key is a hash of the lockfile (`package-lock.json`, `pnpm-lock.yaml`,
+  `poetry.lock`, `go.sum`, `Gemfile.lock`) plus the runtime version.
+- It changes only when the dependencies change, not on every commit.
+- Restore at the start of the job, save at the end — and only when the install
+  succeeded.
+- Cache the resolved dependency folder (`node_modules`, `.venv`, `vendor`, `~/.m2`),
+  never the final build artifact: that is the `build` stage's output, not an input.
+- A wrong or fixed key silently pins old versions. Always include the lockfile hash;
+  never a constant like `cache-v1`.
 
-## Migrations no banco em CI
+## Migrations in CI
 
-- **No estágio `test`**: aplicar migrations num banco efêmero (container descartável, ou `supabase start` local, criado e destruído no próprio job) — nunca contra um banco compartilhado ou de outro ambiente.
-- **No estágio `deploy`**: migration roda como job separado, antes de subir a nova versão da aplicação, contra o banco real do ambiente-alvo.
-- Migrations precisam ser idempotentes e reversíveis (ter down/rollback) — CI não corrige migration quebrada, só expõe.
-- Nunca rodar migration de teste contra banco de produção, mesmo "só pra conferir".
-- Ambiente de produção: migration destrutiva (drop de coluna/tabela) passa por gate manual, nunca automática mesmo com pipeline verde (ver `safe-migrations`).
+- **In the `test` stage**: apply migrations to an ephemeral database — a disposable
+  container, or `supabase start` locally, created and destroyed inside the job.
+  Never against a shared database or another environment's.
+- **In the `deploy` stage**: migrations run as their own job, before the new
+  application version ships, against the target environment's real database.
+- Migrations have to be idempotent and reversible. CI does not fix a broken
+  migration; it only exposes one.
+- Never run a test migration against production, not even "just to check".
+- In production, a destructive migration (dropping a column or table) goes through a
+  manual gate, never automatically, however green the pipeline is (see
+  `safe-migrations`).
 
-## Gates de qualidade (o que bloqueia merge)
+## Quality gates: what blocks a merge
 
-Checklist de branch protection / required checks:
+The branch-protection checklist:
 
-- [ ] Lint sem erro (warning pode ou não bloquear — decisão consciente, não default)
-- [ ] Type-check sem erro
-- [ ] Testes passando — nenhum teste pulado (`.skip`/`xit`) sem justificativa no PR
-- [ ] Cobertura não regride abaixo do threshold acordado (se o projeto usa)
-- [ ] Build de produção completa sem erro
-- [ ] Sem segredo/credencial commitado (scan de secrets)
-- [ ] Branch atualizada com a base antes do merge (sem merge de branch desatualizada)
+- [ ] Lint passes with no errors — whether warnings block is a conscious decision, not a default
+- [ ] Type-check passes
+- [ ] Tests pass, with no skipped test (`.skip`/`xit`) left unexplained in the PR
+- [ ] Coverage does not regress below the agreed threshold, where the project uses one
+- [ ] The production build completes
+- [ ] No committed secret or credential (a secret scan)
+- [ ] The branch is up to date with its base before merging
 
-Pipeline verde é pré-requisito pro merge, não sugestão — configurar como **required status check** na branch protegida, não deixar como "recomendado".
+A green pipeline is a prerequisite for merging, not a suggestion. Configure it as a
+**required status check** on the protected branch rather than leaving it
+"recommended".
 
-## Variáveis e segredos
+## Variables and secrets
 
-- Segredo nunca hardcoded no `.yml`/`Jenkinsfile` nem em `.env` commitado — sempre no cofre de secrets da ferramenta de CI (GitHub Actions secrets, GitLab CI protected/masked variables).
-- Escopo por ambiente: secret de produção não fica acessível a job rodando em branch de feature.
-- Variável de build-time (embutida no bundle, ex: `VITE_*`/`NEXT_PUBLIC_*`) é diferente de secret runtime — nunca colocar chave sensível numa variável que vai pro bundle do client (ver `secrets-management`).
+- Secrets are never hardcoded in the `.yml` or `Jenkinsfile`, and never in a
+  committed `.env`. They live in the CI tool's secret store — GitHub Actions
+  secrets, GitLab's protected and masked variables.
+- Scope them per environment: a production secret is not reachable from a job
+  running on a feature branch.
+- A build-time variable baked into the bundle (`VITE_*`, `NEXT_PUBLIC_*`) is not the
+  same as a runtime secret. Never put a sensitive key in a variable that ships to
+  the client (see `secrets-management`).
 
-## Artefatos entre estágios
+## Artifacts between stages
 
-- `build` gera o artefato uma vez; `deploy` reaproveita — nunca rebuildar dentro do job de deploy.
-- Artefato tem tempo de vida curto (expira em dias, não fica acumulando storage).
-- Matrix/paralelização: mesma suíte de teste rodando em múltiplas versões de runtime ou browsers roda em jobs paralelos, resultado agregado no final.
+- `build` produces the artifact once, and `deploy` reuses it. Never rebuild inside
+  the deploy job.
+- Artifacts have a short life — days, not accumulated storage.
+- Matrix builds: one suite across several runtime versions or browsers runs as
+  parallel jobs, with results aggregated at the end.
 
-## Exemplos por stack
+## By stack
 
 ### GitHub Actions
 
@@ -111,7 +135,7 @@ jobs:
   deploy_production:
     needs: build
     runs-on: ubuntu-latest
-    environment: production   # gate manual via required reviewers no environment
+    environment: production   # the manual gate: required reviewers on the environment
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/download-artifact@v4
@@ -161,15 +185,17 @@ deploy_production:
   only: [main]
 ```
 
-Python (pytest/mypy/ruff), Go (`go vet`/`go test`/`go build`) ou o próprio wrangler (Cloudflare Workers/Pages, ver skill `wrangler`) entram nos mesmos estágios — só troca o comando dentro do `run`/`script`.
+Python (pytest, mypy, ruff), Go (`go vet`, `go test`, `go build`) and wrangler for
+Cloudflare Workers and Pages (see the `wrangler` skill) use the same stages. Only
+the command inside `run`/`script` changes.
 
 ## Anti-patterns
 
-- ❌ Rodar testes antes do lint/type-check (gasta minutos num commit que já falharia em segundos)
-- ❌ Cache com chave fixa (não invalida quando o lockfile muda)
-- ❌ Migration de teste rodando contra banco compartilhado ou de produção
-- ❌ Segredo em variável de ambiente commitada no repo ou hardcoded no pipeline
-- ❌ Merge liberado com pipeline vermelho ou com check "recomendado" em vez de obrigatório
-- ❌ Rebuildar o artefato dentro do job de deploy em vez de reaproveitar o artifact do estágio `build`
-- ❌ Teste pulado (`.skip`/`xit`) mergeado sem justificativa
-- ❌ Deploy em produção automático sem gate manual para migration destrutiva
+- ❌ Running tests before lint and type-check, spending minutes on a commit that would fail in seconds
+- ❌ A fixed cache key that never invalidates when the lockfile changes
+- ❌ Test migrations running against a shared or production database
+- ❌ A secret in a committed environment file, or hardcoded in the pipeline
+- ❌ Merging with a red pipeline, or with the check marked "recommended" rather than required
+- ❌ Rebuilding the artifact inside the deploy job instead of reusing the one `build` produced
+- ❌ A skipped test (`.skip`/`xit`) merged with no explanation
+- ❌ Automatic production deploys with no manual gate for a destructive migration

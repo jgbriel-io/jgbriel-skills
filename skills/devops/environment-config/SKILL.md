@@ -5,14 +5,16 @@ description: Environment-based configuration conventions — .env.example, start
 
 # Environment Config
 
-Convenção de configuração por ambiente. Vale para Node, Python, Java, Go, Ruby, .NET — qualquer stack que leia config do ambiente.
+Configuration conventions per environment. Applies to Node, Python, Java, Go,
+Ruby, .NET — any stack that reads config from the environment.
 
 ## `.env.example`
 
-Todo repo tem um `.env.example` versionado, espelhando 1:1 as chaves que o app lê — sem valores reais.
+Every repo carries a versioned `.env.example` mirroring one-to-one the keys the
+app reads, with no real values.
 
 ```bash
-# .env.example — versionado no git
+# .env.example — committed to git
 DATABASE_URL=postgres://user:password@localhost:5432/app_dev
 API_PORT=3000
 JWT_SECRET=changeme
@@ -27,29 +29,37 @@ LOG_LEVEL=info
 .env.*.local
 ```
 
-Regras:
+Rules:
 
-- `.env.example` documenta a **forma** (nome da chave, formato, exemplo inofensivo) — nunca o valor real
-- `.env` real nunca é commitado, nunca aparece em PR, nunca vai em screenshot de log
-- Toda chave nova em uso no código entra no `.env.example` no mesmo commit — se não está lá, não existe pro próximo dev (ou pra você daqui a 6 meses)
-- Nome de variável descreve o dado, não o ambiente: `DATABASE_URL`, não `PROD_DATABASE_URL` (o ambiente já é dado pelo `.env` carregado, não pelo nome da chave)
+- `.env.example` documents the **shape** — the key's name, its format, a harmless
+  example — never the real value.
+- The real `.env` is never committed, never appears in a PR, and never shows up in
+  a screenshot.
+- Every new key the code reads enters `.env.example` in the same commit. If it is
+  not there, it does not exist for the next developer, or for you in six months.
+- Variable names describe the data, not the environment: `DATABASE_URL`, not
+  `PROD_DATABASE_URL`. The environment is determined by which `.env` was loaded,
+  not by the key's name.
 
-## Validação na inicialização
+## Validation at startup
 
-Config inválida ou faltando é erro de **startup**, não de request. O processo não deve subir — e muito menos aceitar tráfego — com config incompleta.
+Missing or invalid config is a **startup** error, not a request error. The process
+must not come up — let alone accept traffic — with incomplete config.
 
 ```
-❌ errado: app sobe, request 3847 chama a API externa,
-   EXTERNAL_API_KEY é undefined, cliente recebe 500 misterioso
+❌ wrong: the app boots, request 3,847 calls the external API,
+   EXTERNAL_API_KEY is undefined, and the client gets a mysterious 500
 
-✅ certo: app tenta subir, valida env, imprime
-   "EXTERNAL_API_KEY é obrigatório e não foi definido", processo sai com código != 0
+✅ right: the app tries to boot, validates the environment, prints
+   "EXTERNAL_API_KEY is required and was not set", and exits non-zero
 ```
 
-Padrão: definir um schema de config e validar contra ele antes de qualquer outra coisa rodar (antes de abrir porta, antes de conectar ao banco, antes de registrar rotas).
+The pattern: define a config schema and validate against it before anything else
+runs — before opening a port, before connecting to the database, before
+registering routes.
 
 ```ts
-// exemplo conceitual, independente de lib
+// conceptual, library-independent
 const schema = {
   DATABASE_URL: { type: 'string', required: true },
   API_PORT: { type: 'number', default: 3000 },
@@ -57,60 +67,73 @@ const schema = {
   LOG_LEVEL: { type: 'enum', values: ['debug', 'info', 'warn', 'error'], default: 'info' },
 };
 
-const config = validate(process.env, schema); // lança e mata o processo se inválido
+const config = validate(process.env, schema); // throws and kills the process when invalid
 ```
 
-Checklist do validador:
+The validator's checklist:
 
-- [ ] Falha o processo (exit != 0) se variável obrigatória está ausente ou vazia
-- [ ] Valida tipo/formato, não só presença (`API_PORT` precisa ser número, `DATABASE_URL` precisa parsear como URL)
-- [ ] Mensagem de erro nomeia a chave que falta — nunca um stack trace genérico
-- [ ] Validação roda uma vez, no boot, antes do app aceitar conexões — não em cada request
-- [ ] Um único módulo/arquivo de config é o dono do parse — resto do código importa o config já validado, nunca lê `process.env` (ou equivalente) direto
+- [ ] Fails the process (non-zero exit) when a required variable is missing or empty
+- [ ] Validates type and format, not just presence — `API_PORT` must be a number, `DATABASE_URL` must parse as a URL
+- [ ] The error message names the missing key, rather than showing a generic stack trace
+- [ ] Validation runs once, at boot, before the app accepts connections — never per request
+- [ ] One config module owns the parsing; the rest of the code imports the validated config and never reads `process.env` (or its equivalent) directly
 
-## Paridade dev/staging/prod
+## Dev, staging and production parity
 
-Mesmo shape de config em todo ambiente — o que muda é o **valor**, nunca a **chave** nem a lógica que a lê.
+The same config shape in every environment. What changes is the **value**, never
+the **key** and never the logic that reads it.
 
-| | Dev | Staging | Prod |
+| | Dev | Staging | Production |
 |---|---|---|---|
-| Chaves exigidas | mesmas | mesmas | mesmas |
-| `DATABASE_URL` | banco local/docker/Supabase local | banco de staging | banco de prod |
-| Comportamento no código | idêntico | idêntico | idêntico |
-| Fonte do valor | `.env` local | secret manager / CI | secret manager / CI |
+| Required keys | The same | The same | The same |
+| `DATABASE_URL` | A local, Docker or local-Supabase database | The staging database | The production database |
+| Behaviour in code | Identical | Identical | Identical |
+| Where the value comes from | A local `.env` | A secret manager or CI | A secret manager or CI |
 
-- Nunca existe `if (env === 'dev') { pularValidacao() }` — se a config é obrigatória em prod, é obrigatória em dev também (só que com valor de dev)
-- Nunca existe branch de lógica de negócio baseada em nome de ambiente (`if (env === 'staging')`) — comportamento é controlado por feature flag, não por ambiente
-- Diferença de infraestrutura (URL de banco, chave de API) fica na config; diferença de comportamento nunca deveria depender do ambiente
-- Ambiente que só existe pra rodar teste manual antes de subir pra prod deve usar o mesmo mecanismo de config que prod — senão o teste não vale nada
+- There is never an `if (env === 'dev') { skipValidation() }`. Config required in
+  production is required in dev too, with a dev value.
+- There is never a business-logic branch on the environment's name
+  (`if (env === 'staging')`). Behaviour is controlled by feature flags, not by
+  environment.
+- Infrastructure differences — a database URL, an API key — live in config.
+  Behavioural differences should never depend on the environment.
+- An environment that exists only for manual testing before production must use the
+  same config mechanism as production, or the test proves nothing.
 
-## Fronteira com secrets-management
+## The boundary with secrets-management
 
-Esta skill cobre **convenção**: onde a chave mora, como ela é nomeada, como o app valida que ela existe. Não cobre:
+This skill covers **convention**: where a key lives, how it is named, how the app
+validates that it exists. It does not cover:
 
-- Rotação de credenciais
-- Cofre/vault (Vault, AWS Secrets Manager, Doppler, etc.)
-- Quem tem acesso a qual segredo
+- Credential rotation
+- Vaults (Vault, AWS Secrets Manager, Doppler)
+- Who has access to which secret
 
-Isso é `secrets-management`. Se a pergunta é "como faço rotation de `JWT_SECRET`" ou "onde guardar credencial de produção com segurança", a resposta está lá — aqui é só "a chave existe, está documentada, e o app falha rápido se ela faltar".
+Those belong to `secrets-management`. "How do I rotate `JWT_SECRET`?" and "where do
+I store a production credential safely?" are answered there. Here the claim is only
+that the key exists, is documented, and that the app fails fast without it.
 
-## Multi-cliente (freela)
+## Multiple clients (freelance work)
 
-Em trabalho com múltiplos clientes, cada projeto/cliente tem seu próprio conjunto de valores (não de chaves) — mesmo `.env.example`, `.env` diferente por cliente/ambiente. Nunca hardcode um valor específico de cliente no código; se um cliente precisa de comportamento diferente, isso é uma chave de config nova (ou feature flag), não um `if (cliente === 'x')`.
+Across clients, each project has its own set of values rather than its own set of
+keys: the same `.env.example`, a different `.env` per client and environment. Never
+hardcode a client-specific value in the code. If one client needs different
+behaviour, that is a new config key or a feature flag, never an
+`if (client === 'x')`.
 
-## Exemplos por stack
+## By stack
 
-**Vite/React** (validação com Zod, no boot da app):
+**Vite/React** (validated with Zod at boot):
 ```ts
 import { z } from 'zod';
 const envSchema = z.object({
   VITE_SUPABASE_URL: z.string().url(),
   VITE_SUPABASE_ANON_KEY: z.string().min(1),
 });
-export const config = envSchema.parse(import.meta.env); // lança se inválido
+export const config = envSchema.parse(import.meta.env); // throws when invalid
 ```
 
-**Node.js/NestJS** (validação com Zod):
+**Node.js/NestJS** (validated with Zod):
 ```ts
 import { z } from 'zod';
 const envSchema = z.object({
@@ -118,7 +141,7 @@ const envSchema = z.object({
   API_PORT: z.coerce.number().default(3000),
   JWT_SECRET: z.string().min(16),
 });
-export const config = envSchema.parse(process.env); // lança e mata o boot se inválido
+export const config = envSchema.parse(process.env); // throws and kills the boot
 ```
 
 **Python** (Pydantic Settings):
@@ -133,15 +156,15 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
 
-settings = Settings()  # ValidationError derruba o processo no import
+settings = Settings()  # a ValidationError takes the process down at import
 ```
 
-**Go** (validação manual no `main`, antes de `http.ListenAndServe`):
+**Go** (validated by hand in `main`, before `http.ListenAndServe`):
 ```go
 func loadConfig() Config {
     dbURL := os.Getenv("DATABASE_URL")
     if dbURL == "" {
-        log.Fatal("DATABASE_URL é obrigatório e não foi definido")
+        log.Fatal("DATABASE_URL is required and was not set")
     }
     return Config{DatabaseURL: dbURL}
 }
@@ -149,11 +172,11 @@ func loadConfig() Config {
 
 ## Anti-patterns
 
-- ❌ `.env` real commitado no git (ou em `.env.example` com valor real por engano)
-- ❌ Ler `process.env`/`import.meta.env` (ou equivalente) espalhado pelo código em vez de um módulo de config centralizado
-- ❌ Config faltando só é descoberta quando o request que usa aquela chave é disparado em produção
-- ❌ Variável de ambiente sem validação de tipo (`API_PORT` é string `"abc"` e só quebra no `parseInt` lá na frente)
-- ❌ Lógica de negócio ramificada por nome de ambiente (`if (env === 'staging')`)
-- ❌ Chave de config nomeada com o ambiente embutido (`PROD_DATABASE_URL`)
-- ❌ Valor de cliente específico hardcoded no código em vez de vir de config
-- ❌ Ambiente de teste manual pulando validação que existe em prod
+- ❌ A real `.env` committed to git, or a real value left in `.env.example` by accident
+- ❌ Reading `process.env` or `import.meta.env` scattered through the code instead of through one config module
+- ❌ Missing config discovered only when the request that needs the key runs in production
+- ❌ An environment variable with no type validation, so `API_PORT` is the string `"abc"` and only breaks at a later `parseInt`
+- ❌ Business logic branching on the environment's name (`if (env === 'staging')`)
+- ❌ A config key with the environment baked into its name (`PROD_DATABASE_URL`)
+- ❌ A client-specific value hardcoded instead of coming from config
+- ❌ A manual-testing environment skipping validation that production enforces

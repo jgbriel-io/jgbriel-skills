@@ -123,7 +123,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 | `environment-config` | Environment-based configuration conventions — .env.example, startup-time env validation (fail fast, not mid-request), a… |
 | `error-tracking` | Apply production error tracking patterns — unhandled exception capture, contextual metadata, release/version tagging, t… |
 | `health-checks-metrics` | Apply health check (readiness vs. |
-| `project-deploy` | Executa o deploy de um projeto seguindo o runbook documentado no vault — checklist passo a passo, confirmação antes de … |
+| `project-deploy` | Deploys a project by following the runbook documented in the vault — a step-by-step checklist, confirmation before anyt… |
 | `resolving-merge-conflicts` | Resolve os conflitos de um merge ou rebase já em andamento — lê a intenção original de cada lado antes de escolher, pre… |
 | `rollback-runbook` | Defines a deploy-tool-agnostic rollback runbook — reverting a code deploy (blue-green/canary/previous artifact), why re… |
 | `setup-pre-commit` | Set up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. |
