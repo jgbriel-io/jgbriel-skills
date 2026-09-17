@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions "red-green-refactor", or wants integration tests.
+description: O loop red-green-refactor e o que faz um teste sobreviver a refactor — comportamento por interface pública, seam acordado antes de escrever, slice vertical em vez de escrever todos os testes primeiro, e os anti-padrões que passam sem verificar nada. Use quando o usuário quiser construir ou corrigir algo test-first, disser "red-green-refactor", "TDD", "escreve o teste antes". Qual camada testar é e2e-testing e integration-testing; esta é a disciplina do ciclo, em qualquer camada.
 ---
 
 # Test-Driven Development
@@ -13,7 +13,7 @@ When exploring the codebase, use the project's domain glossary (`CONTEXT.md`, if
 
 Tests verify behavior through public interfaces, not implementation details. Code can change entirely; tests shouldn't. A good test reads like a specification — "user can checkout with valid cart" tells you exactly what capability exists — and survives refactors because it doesn't care about internal structure.
 
-See [tests.md](tests.md) for examples and [mocking.md](mocking.md) for mocking guidelines.
+See [tests.md](references/tests.md) for examples and [mocking.md](references/mocking.md) for mocking guidelines.
 
 ## Seams — where tests go
 
@@ -49,8 +49,8 @@ Before writing any code:
 
 - [ ] Confirm with user what interface changes are needed
 - [ ] Confirm with user which seams/behaviors to test (prioritize)
-- [ ] Identify opportunities for [deep modules](deep-modules.md) (small interface, deep implementation)
-- [ ] Design interfaces for [testability](interface-design.md)
+- [ ] Identify opportunities for [deep modules](references/deep-modules.md) (small interface, deep implementation)
+- [ ] Design interfaces for [testability](references/interface-design.md)
 - [ ] List the behaviors to test (not implementation steps)
 - [ ] Get user approval on the plan
 
@@ -79,7 +79,7 @@ GREEN: Minimal code to pass → passes
 
 ### 4. Refactor
 
-After all tests in the current slice pass, look for [refactor candidates](refactoring.md): extract duplication, deepen modules, apply SOLID where natural. Run tests after each refactor step.
+After all tests in the current slice pass, look for [refactor candidates](references/refactoring.md): extract duplication, deepen modules, apply SOLID where natural. Run tests after each refactor step.
 
 **Never refactor while RED.** Get to GREEN first. This step is scoped to the code you just touched — a full-codebase refactor pass belongs to the `code-review` skill, not this loop.
 
