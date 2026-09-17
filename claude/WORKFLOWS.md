@@ -106,10 +106,15 @@ escreveu. São coisas diferentes e as duas valem antes da entrega.
 ## Skill nova
 
 ```
-/skill-creator   → cria ou melhora uma skill
-/skill-audit     → rubric C1-C11, blockers, colisão de gatilho entre irmãs
-/skill-sync      → puxa atualização dos upstreams sem perder adaptação local
+/writing-great-skills   → a teoria: invocação, hierarquia, poda, leading words
+  ↓ escrever a skill nova (a criação em si é anthropic-skills:skill-creator)
+/skill-audit            → rubric contra a referência, blockers, colisão entre irmãs
+/skill-sync             → puxa upstream sem perder a adaptação local
 ```
+
+Publicar é o passo que ninguém lembra: a pasta entra na lista `skills` do
+`plugin.json`, a `version` sobe, e só então `claude plugin update` leva pra
+máquina. Sem o bump a skill nova não existe em lugar nenhum.
 
 ---
 

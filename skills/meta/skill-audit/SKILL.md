@@ -71,6 +71,11 @@ where to read an exemplar.
 | C11 | Portability | No private path, no mandatory model, no hard dependency on a sibling being installed. Recommending one is fine; **breaking without it is not** | `core-loop/discuss` — "if another skill is not installed, the brief must still support continuation" |
 | C12 | Evidence | An instruction is a claim about model behaviour. The load-bearing ones say what backs them — a benchmark, a measurement taken here, or an incident actually lived | `utevo-lux` README, Evidence section: one benchmark per instruction, opened at the source |
 
+Writing a skill from scratch is `anthropic-skills:skill-creator`, which ships with
+the account and carries the eval machinery. What it does not know is this fleet:
+the theory lives in `meta/writing-great-skills`, the annotated frontmatter in
+`claude/config/SKILL.template.md`, and publishing is §4 below.
+
 **Vendor packs** (`skills/cloudflare/`) are tracked here but authored upstream.
 Editing one to satisfy a local rule is what turns the next `skill-sync` into a
 merge conflict. Report what they violate; never block on it.

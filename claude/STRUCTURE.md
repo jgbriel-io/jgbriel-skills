@@ -36,7 +36,7 @@ um `git pull` deixa os links pendurados e a sessão abre sem nada, inclusive sem
 Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mão.
 
 <!-- inventory:skills:start -->
-**86 skills**, em 13 pastas de categoria:
+**85 skills**, em 13 pastas de categoria:
 
 <details><summary><code>backend</code> — 8 skills</summary>
 
@@ -146,12 +146,11 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 | `web-perf` | Analyzes web performance using Chrome DevTools MCP. |
 
 </details>
-<details><summary><code>meta</code> — 6 skills</summary>
+<details><summary><code>meta</code> — 5 skills</summary>
 
 | Skill | Uso |
 |---|---|
 | `skill-audit` | Audit Claude Code skills against the fleet's reference implementation — a mechanical sweep first, then criterion-by-cri… |
-| `skill-creator` | Create new Claude Code skills from scratch and iteratively improve existing ones. |
 | `skill-sync` | Sync the skill fleet against its upstreams — mattpocock/skills and lucasmonstrox/utevo-lux — diffing repo vs upstream, … |
 | `token-audit` | Audit Claude Code token consumption across sessions and projects — weekly trend, heaviest sessions and projects, marath… |
 | `wizard` | Generates an interactive bash wizard for setup steps only a human can do — dashboards, credentials, CI secrets, one-off… |
