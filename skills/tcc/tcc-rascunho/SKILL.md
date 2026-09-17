@@ -22,11 +22,15 @@ Pré-requisito: arquivo de fragmentos existir (saída de `tcc-fragmentos`) ou us
 - Capturar matéria-prima inicial → use `tcc-fragmentos`.
 - Revisão de voz/clichês em capítulo pronto → use `tcc-revisao-impessoal`.
 - Reescrita pontual de parágrafo já existente → editar direto, sem loop.
-- Aplicar formatação ABNT a documento concluído → consultar `tcc-writing.md` direto.
+- Aplicar formatação ABNT a documento já concluído → `tcc-writing` do projeto, se existir; senão, o modelo oficial da FEPI.
 
 ## Normas obrigatórias (não-negociáveis)
 
-Esta skill **assume** que `tcc-writing.md` (skill local do projeto SyncClass) define as normas completas. Resumo das que importam ao rascunhar:
+As normas completas ficam em `tcc-writing`, skill **local do projeto SyncClass** —
+não faz parte desta frota e pode não estar disponível na sessão. Procure por ela
+em `.claude/skills/` do projeto antes de começar. Se não achar, diga isso e siga
+pelas regras abaixo, que são as que importam ao rascunhar; qualquer norma além
+delas se pergunta ao usuário em vez de se inventar.
 
 - **Voz impessoal absoluta** — voz passiva ou terceira pessoa do singular. Nunca "eu", "nós", "implementei", "fizemos".
 - **Português brasileiro** — sempre.
@@ -35,7 +39,7 @@ Esta skill **assume** que `tcc-writing.md` (skill local do projeto SyncClass) de
 - **Glossário técnico** — primeira ocorrência de termo técnico no capítulo é explicada brevemente.
 - **Sem clichês** — "é importante", "é crucial", "atualmente", "nos dias de hoje".
 
-Detalhes completos: ver `tcc-writing.md` do projeto.
+Detalhes completos, quando a skill do projeto estiver disponível: `tcc-writing`.
 
 ## Processo
 
