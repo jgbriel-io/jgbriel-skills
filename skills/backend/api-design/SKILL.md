@@ -5,11 +5,13 @@ description: Applies stack-agnostic REST API design conventions — resource nam
 
 # API Design
 
-Vale para qualquer runtime (Next.js API routes, NestJS, FastAPI, Spring, Go, Rails, .NET). O contrato é o produto — implementação é detalhe.
+Applies to any runtime — Next.js route handlers, NestJS, FastAPI, Spring, Go,
+Rails, .NET. The contract is the product; the implementation is a detail.
 
-## Recursos e verbos
+## Resources and verbs
 
-Recursos são substantivos no plural; verbos vêm do método HTTP, nunca da URL.
+Resources are plural nouns. The verb comes from the HTTP method, never from the
+URL.
 
 ```
 // ❌
@@ -23,47 +25,49 @@ POST   /orders
 DELETE /orders/42
 ```
 
-| Verbo  | Rota                | Ação                | Status sucesso |
-|--------|----------------------|---------------------|----------------|
-| GET    | `/resources`         | listar              | 200            |
-| GET    | `/resources/:id`      | detalhe             | 200            |
-| POST   | `/resources`          | criar               | 201            |
-| PUT    | `/resources/:id`      | substituir completo | 200            |
-| PATCH  | `/resources/:id`      | atualizar parcial   | 200            |
-| DELETE | `/resources/:id`      | remover             | 204            |
+| Verb   | Route                | Action            | Success status |
+|--------|----------------------|-------------------|----------------|
+| GET    | `/resources`         | list              | 200            |
+| GET    | `/resources/:id`     | detail            | 200            |
+| POST   | `/resources`         | create            | 201            |
+| PUT    | `/resources/:id`     | full replace      | 200            |
+| PATCH  | `/resources/:id`     | partial update    | 200            |
+| DELETE | `/resources/:id`     | remove            | 204            |
 
-Sub-recursos só quando há relação de posse real: `/orders/:id/items`, não `/order-items?order_id=`.
+Sub-resources only where ownership is real: `/orders/:id/items`, not
+`/order-items?order_id=`.
 
 ## Status codes
 
-| Faixa | Uso |
+| Code | Use |
 |---|---|
-| 200 | sucesso com corpo |
-| 201 | criado — inclui `Location` header com URL do recurso |
-| 204 | sucesso sem corpo (delete, update sem retorno) |
-| 400 | payload inválido (validação de schema) |
-| 401 | sem autenticação ou token inválido |
-| 403 | autenticado mas sem permissão |
-| 404 | recurso não existe (ou existe mas não é do tenant — nunca vaze essa distinção) |
-| 409 | conflito (duplicidade, estado incompatível) |
-| 422 | semanticamente inválido (passou na validação de schema, falhou na regra de negócio) |
-| 429 | rate limit |
-| 500 | erro não tratado — nunca esperado, sempre logado |
+| 200 | Success with a body |
+| 201 | Created — include a `Location` header with the resource URL |
+| 204 | Success with no body (delete, update returning nothing) |
+| 400 | Invalid payload (schema validation) |
+| 401 | Unauthenticated, or an invalid token |
+| 403 | Authenticated but not permitted |
+| 404 | The resource does not exist — or exists but belongs to another tenant; never leak that distinction |
+| 409 | Conflict: duplicate, or an incompatible state |
+| 422 | Semantically invalid — passed schema validation, failed a business rule |
+| 429 | Rate limited |
+| 500 | Unhandled error. Never expected, always logged |
 
 ```
-// ❌ 200 com { "success": false } no corpo
-// ✅ status HTTP reflete o resultado; corpo carrega detalhe
+// ❌ 200 carrying { "success": false }
+// ✅ the HTTP status reflects the outcome; the body carries the detail
 ```
 
-## Envelope de erro
+## Error envelope
 
-Um formato único para toda a API, nunca `string` cru nem shape variando por endpoint.
+One shape for the whole API, never a bare string and never a shape that varies per
+endpoint.
 
 ```json
 {
   "error": {
     "code": "RESOURCE_NOT_FOUND",
-    "message": "Pedido não encontrado",
+    "message": "Order not found",
     "details": [
       { "field": "quantity", "issue": "must be greater than 0" }
     ]
@@ -71,32 +75,36 @@ Um formato único para toda a API, nunca `string` cru nem shape variando por end
 }
 ```
 
-- `code`: string estável, usada por client/telemetria — nunca muda entre versões
-- `message`: texto legível, não é contrato (pode mudar de idioma/redação)
-- `details`: opcional, granular, usado por formulários (erro de validação por campo)
-- Nunca devolver stack trace, SQL, ou path de arquivo no corpo de erro
+- `code`: a stable string, consumed by clients and telemetry — it never changes
+  between versions
+- `message`: human-readable, and not part of the contract; its wording and language
+  may change
+- `details`: optional and granular, used by forms for per-field validation errors
+- Never return a stack trace, SQL, or a file path in an error body
 
-## Versionamento
+## Versioning
 
-| Estratégia | Exemplo | Quando usar |
+| Strategy | Example | When |
 |---|---|---|
-| URL path | `/v1/orders` | API pública, cache por URL, mais simples de documentar |
-| Header | `Accept-Version: 2` | API interna, evolução mais frequente, não polui a URL |
-| Query param | `?version=2` | evitar — cacheável de forma inconsistente, fácil esquecer |
+| URL path | `/v1/orders` | Public APIs, cacheable by URL, simplest to document |
+| Header | `Accept-Version: 2` | Internal APIs evolving often, keeps the URL clean |
+| Query parameter | `?version=2` | Avoid — caches inconsistently and is easy to forget |
 
-Regra: breaking change (remover campo, mudar tipo, mudar semântica de status) exige nova versão. Adicionar campo opcional não é breaking — não bump.
+The rule: a breaking change — removing a field, changing a type, changing what a
+status means — requires a new version. Adding an optional field is not breaking
+and does not bump anything.
 
-## Paginação
+## Pagination
 
 ```
-// Offset — simples, ruim em tabelas grandes (custo de OFFSET cresce)
+// Offset — simple, poor on large tables, since OFFSET's cost grows
 GET /orders?page=3&per_page=20
 
-// Cursor — estável sob inserção concorrente, custo constante
+// Cursor — stable under concurrent inserts, constant cost
 GET /orders?cursor=eyJpZCI6NDJ9&limit=20
 ```
 
-Resposta sempre inclui metadado de paginação, nunca só o array:
+The response always carries pagination metadata, never a bare array:
 
 ```json
 {
@@ -105,33 +113,38 @@ Resposta sempre inclui metadado de paginação, nunca só o array:
 }
 ```
 
-## Idempotência
+## Idempotency
 
-Operações que causam efeito colateral (criar pagamento, disparar e-mail) e podem ser retentadas pelo client devem aceitar uma chave de idempotência:
+Operations with side effects that a client may retry — creating a payment, sending
+an email — accept an idempotency key:
 
 ```
 POST /payments
 Idempotency-Key: 6c1f9b2e-...
 
-// servidor guarda (key -> resposta) por um TTL;
-// requisição repetida com a mesma key retorna a resposta original, sem reprocessar
+// the server stores (key -> response) for a TTL;
+// a repeat with the same key returns the original response without reprocessing
 ```
 
-`GET`, `PUT`, `DELETE` já são idempotentes por definição do método — não precisam da chave.
+`GET`, `PUT` and `DELETE` are idempotent by definition of the method and need no
+key.
 
-## Filtragem, ordenação, campos parciais
+## Filtering, sorting, sparse fields
 
 ```
 GET /orders?status=pending&sort=-created_at&fields=id,total,status
 ```
 
-- Filtro: `campo=valor` para igualdade simples; operadores explícitos (`created_at[gte]=`) quando precisar de range
-- Ordenação: `-` prefixo para descendente, múltiplos campos separados por vírgula
-- Sparse fieldset (`fields=`) evita payload gigante quando o client só precisa de parte do recurso
+- Filtering: `field=value` for simple equality; explicit operators
+  (`created_at[gte]=`) when a range is needed
+- Sorting: a `-` prefix for descending, several fields separated by commas
+- Sparse fieldsets (`fields=`) avoid a huge payload when the client needs part of
+  the resource
 
-## Contrato OpenAPI
+## The OpenAPI contract
 
-Todo endpoint novo entra no `openapi.yaml`/`openapi.json` antes ou junto do código — é o contrato entre times, não documentação gerada depois.
+Every new endpoint enters `openapi.yaml`/`openapi.json` before or alongside the
+code. It is the contract between teams, not documentation generated afterwards.
 
 ```yaml
 paths:
@@ -154,31 +167,32 @@ paths:
               schema: { $ref: '#/components/schemas/Error' }
 ```
 
-Erros também são schemas versionados — cliente gerado a partir do contrato tipa o erro, não só o sucesso.
+Errors are versioned schemas too — a client generated from the contract types the
+error, not only the success case.
 
 ## REST vs GraphQL vs gRPC
 
-Os mesmos princípios mudam de forma, não de substância:
+The same principles change form, not substance:
 
-| Conceito | REST | GraphQL | gRPC |
+| Concept | REST | GraphQL | gRPC |
 |---|---|---|---|
-| Contrato | OpenAPI | SDL (schema) | `.proto` |
-| Recurso/verbo | URL + método HTTP | tipo + query/mutation | serviço + RPC method |
-| Status/erro | status code + envelope | sempre 200, erros em `errors[]` | `grpc.Status` (código + mensagem) |
-| Versionamento | `/v1/` ou header | evolução aditiva do schema (deprecar campo, não remover) | pacote versionado no `.proto` (`v1.OrderService`) |
+| Contract | OpenAPI | SDL (schema) | `.proto` |
+| Resource and verb | URL plus HTTP method | Type plus query/mutation | Service plus RPC method |
+| Status and errors | Status code plus envelope | Always 200, errors in `errors[]` | `grpc.Status` (code plus message) |
+| Versioning | `/v1/` or a header | Additive schema evolution: deprecate a field, do not remove it | A versioned package in the `.proto` (`v1.OrderService`) |
 
 ## Checklist
 
-- [ ] Recurso é substantivo plural, verbo vem do método HTTP
-- [ ] Status code reflete o resultado real, não sempre 200
-- [ ] Erro segue envelope único da API, com `code` estável
-- [ ] Nenhum dado sensível (stack trace, SQL, PII) vaza no corpo de erro
-- [ ] Endpoint documentado no contrato (OpenAPI/SDL/proto) antes do merge
-- [ ] Lista tem paginação — nunca array sem limite
-- [ ] Operação com efeito colateral repetível aceita idempotency key
-- [ ] Breaking change vem com nova versão, não sobrescreve a atual
+- [ ] Resources are plural nouns, and the verb comes from the HTTP method
+- [ ] The status code reflects the real outcome, rather than always 200
+- [ ] Errors follow the API's single envelope, with a stable `code`
+- [ ] No sensitive data — stack trace, SQL, PII — leaks in an error body
+- [ ] The endpoint is in the contract (OpenAPI/SDL/proto) before the merge
+- [ ] Lists are paginated; never an unbounded array
+- [ ] Repeatable side-effecting operations accept an idempotency key
+- [ ] Breaking changes ship as a new version rather than overwriting the current one
 
-## Exemplos por stack
+## By stack
 
 **Next.js (route handler):**
 ```ts
@@ -186,7 +200,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   const order = await findOrder(params.id);
   if (!order) {
     return Response.json(
-      { error: { code: 'RESOURCE_NOT_FOUND', message: 'Pedido não encontrado' } },
+      { error: { code: 'RESOURCE_NOT_FOUND', message: 'Order not found' } },
       { status: 404 }
     );
   }
@@ -194,15 +208,15 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 }
 ```
 
-**NestJS (controller + exception filter):**
+**NestJS (controller plus exception filter):**
 ```ts
 @Get(':id')
 async getOrder(@Param('id') id: string) {
   const order = await this.ordersService.findOne(id);
   if (!order) {
-    throw new NotFoundException({ code: 'RESOURCE_NOT_FOUND', message: 'Pedido não encontrado' });
+    throw new NotFoundException({ code: 'RESOURCE_NOT_FOUND', message: 'Order not found' });
   }
-  return order; // filtro global envolve no envelope { data } / { error }
+  return order; // the global filter wraps it in { data } / { error }
 }
 ```
 
@@ -214,18 +228,18 @@ async def get_order(order_id: str):
     if not order:
         raise HTTPException(
             status_code=404,
-            detail={"code": "RESOURCE_NOT_FOUND", "message": "Pedido não encontrado"},
+            detail={"code": "RESOURCE_NOT_FOUND", "message": "Order not found"},
         )
     return {"data": order}
 ```
 
 ## Anti-patterns
 
-- ❌ Verbo na URL (`/getUser`, `/order/delete/42`)
-- ❌ 200 para tudo, erro sinalizado só no corpo
-- ❌ Envelope de erro diferente por endpoint
-- ❌ Mensagem de erro como contrato (client faz `if message === '...'`)
-- ❌ Lista sem paginação
-- ❌ Breaking change lançado sem nova versão
-- ❌ Contrato (OpenAPI/SDL/proto) desatualizado em relação ao código
-- ❌ Stack trace ou SQL exposto no corpo de resposta
+- ❌ A verb in the URL (`/getUser`, `/order/delete/42`)
+- ❌ 200 for everything, with the error signalled only in the body
+- ❌ A different error envelope per endpoint
+- ❌ Treating the message as the contract, so clients write `if message === '...'`
+- ❌ An unpaginated list
+- ❌ A breaking change shipped without a new version
+- ❌ A contract (OpenAPI/SDL/proto) that has drifted from the code
+- ❌ A stack trace or SQL exposed in a response body

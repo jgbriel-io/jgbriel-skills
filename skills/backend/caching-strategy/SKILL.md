@@ -5,150 +5,174 @@ description: Applies stack-agnostic caching strategy — layers (client, server,
 
 # Caching Strategy
 
-Vale para qualquer tecnologia de cache (Redis, Memcached, CDN, cache HTTP, cache in-memory). A dificuldade nunca é guardar o dado — é saber quando jogar fora.
+Applies to any caching technology — Redis, Memcached, a CDN, HTTP caching,
+in-memory. The hard part is never storing the value; it is knowing when to throw
+it away.
 
-## Camadas de cache
+## Layers
 
 ```
-Cliente (browser/app) → CDN/edge → Servidor (app cache) → Banco de dados
+Client (browser/app) → CDN/edge → Server (app cache) → Database
 ```
 
-| Camada | O que guarda | Invalida por |
+| Layer | What it holds | Invalidated by |
 |---|---|---|
-| Cliente | resposta de API, asset estático | `Cache-Control`, `ETag`, versão de build |
-| CDN/edge | resposta HTTP pública, asset | TTL, purge manual/API |
-| Servidor (app) | resultado de query, sessão, resultado de cálculo caro | TTL, evento de escrita |
-| Banco (query cache, buffer pool) | plano/página de dados | gerenciado pelo próprio motor |
+| Client | API responses, static assets | `Cache-Control`, `ETag`, the build version |
+| CDN/edge | Public HTTP responses, assets | TTL, manual or API purge |
+| Server (app) | Query results, sessions, expensive computations | TTL, a write event |
+| Database (query cache, buffer pool) | Plans and data pages | Managed by the engine |
 
-Regra: cachear o mais perto possível do consumidor primeiro (cliente > CDN > servidor > banco) — cada camada evitada é uma rede a menos.
+Rule: cache as close to the consumer as you can — client before CDN before server
+before database. Each layer skipped is one network hop avoided.
 
-## Padrões de leitura/escrita
+## Read and write patterns
 
-**Cache-aside (lazy loading)** — o mais comum, aplicação controla tudo:
-
-```
-// leitura
-valor = cache.get(chave)
-se não existir:
-    valor = banco.buscar(chave)
-    cache.set(chave, valor, ttl)
-retorna valor
-
-// escrita
-banco.salvar(dado)
-cache.delete(chave)  // invalida, não atualiza — próxima leitura repopula
-```
-
-- Simples, cache só guarda o que é lido de fato
-- Risco: primeira leitura após invalidação sempre bate no banco (cache miss previsível)
-
-**Write-through** — escreve no cache e no banco na mesma operação, de forma síncrona:
+**Cache-aside (lazy loading)** — the common one; the application controls
+everything:
 
 ```
-banco.salvar(dado)
-cache.set(chave, dado, ttl)  // sempre atualizado, nunca "miss" logo após escrita
+// read
+value = cache.get(key)
+if missing:
+    value = db.fetch(key)
+    cache.set(key, value, ttl)
+return value
+
+// write
+db.save(data)
+cache.delete(key)  // invalidate rather than update; the next read repopulates
 ```
 
-- Cache nunca fica stale em relação à última escrita
-- Escrita fica mais lenta (duas operações síncronas)
+- Simple, and the cache only holds what is actually read
+- Cost: the first read after invalidation always hits the database — a predictable
+  miss
 
-**Write-behind (write-back)** — escreve no cache, banco é atualizado depois, de forma assíncrona:
+**Write-through** — writes to cache and database in the same synchronous
+operation:
 
 ```
-cache.set(chave, dado)
-fila.enfileirar(persistirNoBanco, dado)  // processado depois
+db.save(data)
+cache.set(key, data, ttl)  // always current, never a miss right after a write
 ```
 
-- Escrita muito rápida, absorve picos
-- Risco de perda de dado se o processo cair antes de persistir — usar só quando o dado tolera essa janela
+- The cache is never stale relative to the last write
+- Writes get slower: two synchronous operations
 
-| Padrão | Latência de escrita | Consistência | Quando usar |
+**Write-behind (write-back)** — writes to the cache, and the database catches up
+asynchronously:
+
+```
+cache.set(key, data)
+queue.enqueue(persistToDatabase, data)  // processed later
+```
+
+- Very fast writes, absorbs spikes
+- Risk of data loss if the process dies before persisting. Only for data that
+  tolerates that window
+
+| Pattern | Write latency | Consistency | When |
 |---|---|---|---|
-| Cache-aside | baixa | eventual (até o próximo miss) | leitura dominante, dado tolera alguns ms/segundos de stale |
-| Write-through | média/alta | forte | leitura logo após escrita precisa estar sempre correta |
-| Write-behind | muito baixa | eventual, com risco de perda | escrita em volume alto, dado tolerante a perda pequena |
+| Cache-aside | Low | Eventual, until the next miss | Read-dominant, and the data tolerates milliseconds or seconds of staleness |
+| Write-through | Medium to high | Strong | A read right after a write must always be correct |
+| Write-behind | Very low | Eventual, with a loss window | High write volume, data that tolerates small losses |
 
-## Invalidação
+## Invalidation
 
-> "There are only two hard things in Computer Science: cache invalidation and naming things." A frase é clichê porque é verdadeira — a maior parte dos bugs de cache não é sobre guardar, é sobre esquecer de invalidar.
+> "There are only two hard things in Computer Science: cache invalidation and
+> naming things." The line is a cliché because it is true: most cache bugs are not
+> about storing, they are about forgetting to invalidate.
 
-| Estratégia | Como funciona | Risco |
+| Strategy | How | Risk |
 |---|---|---|
-| TTL (time-to-live) | expira sozinho depois de N segundos | janela de dado stale até expirar |
-| Invalidação por evento | escrita dispara delete/update explícito da chave | fácil esquecer um caminho de escrita |
-| Versionamento de chave | chave inclui versão (`user:42:v3`); nova escrita muda a versão, chave antiga só expira | não limpa a chave velha na hora (ocupa espaço até o TTL) |
-| Purge/tag | invalida por tag/grupo (`tag:orders`) em vez de chave única | precisa de suporte da tecnologia de cache |
+| TTL | Expires on its own after N seconds | A window of stale data until it does |
+| Event-based | A write triggers an explicit delete or update of the key | Easy to miss one write path |
+| Key versioning | The key carries a version (`user:42:v3`); a write bumps it and the old key just expires | The old key lingers until its TTL, occupying space |
+| Purge by tag | Invalidate a group (`tag:orders`) rather than one key | Needs support from the cache technology |
 
 ```
-// ❌ TTL longo "pra garantir performance" em dado que muda com frequência
-cache.set(`preco:${sku}`, preco, { ttl: 86400 })  // 1 dia — preço desatualizado o dia todo
+// ❌ A long TTL "for performance" on data that changes often
+cache.set(`price:${sku}`, price, { ttl: 86400 })  // a day of stale prices
 
-// ✅ TTL compatível com a volatilidade real do dado
-cache.set(`preco:${sku}`, preco, { ttl: 60 })
+// ✅ A TTL that matches how volatile the data really is
+cache.set(`price:${sku}`, price, { ttl: 60 })
 
-// ✅ ou invalidação por evento, sem depender só do TTL
-async function atualizarPreco(sku, novoPreco) {
-  await banco.atualizar(sku, novoPreco);
-  await cache.delete(`preco:${sku}`);
+// ✅ or event-based invalidation, rather than relying on the TTL alone
+async function updatePrice(sku, newPrice) {
+  await db.update(sku, newPrice);
+  await cache.delete(`price:${sku}`);
 }
 ```
 
-Toda chave de cache precisa de dono: quem escreve o dado original é responsável por invalidar (ou publicar o evento que invalida). Cache sem dono vira dado stale silencioso.
+Every cache key needs an owner: whoever writes the underlying data is responsible
+for invalidating it, or for publishing the event that does. A key with no owner
+becomes silently stale data.
 
-## O que cachear (e o que não)
+## What to cache, and what not to
 
-- Cachear: leitura cara e repetida, dado que muda pouco, resultado determinístico para os mesmos parâmetros
-- Não cachear: dado por usuário sensível sem chave que isole o usuário, dado que muda a cada request, resultado que depende de estado externo não capturado na chave
+- Cache: expensive and repeated reads, data that changes rarely, results that are
+  deterministic for the same parameters.
+- Do not cache: per-user sensitive data without a key that isolates the user, data
+  that changes on every request, results depending on external state the key does
+  not capture.
 
 ```
-// ❌ chave sem isolamento por tenant/usuário — vaza dado entre contextos
-cache.set('pedidos-recentes', pedidos)
+// ❌ a key with no tenant or user isolation — leaks data across contexts
+cache.set('recent-orders', orders)
 
-// ✅ chave inclui todo parâmetro que muda o resultado
-cache.set(`pedidos-recentes:${tenantId}:${usuarioId}`, pedidos, { ttl: 30 })
+// ✅ the key carries every parameter that changes the result
+cache.set(`recent-orders:${tenantId}:${userId}`, orders, { ttl: 30 })
 ```
 
-## Cache HTTP (cliente e CDN)
+## HTTP caching (client and CDN)
 
-Cabeçalhos padrão, funcionam em qualquer stack:
+Standard headers, which work in any stack:
 
 ```
 Cache-Control: public, max-age=3600, stale-while-revalidate=60
 ETag: "a1b2c3"
 ```
 
-- `max-age`: por quanto tempo o cliente pode servir sem revalidar
-- `stale-while-revalidate`: serve o valor velho enquanto busca um novo em background — esconde a latência do miss do usuário
-- `ETag`/`If-None-Match`: revalidação condicional — servidor responde `304 Not Modified` sem reenviar o corpo se nada mudou
-- `private` vs `public`: `private` nunca deve passar por CDN/proxy compartilhado (dado por usuário)
+- `max-age`: how long the client may serve without revalidating
+- `stale-while-revalidate`: serves the old value while fetching a new one in the
+  background, hiding the miss latency from the user
+- `ETag`/`If-None-Match`: conditional revalidation — the server answers
+  `304 Not Modified` without resending the body when nothing changed
+- `private` vs `public`: `private` must never pass through a CDN or shared proxy,
+  because the data belongs to one user
 
 ```
-// ❌ dado por usuário com Cache-Control: public — CDN serve o cache de um usuário pra outro
+// ❌ per-user data marked public — the CDN serves one user's cache to another
 Cache-Control: public, max-age=3600
 
 // ✅
 Cache-Control: private, max-age=60
 ```
 
-## Efeitos colaterais a considerar
+## Side effects worth planning for
 
-- **Thundering herd / cache stampede**: TTL expira, N requisições simultâneas batem no banco ao mesmo tempo pra repopular a mesma chave — mitigar com lock/single-flight (só uma requisição recalcula, as outras esperam) ou TTL com jitter (não expira tudo no mesmo segundo)
-- **Cache warming**: dado crítico não deve depender do primeiro usuário pagar o miss — pré-popular no deploy/startup quando o custo do miss é alto
-- **Tamanho e eviction**: cache não é ilimitado; política de eviction (LRU, LFU) decide o que sai quando enche — cache mal dimensionado vira miss constante (churn)
+- **Thundering herd / cache stampede**: the TTL expires and N simultaneous requests
+  hit the database to repopulate the same key. Mitigate with a lock or single-flight
+  (one request recomputes, the others wait), or with jittered TTLs so keys do not
+  all expire in the same second.
+- **Cache warming**: critical data should not depend on the first user paying the
+  miss. Pre-populate on deploy or startup where the miss is expensive.
+- **Size and eviction**: a cache is not unlimited, and the eviction policy (LRU,
+  LFU) decides what leaves when it fills. An undersized cache becomes constant
+  churn.
 
 ## Checklist
 
-- [ ] Padrão escolhido (cache-aside/write-through/write-behind) combina com a tolerância a stale do dado
-- [ ] Toda chave de cache tem dono explícito responsável por invalidar
-- [ ] TTL compatível com a volatilidade real do dado, não um valor genérico copiado de outro lugar
-- [ ] Chave inclui todo parâmetro que muda o resultado (tenant, usuário, locale, versão)
-- [ ] Dado sensível/por usuário nunca marcado como `public` em CDN/proxy compartilhado
-- [ ] Estratégia contra cache stampede em chave de alto tráfego (lock, jitter, stale-while-revalidate)
-- [ ] Invalidação testada — não só o caminho de leitura, o de escrita/deleção também
+- [ ] The chosen pattern (cache-aside, write-through, write-behind) matches the data's tolerance for staleness
+- [ ] Every cache key has an explicit owner responsible for invalidating it
+- [ ] TTLs match real volatility rather than a generic value copied from elsewhere
+- [ ] Keys include every parameter that changes the result: tenant, user, locale, version
+- [ ] Sensitive or per-user data is never marked `public` on a shared CDN or proxy
+- [ ] High-traffic keys have a stampede strategy (lock, jitter, stale-while-revalidate)
+- [ ] Invalidation is tested — the write and delete paths, not only the read
 
-## Exemplos por stack
+## By stack
 
-**Redis (cache-aside, Node/qualquer runtime):**
+**Redis (cache-aside, any runtime):**
 ```ts
 async function getUser(id: string) {
   const cached = await redis.get(`user:${id}`);
@@ -161,7 +185,7 @@ async function getUser(id: string) {
 
 async function updateUser(id: string, data: Partial<User>) {
   await db.users.update(id, data);
-  await redis.del(`user:${id}`); // invalidação por evento
+  await redis.del(`user:${id}`); // event-based invalidation
 }
 ```
 
@@ -180,24 +204,24 @@ def update_product(sku, **fields):
     cache.delete(f"product:{sku}")
 ```
 
-**HTTP/CDN (independente de linguagem):**
+**HTTP/CDN (language-independent):**
 ```
 GET /api/catalog/sku-123
 Cache-Control: public, max-age=300, stale-while-revalidate=60
 ETag: "9f8b7a"
 
-// requisição seguinte
+// the next request
 If-None-Match: "9f8b7a"
-→ 304 Not Modified (sem corpo, sem custo de banda)
+→ 304 Not Modified (no body, no bandwidth)
 ```
 
 ## Anti-patterns
 
-- ❌ TTL genérico ("1 hora pra tudo") sem considerar a volatilidade real do dado
-- ❌ Cache sem dono — ninguém invalida quando o dado muda na origem
-- ❌ Chave sem isolamento por tenant/usuário/locale
-- ❌ `Cache-Control: public` em resposta com dado privado
-- ❌ Escrita que atualiza o banco e esquece de invalidar o cache (fica stale até o TTL)
-- ❌ Nenhuma proteção contra thundering herd em chave de alto tráfego
-- ❌ Cachear resultado não-determinístico ou dependente de estado não capturado na chave
-- ❌ Usar cache pra mascarar query lenta em vez de investigar a causa raiz
+- ❌ A generic TTL ("an hour for everything") that ignores real volatility
+- ❌ A cache key with no owner, so nothing invalidates it when the source changes
+- ❌ A key with no tenant, user or locale isolation
+- ❌ `Cache-Control: public` on a response carrying private data
+- ❌ A write that updates the database and forgets the cache, leaving it stale until the TTL
+- ❌ No stampede protection on a high-traffic key
+- ❌ Caching a non-deterministic result, or one depending on state the key does not capture
+- ❌ Using a cache to mask a slow query instead of finding the cause

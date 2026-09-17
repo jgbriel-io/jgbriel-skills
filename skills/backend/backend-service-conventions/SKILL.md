@@ -3,29 +3,31 @@ name: backend-service-conventions
 description: Framework-agnostic conventions for backend service structure — layering (controller/service/repository), dependency injection, error handling, module boundaries. Use when user asks about project structure, where to put business logic, how to organize a new module/feature, or how to avoid fat controllers/god services, regardless of language or framework.
 ---
 
-# Convenções de Serviço Backend
+# Backend Service Conventions
 
-Estrutura em camadas independe de framework. O que muda entre Nest/Django/Spring/Rails/.NET é só a sintaxe — o princípio é sempre o mesmo: cada camada tem uma responsabilidade e só conversa com a camada adjacente.
+Layered structure is framework-independent. Nest, Django, Spring, Rails and .NET
+differ only in syntax; the principle holds throughout: each layer has one
+responsibility and talks only to the layer next to it.
 
-## Camadas
+## Layers
 
 ```
-Request → Controller/Handler → Service → Repository/DAO → Banco
+Request → Controller/Handler → Service → Repository/DAO → Database
 ```
 
-| Camada | Responsabilidade | Não deve conter |
+| Layer | Responsibility | Must not contain |
 |---|---|---|
-| Controller/Handler | parse de request, validação de shape, status code, serialização de resposta | regra de negócio, SQL/query, chamada direta a outro serviço externo |
-| Service | regra de negócio, orquestração, transação | parsing de HTTP, detalhes de storage |
-| Repository/DAO | acesso a dados (query, ORM, ODM) | regra de negócio, validação de domínio |
+| Controller/Handler | Parsing the request, validating its shape, status codes, serialising the response | Business rules, queries, direct calls to another external service |
+| Service | Business rules, orchestration, transactions | HTTP parsing, storage details |
+| Repository/DAO | Data access: queries, ORM, ODM | Business rules, domain validation |
 
 ```
-// ❌ Controller com regra de negócio e acesso a dados
+// ❌ A controller holding both a business rule and data access
 handler(req):
   if req.body.amount > user.balance: raise Error
   db.query("UPDATE accounts SET balance = balance - ? WHERE id = ?", ...)
 
-// ✅ Controller delega, service decide, repository persiste
+// ✅ The controller delegates, the service decides, the repository persists
 handler(req):
   result = accountService.withdraw(req.user.id, req.body.amount)
   return 200(result)
@@ -36,21 +38,24 @@ service.withdraw(userId, amount):
   return accountRepository.debit(userId, amount)
 ```
 
-Teste rápido: se o controller tem `if` de regra de negócio, ou o service tem SQL cru, a camada errada.
+Quick test: if the controller holds a business `if`, or the service holds raw SQL,
+the code is in the wrong layer.
 
-## Injeção de dependência
+## Dependency injection
 
-Service recebe suas dependências (repository, client HTTP, logger) via construtor/parâmetro — nunca instancia nem importa singleton global dentro da lógica.
+A service receives its dependencies — repository, HTTP client, logger — through
+its constructor or parameters. It never instantiates them, and never imports a
+global singleton inside the logic.
 
 ```
-// ❌ Dependência hardcoded, impossível mockar em teste
+// ❌ Hardcoded dependency, impossible to mock in a test
 class OrderService:
   process(order):
-    repo = new PostgresOrderRepository()  // acoplado à implementação concreta
+    repo = new PostgresOrderRepository()  // coupled to a concrete implementation
     emailClient = new SendgridClient()
     ...
 
-// ✅ Dependência injetada por interface/abstração
+// ✅ Dependencies injected behind an abstraction
 class OrderService:
   constructor(orderRepository, emailClient):
     this.orderRepository = orderRepository
@@ -61,36 +66,46 @@ class OrderService:
     this.emailClient.send(order.customerEmail, ...)
 ```
 
-- Service depende de interface/abstração (`OrderRepository`), não de implementação concreta (`PostgresOrderRepository`) — troca de banco ou mock em teste não exige mudar o service.
-- Se o framework tem container de DI (Nest, Spring, .NET), registre a implementação lá; se não tem (Express puro, Flask), injeção manual por construtor já resolve.
-- Um service não deve construir outro service internamente — recebe pronto.
+- A service depends on an interface (`OrderRepository`), not on a concrete
+  implementation (`PostgresOrderRepository`), so swapping the database or mocking
+  it in a test does not touch the service.
+- Where the framework has a DI container (Nest, Spring, .NET), register the
+  implementation there. Where it does not (plain Express, Flask), manual
+  constructor injection is enough.
+- A service never constructs another service internally; it receives one ready.
 
-## Tratamento de erro
+## Error handling
 
-Erros de domínio são tipados e tratados numa boundary única, nunca ad-hoc em cada handler.
+Domain errors are typed and handled at a single boundary, never ad hoc in each
+handler.
 
 ```
-// ❌ Erro genérico, sem contexto, tratado inconsistente
-if not user: raise Exception("erro")
+// ❌ A generic error, no context, handled inconsistently
+if not user: raise Exception("error")
 
-// ✅ Erro de domínio tipado, com status/code mapeável
+// ✅ A typed domain error that maps to a status and a code
 class NotFoundError(DomainError):
   def __init__(self, resource): ...
 
 if not user: raise NotFoundError("user")
 ```
 
-- Camada de domínio lança erros de domínio (`NotFoundError`, `ValidationError`, `InsufficientFundsError`), nunca `Exception`/`Error` genérico.
-- Um middleware/filter/handler global traduz erro de domínio → status HTTP + payload de resposta. Nenhum controller individual faz `try/catch` pra montar resposta de erro.
-- Erro de infraestrutura (timeout de rede, conexão de banco caída) não vaza pro cliente com stacktrace — vira 500 genérico + log interno com detalhe.
-- Nunca engolir erro silenciosamente (`catch { }` vazio) — logar ou repropagar.
+- The domain layer raises domain errors (`NotFoundError`, `ValidationError`,
+  `InsufficientFundsError`), never a bare `Exception` or `Error`.
+- One global middleware, filter or handler translates a domain error into an HTTP
+  status and a response payload. No individual controller writes a `try/catch` to
+  assemble an error response.
+- An infrastructure error — a network timeout, a dropped database connection —
+  never reaches the client with a stack trace. It becomes a generic 500 plus an
+  internal log with the detail.
+- Never swallow an error silently. An empty `catch { }` either logs or re-raises.
 
-## Estrutura de módulo
+## Module structure
 
-Agrupar por feature/domínio, não por tipo técnico.
+Group by feature or domain, not by technical type.
 
 ```
-// ❌ Agrupado por tipo — acha tudo de "order" espalhado em 4 pastas
+// ❌ Grouped by type — everything about "order" is spread across four folders
 /controllers
   order_controller
   user_controller
@@ -100,7 +115,7 @@ Agrupar por feature/domínio, não por tipo técnico.
 /repositories
   order_repository
 
-// ✅ Agrupado por feature — módulo autocontido
+// ✅ Grouped by feature — a self-contained module
 /orders
   order_controller
   order_service
@@ -112,23 +127,26 @@ Agrupar por feature/domínio, não por tipo técnico.
   user_repository
 ```
 
-- Módulo expõe uma interface pública (controller + tipos exportados); o resto é implementação interna.
-- Módulo A não importa `internal`/repository de módulo B diretamente — comunicação entre módulos passa pelo service público (ou evento/fila).
-- Código compartilhado entre módulos vai para `shared`/`common`, não fica duplicado nem vira import cruzado.
+- A module exposes a public interface — its controller and exported types — and
+  everything else is internal implementation.
+- Module A never imports module B's internals or repository directly. Communication
+  between modules goes through the public service, or through an event or queue.
+- Code shared between modules moves to `shared`/`common` rather than being
+  duplicated or cross-imported.
 
 ## Checklist
 
-- [ ] Controller sem regra de negócio nem query direta
-- [ ] Service depende de abstração, recebe dependência via injeção
-- [ ] Nenhum service instancia outro service internamente
-- [ ] Erros de domínio tipados, tratados numa boundary central
-- [ ] Nenhum `catch`/`except` vazio ou que só faz `log` e segue como se nada tivesse acontecido
-- [ ] Módulo organizado por feature, não por tipo técnico
-- [ ] Sem import direto de repository de outro módulo
+- [ ] No business rule or direct query in a controller
+- [ ] Services depend on abstractions and receive them by injection
+- [ ] No service instantiates another service internally
+- [ ] Domain errors are typed and handled at one central boundary
+- [ ] No empty `catch`/`except`, and none that logs and then carries on as though nothing happened
+- [ ] Modules organised by feature, not by technical type
+- [ ] No direct import of another module's repository
 
-## Exemplos por stack
+## By stack
 
-**NestJS** — DI via decorators, injeção por construtor:
+**NestJS** — DI through decorators, injected in the constructor:
 ```ts
 @Injectable()
 export class OrderService {
@@ -144,7 +162,8 @@ export class OrderService {
 }
 ```
 
-**Django/FastAPI (Python)** — service como função/classe pura, repository como camada de ORM:
+**Django/FastAPI (Python)** — the service as a plain class, the repository as the
+ORM layer:
 ```python
 class OrderService:
     def __init__(self, repo: OrderRepository, email_client: EmailClient):
@@ -157,7 +176,8 @@ class OrderService:
         return self.repo.save(order)
 ```
 
-**Spring Boot (Java)** — DI via `@Autowired`/construtor, interface + implementação separadas:
+**Spring Boot (Java)** — DI through the constructor, interface and implementation
+kept apart:
 ```java
 @Service
 public class OrderService {
@@ -178,11 +198,11 @@ public class OrderService {
 
 ## Anti-patterns
 
-- ❌ Controller com SQL/query direto ou regra de negócio (`if` de domínio)
-- ❌ Service instanciando dependência concreta (`new PostgresRepository()`) em vez de receber por injeção
-- ❌ `catch`/`except` vazio ou que só loga e ignora
-- ❌ Erro genérico (`Exception`, `Error`) em vez de erro de domínio tipado
-- ❌ Módulo organizado por tipo técnico (`/controllers`, `/services`, `/repositories` na raiz) em vez de por feature
-- ❌ Import direto de repository/model interno de outro módulo
-- ❌ Service que constrói outro service internamente em vez de recebê-lo pronto
-- ❌ Regra de negócio duplicada em mais de uma camada
+- ❌ A controller holding a query or a domain `if`
+- ❌ A service instantiating a concrete dependency (`new PostgresRepository()`) instead of receiving it
+- ❌ An empty `catch`/`except`, or one that logs and ignores
+- ❌ A generic `Exception`/`Error` where a typed domain error belongs
+- ❌ Modules organised by technical type (`/controllers`, `/services`, `/repositories` at the root) rather than by feature
+- ❌ Importing another module's internal repository or model directly
+- ❌ A service constructing another service instead of receiving it
+- ❌ The same business rule duplicated across layers

@@ -5,71 +5,84 @@ description: Stack-agnostic rate limiting and throttling — token bucket vs sli
 
 # Rate Limiting
 
-Protege capacidade (evita sobrecarga) e protege contra abuso (brute-force, scraping, custo de terceiros). Os dois motivos pedem limites diferentes — não usar o mesmo número pra tudo.
+Rate limiting protects capacity (against overload) and protects against abuse
+(brute force, scraping, third-party cost). Those two motives call for different
+limits, so do not use one number for everything.
 
-## Algoritmos
+## Algorithms
 
-| Algoritmo | Como funciona | Burst | Custo memória | Quando usar |
+| Algorithm | How it works | Burst | Memory | When |
 |---|---|---|---|---|
-| Fixed window | Contador zera a cada N segundos | Permite 2x no limite na borda da janela | Baixo | Casos simples, limite aproximado é aceitável |
-| Sliding window (log ou counter) | Considera janela móvel, não reseta em bloco | Suave, sem pico na borda | Médio | Padrão recomendado para APIs públicas |
-| Token bucket | Bucket enche a taxa fixa, cada request consome 1 token | Absorve rajada até o tamanho do bucket | Baixo | Tráfego com rajada legítima (ex.: usuário fazendo upload em lote) |
-| Leaky bucket | Fila processada a taxa constante, excesso descartado/enfileirado | Suaviza saída, não absorve rajada de entrada | Baixo | Proteger downstream de taxa fixa (ex.: chamada a API de terceiro) |
+| Fixed window | A counter resets every N seconds | Allows 2× the limit across a window edge | Low | Simple cases where an approximate limit is fine |
+| Sliding window (log or counter) | Considers a moving window rather than resetting in blocks | Smooth, no edge spike | Medium | The recommended default for public APIs |
+| Token bucket | The bucket refills at a fixed rate; each request spends a token | Absorbs bursts up to the bucket size | Low | Traffic with legitimate bursts, such as a batch upload |
+| Leaky bucket | A queue drained at a constant rate, excess dropped or queued | Smooths output; does not absorb input bursts | Low | Protecting a fixed-rate downstream, like a third-party API |
 
 ```
-// ❌ Fixed window: 100 req/min zera às HH:MM:00
-// Cliente manda 100 no último segundo da janela + 100 no primeiro do próximo
-// = 200 requests em ~1s, dentro do "limite"
+// ❌ Fixed window: 100 req/min resetting at HH:MM:00
+// A client sends 100 in the window's last second and 100 in the next window's first
+// = 200 requests in about a second, "within the limit"
 
-// ✅ Sliding window ou token bucket: rajada na borda não escapa do limite real
+// ✅ Sliding window or token bucket: an edge burst does not escape the real limit
 ```
 
-Não existe algoritmo "melhor" — token bucket para tráfego com rajada esperada, sliding window para limite estrito por unidade de tempo, fixed window quando simplicidade importa mais que precisão.
+There is no best algorithm. Token bucket for traffic with expected bursts, sliding
+window for a strict limit per unit of time, fixed window when simplicity matters
+more than precision.
 
-## Onde aplicar
+## Where to apply it
 
 ```
 Client → CDN/WAF → API Gateway → Load Balancer → App (middleware) → Service/handler
            ↑              ↑                            ↑                  ↑
-        limite bruto   limite por API key        limite por rota      limite por ação
-        (DDoS, L3/L4)  (contrato de uso)         (custo do endpoint)  (regra de negócio)
+       coarse limit   per API key                per-route limit    per-action limit
+       (DDoS, L3/L4)  (usage contract)           (endpoint cost)    (business rule)
 ```
 
-- **Borda (gateway/CDN/WAF)**: primeira linha, barato, evita que tráfego malicioso chegue perto da aplicação
-- **Middleware da aplicação**: limite por rota, sensível ao custo real do endpoint (login, busca, upload custam diferente de um `GET /health`)
-- **Dentro do handler/use case**: regra de negócio específica (ex.: "3 tentativas de código OTP", "1 exportação por hora por conta") — não dá pra generalizar em middleware
-- Camadas não são excludentes: rate limit grosso na borda + fino por endpoint é o padrão em produção
+- **The edge (gateway, CDN, WAF)**: the first line, cheap, and it keeps malicious
+  traffic away from the application.
+- **Application middleware**: per-route limits, sensitive to the endpoint's real
+  cost. Login, search and upload cost differently from `GET /health`.
+- **Inside the handler or use case**: a specific business rule — three OTP
+  attempts, one export per hour per account — which cannot be generalised into
+  middleware.
+- The layers are not exclusive: a coarse limit at the edge plus a fine one per
+  endpoint is the production norm.
 
-## Onde o limite dói mais
+## Where limits matter most
 
-| Endpoint | Por quê | Limite típico |
+| Endpoint | Why | Typical limit |
 |---|---|---|
-| Login / autenticação | Alvo de brute-force e credential stuffing | Baixo, por IP + por conta |
-| Reset de senha / OTP | Token de uso único, mas endpoint gera custo (SMS/e-mail) | Muito baixo, por conta e por telefone/e-mail |
-| Busca / listagem com filtro livre | Query cara, fácil de gerar carga sem intenção maliciosa | Médio, por usuário |
-| Endpoint que chama serviço de terceiro pago | Custo direto por chamada | Baixo, com fila/backoff em vez de rejeitar |
-| Webhook de entrada | Terceiro pode reenviar em loop se responder erro | Médio, com deduplicação por idempotency key |
-| Escrita em massa / import | Uma requisição gera N operações internas | Baixo, ou limite por "custo" e não por request |
+| Login / authentication | The target of brute force and credential stuffing | Low, per IP and per account |
+| Password reset / OTP | Single-use tokens, but the endpoint costs money (SMS, email) | Very low, per account and per phone or email |
+| Search or listing with free-form filters | Expensive queries, easy to overload without malice | Medium, per user |
+| An endpoint calling a paid third-party service | Direct cost per call | Low, with a queue and backoff rather than rejection |
+| Inbound webhooks | The sender may loop if you answer with an error | Medium, with deduplication by idempotency key |
+| Bulk writes and imports | One request produces N internal operations | Low, or limited by "cost" rather than by request |
 
-## Chave de limitação
+## Keying
 
 ```
-// ❌ Limitar só por IP
-// NAT/proxy corporativo, VPN e mobile carrier NAT colocam milhares de usuários atrás de um IP
+// ❌ Limiting by IP alone
+// Corporate NAT, VPNs and mobile carrier NAT put thousands of users behind one IP
 if (requestsByIp[ip] > limit) return 429;
 
-// ✅ Combinar chaves conforme o contexto de autenticação
+// ✅ Combine keys according to the authentication context
 const key = user ? `user:${user.id}` : `ip:${ip}`;
-// endpoint sensível: chave composta (ex.: login = ip + email tentado)
+// a sensitive endpoint: a composite key, e.g. login = ip + the email attempted
 const loginKey = `login:${ip}:${email}`;
 ```
 
-- Autenticado: por `user_id` ou API key — mais justo, não pune vizinhos de IP/NAT
-- Anônimo: por IP, aceitando o trade-off de falso positivo em NAT compartilhado
-- Endpoint sensível a abuso direcionado (login, OTP): chave composta (IP + identificador alvo), pra pegar tanto "um IP atacando várias contas" quanto "várias origens atacando uma conta"
-- Multi-tenant: limite sempre escopado por tenant além de por usuário — um tenant não deve conseguir esgotar a cota de outro
+- Authenticated: by `user_id` or API key. Fairer, and it does not punish neighbours
+  behind a NAT.
+- Anonymous: by IP, accepting false positives on shared NAT.
+- Endpoints exposed to targeted abuse (login, OTP): a composite key of IP plus the
+  target identifier, which catches both "one IP attacking many accounts" and "many
+  origins attacking one account".
+- Multi-tenant: always scope the limit by tenant as well as by user, so one tenant
+  cannot exhaust another's quota.
 
-## Resposta ao exceder o limite
+## The response when a limit is hit
 
 ```
 HTTP/1.1 429 Too Many Requests
@@ -83,37 +96,47 @@ X-RateLimit-Reset: 1752600000
 {
   "error": {
     "code": "RATE_LIMITED",
-    "message": "Muitas requisições, tente novamente em instantes"
+    "message": "Too many requests, try again shortly"
   }
 }
 ```
 
-- `Retry-After` sempre presente — cliente bem-comportado usa isso pra backoff, não fica em retry imediato
-- Headers `X-RateLimit-*` (ou o padrão emergente `RateLimit-*` do IETF) em toda resposta, não só na que estourou — permite ao cliente se auto-regular antes de bater no limite
-- Nunca `200` com corpo indicando erro, nunca `403` (isso é autorização, não throttling)
+- `Retry-After` is always present. A well-behaved client uses it to back off
+  instead of retrying immediately.
+- `X-RateLimit-*` headers (or the emerging IETF `RateLimit-*`) on every response,
+  not only the one that failed, so a client can self-regulate before hitting the
+  limit.
+- Never a `200` with an error in the body, and never `403` — that is authorization,
+  not throttling.
 
-## Distribuído vs. em memória
+## Distributed vs. in-memory
 
 ```
-// ❌ Contador em memória do processo
-// Com N réplicas atrás de um load balancer, o limite real vira N × limite configurado
-let counter = 0; // por instância
+// ❌ A counter in process memory
+// With N replicas behind a load balancer, the real limit becomes N × the configured one
+let counter = 0; // per instance
 
-// ✅ Store compartilhado (Redis, Memcached) — contador único entre réplicas
+// ✅ A shared store (Redis, Memcached) — one counter across replicas
 await redis.incr(`rl:${key}`);
 await redis.expire(`rl:${key}`, windowSeconds);
 ```
 
-- Em memória só serve para instância única ou como camada extra local (fail-fast antes de bater no store compartilhado)
-- Store compartilhado (Redis é o padrão de fato) adiciona latência de rede — usar pipeline/Lua script pra manter a checagem atômica (incrementar + checar limite em uma operação, evita race condition)
-- Se o store compartilhado cair: decidir explicitamente entre "fail open" (deixa passar, prioriza disponibilidade) e "fail closed" (bloqueia, prioriza proteção) — depende do endpoint
+- In-memory only serves a single instance, or works as an extra local layer that
+  fails fast before reaching the shared store.
+- A shared store (Redis in practice) adds network latency. Use a pipeline or a Lua
+  script to keep the check atomic — increment and evaluate in one operation, which
+  removes the race.
+- If the shared store goes down, decide explicitly between failing open
+  (prioritising availability) and failing closed (prioritising protection). The
+  right answer depends on the endpoint.
 
-## Lado do cliente: backoff
+## The client side: backoff
 
-Rate limit não é só responsabilidade do servidor — cliente/SDK bem escrito respeita o sinal:
+Rate limiting is not only the server's responsibility; a well-written client or
+SDK respects the signal:
 
 ```
-// ✅ Backoff exponencial com jitter, respeitando Retry-After quando presente
+// ✅ Exponential backoff with jitter, honouring Retry-After when present
 async function callWithBackoff(fn, attempt = 0) {
   try {
     return await fn();
@@ -128,22 +151,23 @@ async function callWithBackoff(fn, attempt = 0) {
 }
 ```
 
-Sem jitter, múltiplos clientes que levaram 429 no mesmo instante retentam juntos e recriam o pico (thundering herd).
+Without jitter, every client that received a 429 at the same instant retries
+together and rebuilds the spike.
 
 ## Checklist
 
-- [ ] Algoritmo escolhido de propósito (token bucket para rajada, sliding window para limite estrito) — não é o default da lib sem pensar
-- [ ] Limite aplicado em pelo menos duas camadas: borda (grosso) + aplicação (por rota/ação)
-- [ ] Endpoints sensíveis (login, OTP, reset de senha) com limite próprio, mais baixo
-- [ ] Chave de limitação por usuário/API key quando autenticado, não só por IP
-- [ ] Multi-tenant: limite escopado por tenant, não só por usuário global
-- [ ] Resposta 429 inclui `Retry-After` e headers de limite/restante/reset
-- [ ] Contador em store compartilhado (não em memória) quando há múltiplas réplicas
-- [ ] Checagem de incremento + limite é atômica (evita race condition sob concorrência)
-- [ ] Comportamento definido para quando o store de rate limit cai (fail open vs. fail closed)
-- [ ] Cliente/SDK interno usa backoff exponencial com jitter, não retry imediato em loop
+- [ ] The algorithm was chosen deliberately (token bucket for bursts, sliding window for a strict limit), not taken as the library's default
+- [ ] Limits applied at two layers at least: coarse at the edge, fine in the application per route or action
+- [ ] Sensitive endpoints (login, OTP, password reset) carry their own, lower limit
+- [ ] Keying by user or API key when authenticated, not by IP alone
+- [ ] Multi-tenant: limits scoped by tenant, not only by global user
+- [ ] The 429 response includes `Retry-After` and limit, remaining and reset headers
+- [ ] The counter lives in a shared store rather than process memory whenever there are multiple replicas
+- [ ] Increment and check are atomic, so concurrency cannot race past the limit
+- [ ] Defined behaviour when the rate-limit store is down: fail open or fail closed
+- [ ] Internal clients and SDKs use exponential backoff with jitter rather than immediate retries
 
-## Exemplos por stack
+## By stack
 
 **NestJS (`@nestjs/throttler`, token bucket):**
 ```ts
@@ -154,7 +178,7 @@ login(@Body() dto: LoginDto) {
 }
 ```
 
-**Nginx (fixed/leaky bucket na borda, antes da aplicação):**
+**Nginx (leaky bucket at the edge, before the application):**
 ```nginx
 limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;
 
@@ -164,7 +188,7 @@ location /api/login {
 }
 ```
 
-**Go (`golang.org/x/time/rate`, token bucket em memória por chave):**
+**Go (`golang.org/x/time/rate`, an in-memory token bucket per key):**
 ```go
 limiter := rate.NewLimiter(rate.Every(time.Minute/5), 3) // 5 req/min, burst 3
 if !limiter.Allow() {
@@ -174,10 +198,10 @@ if !limiter.Allow() {
 }
 ```
 
-**Redis (sliding window genérico, qualquer linguagem via script Lua/EVALSHA):**
+**Redis (a generic sliding window, any language, through a Lua script):**
 ```
-// ZADD + ZREMRANGEBYSCORE + ZCARD em uma transação/script:
-// remove timestamps fora da janela, conta os que restaram, decide permitir ou não
+// ZADD + ZREMRANGEBYSCORE + ZCARD in one transaction or script:
+// drop timestamps outside the window, count what remains, decide whether to allow
 ZADD rl:user:42 <now> <now>-<random>
 ZREMRANGEBYSCORE rl:user:42 -inf (<now> - window_ms)
 ZCARD rl:user:42
@@ -185,12 +209,12 @@ ZCARD rl:user:42
 
 ## Anti-patterns
 
-- ❌ Um único limite global pra todos os endpoints, ignorando custo real de cada um
-- ❌ Limitar só por IP em API autenticada (pune usuários atrás do mesmo NAT/proxy)
-- ❌ Fixed window sem considerar o efeito de rajada na borda da janela
-- ❌ Contador em memória de processo com múltiplas réplicas atrás de load balancer
-- ❌ 429 sem `Retry-After` — cliente não sabe quanto esperar e retenta às cegas
-- ❌ Incremento e checagem do contador como operações separadas (race condition sob concorrência)
-- ❌ Mesmo limite para login e para `GET /health`
-- ❌ Cliente interno sem backoff, martelando retry imediato após 429
-- ❌ Rate limit tratado como controle de acesso (isso é autorização — 403, não 429)
+- ❌ One global limit for every endpoint, ignoring what each actually costs
+- ❌ Limiting by IP alone on an authenticated API, punishing users behind one NAT
+- ❌ Fixed window with no thought for the burst at a window edge
+- ❌ An in-process counter with several replicas behind a load balancer
+- ❌ A 429 with no `Retry-After`, leaving the client to retry blindly
+- ❌ Increment and check as separate operations, racing under concurrency
+- ❌ The same limit for login and for `GET /health`
+- ❌ An internal client hammering immediate retries after a 429
+- ❌ Treating rate limiting as access control — that is authorization, and it is 403, not 429

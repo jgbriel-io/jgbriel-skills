@@ -3,102 +3,116 @@ name: input-validation
 description: Validates untrusted input at every system boundary — API requests, queue messages, uploads, CLI args — via schema definition, type coercion and structured error reporting, independent of language or framework. Use when user asks about input validation, request/DTO validation, payload schemas, sanitization, or mentions Zod, class-validator, Pydantic, Bean Validation, FluentValidation.
 ---
 
-# Input Validation — Validação na Borda
+# Input Validation
 
-Esta skill cobre a borda do servidor: request, mensagem de fila, upload, webhook,
-arg de CLI. A validação de formulário no client, com máscara de CPF/CNPJ/CEP e UX
-de erro por campo, é `forms-validation` — e as duas compartilham o mesmo schema
-de propósito, porque duas definições de "válido" divergem na primeira mudança.
+This skill covers the server boundary: requests, queue messages, uploads,
+webhooks, CLI arguments. Client-side form validation, with CPF/CNPJ/CEP masks and
+per-field error UX, is `forms-validation` — and the two deliberately share one
+schema, because two definitions of "valid" diverge on the first change.
 
-## Princípio
+## Principle
 
-Nunca confiar em payload externo. Todo dado que entra por uma borda (request HTTP, mensagem de fila, upload, arg de CLI, webhook) é hostil até provado o contrário — mesmo vindo de um client "seu".
+Never trust an external payload. Anything arriving at a boundary — an HTTP
+request, a queue message, an upload, a CLI argument, a webhook — is hostile until
+proven otherwise, including when it comes from a client you wrote.
 
 ```
-// ❌ Confiar no tipo declarado no client
+// ❌ Trusting the type the client declared
 function createOrder(body) {
   db.insert({ amount: body.amount, userId: body.userId });
 }
 
-// ✅ Validar shape, tipo e invariantes antes de qualquer lógica
+// ✅ Validate shape, type and invariants before any logic
 function createOrder(body) {
-  const input = OrderSchema.parse(body); // lança se inválido
-  db.insert({ amount: input.amount, userId: currentUser.id }); // userId nunca vem do payload
+  const input = OrderSchema.parse(body); // throws when invalid
+  db.insert({ amount: input.amount, userId: currentUser.id }); // userId never comes from the payload
 }
 ```
 
-## Onde validar
+## Where validation happens
 
-Validação acontece na borda, não espalhada pela lógica de negócio:
+At the boundary, not scattered through the business logic:
 
-| Camada | Responsabilidade |
+| Layer | Responsibility |
 |---|---|
-| Borda (controller/handler) | Shape, tipo, formato, obrigatoriedade |
-| Domínio/serviço | Invariantes de negócio (regra que depende de estado) |
-| Banco | Constraint final (NOT NULL, CHECK, FK) — rede de segurança, não validação primária |
+| Boundary (controller/handler) | Shape, type, format, required fields |
+| Domain/service | Business invariants — rules that depend on state |
+| Database | Final constraints (NOT NULL, CHECK, FK): a safety net, not the primary validation |
 
-Múltiplas bordas exigem múltiplas validações: o mesmo tipo de dado que entra por API REST, worker assíncrono e importação de CSV precisa ser validado nos três pontos de entrada — validar só na API não protege o worker que consome a fila.
+Several boundaries mean several validations. The same data arriving through a REST
+API, an async worker and a CSV import must be validated at all three: validating
+only the API does not protect the worker draining the queue.
 
-## O que validar
+## What to validate
 
-- Presença e tipo de cada campo — não confiar em coerção implícita da linguagem
-- Formato (email, UUID, data, enum) usando allowlist de valores aceitos, nunca denylist
-- Limites: tamanho de string, range numérico, tamanho de array/payload
-- Origem de campos sensíveis (`id` de tenant/usuário, `role`, `status`) — nunca aceitar do client quando o valor correto já é conhecido pelo server (sessão, token)
-- Tipo de arquivo/upload: extensão E magic bytes, nunca só o `Content-Type` declarado
-- Tamanho e profundidade do payload — proteção contra DoS de JSON gigante ou profundamente aninhado
+- The presence and type of each field. Do not rely on the language's implicit
+  coercion
+- Format (email, UUID, date, enum) through an allowlist of accepted values, never a
+  denylist
+- Limits: string length, numeric range, array and payload size
+- The origin of sensitive fields (`tenantId`, `userId`, `role`, `status`) — never
+  accept them from the client when the server already knows the right value from
+  the session or token
+- File uploads: extension AND magic bytes, never the declared `Content-Type` alone
+- Payload size and nesting depth, as protection against a huge or deeply nested
+  JSON DoS
 
-## Como reportar erro
+## Reporting errors
 
 ```
-// ❌ Erro genérico, sem dizer o que falhou
+// ❌ A generic error that does not say what failed
 throw new Error('invalid input');
 
-// ✅ Erro estruturado por campo, sem vazar detalhe interno
+// ✅ Structured per field, leaking no internals
 {
   "error": "validation_failed",
   "fields": [
-    { "path": "email", "message": "formato inválido" },
-    { "path": "amount", "message": "deve ser maior que 0" }
+    { "path": "email", "message": "invalid format" },
+    { "path": "amount", "message": "must be greater than 0" }
   ]
 }
 ```
 
-- Status 400/422 para erro de validação — nunca 500
-- Resposta ao client é sobre o campo, nunca expõe stack trace, query SQL ou path de arquivo interno
-- Log interno pode ter mais detalhe que a resposta ao client
+- Status 400 or 422 for validation errors, never 500
+- The client response is about the field, and never carries a stack trace, SQL or
+  an internal file path
+- Internal logs may hold more detail than the response
 
-## Sanitização vs validação
+## Sanitisation vs validation
 
-Operações diferentes, não confundir:
+Two different operations, and conflating them is a security bug:
 
-- **Validação** rejeita o dado se ele não passa na regra (schema, tipo, range)
-- **Sanitização** transforma o dado (trim, escape de HTML, normalização de unicode) — sempre depois da validação, nunca no lugar dela
+- **Validation** rejects data that does not satisfy a rule — schema, type, range.
+- **Sanitisation** transforms data (trim, HTML escaping, unicode normalisation).
+  It happens after validation, never instead of it.
 
 ```
-// ❌ Sanitizar como se fosse suficiente
-const clean = input.replace(/<script>/gi, ''); // bypassa com <scr<script>ipt>
+// ❌ Sanitising as though it were enough
+const clean = input.replace(/<script>/gi, ''); // bypassed by <scr<script>ipt>
 
-// ✅ Valida shape/tipo primeiro, sanitiza o que for exibido depois
-const input = CommentSchema.parse(body); // valida
-const safe = escapeHtml(input.text);     // sanitiza pra exibição
+// ✅ Validate shape and type first, sanitise what will be displayed
+const input = CommentSchema.parse(body); // validate
+const safe = escapeHtml(input.text);     // sanitise for display
 ```
 
-## Coerção de tipo
+## Type coercion
 
-Bordas como query string e form-data chegam sempre como string. Coerção implícita (`"0" == false`, `Number("abc")` virando `NaN` silencioso) é fonte comum de bug e de bypass de validação. Preferir schema com coerção explícita que falha em valor fora do esperado, em vez de propagar `any`/`unknown` adiante.
+Boundaries like query strings and form data always arrive as strings. Implicit
+coercion — `"0" == false`, `Number("abc")` silently becoming `NaN` — is a common
+source of bugs and of validation bypass. Prefer a schema with explicit coercion
+that fails on unexpected values, rather than propagating `any`/`unknown` inward.
 
 ## Checklist
 
-- [ ] Todo endpoint/handler que recebe payload externo tem schema de validação antes da lógica de negócio
-- [ ] Campos de identidade (`userId`, `tenantId`, `role`) nunca vêm do payload — vêm de sessão/token
-- [ ] Erro de validação retorna 400/422 com detalhe por campo, sem stack trace
-- [ ] Upload de arquivo valida tipo real (magic bytes), não só extensão/Content-Type
-- [ ] Limite de tamanho de payload e profundidade de estrutura aninhada
-- [ ] Toda borda de entrada (API, fila, CLI, import, webhook) tem validação própria — não depende da validação de outra camada
-- [ ] Sanitização (escape/normalização) acontece além da validação, não no lugar dela
+- [ ] Every endpoint or handler receiving an external payload validates against a schema before any business logic
+- [ ] Identity fields (`userId`, `tenantId`, `role`) never come from the payload; they come from the session or token
+- [ ] Validation errors return 400/422 with per-field detail and no stack trace
+- [ ] File uploads validate the real type (magic bytes), not just the extension or `Content-Type`
+- [ ] Payload size and nesting depth are bounded
+- [ ] Every input boundary — API, queue, CLI, import, webhook — validates on its own, rather than relying on another layer
+- [ ] Sanitisation (escaping, normalisation) happens in addition to validation, not in its place
 
-## Exemplos por stack
+## By stack
 
 **Zod (Node/TS)**
 ```ts
@@ -106,7 +120,7 @@ const OrderSchema = z.object({
   amount: z.number().positive(),
   currency: z.enum(['BRL', 'USD']),
 });
-const input = OrderSchema.parse(req.body); // ZodError -> handler mapeia pra 400
+const input = OrderSchema.parse(req.body); // ZodError -> the handler maps it to 400
 ```
 
 **Pydantic (Python)**
@@ -124,7 +138,7 @@ public class OrderDto {
     @Positive private BigDecimal amount;
     @Pattern(regexp = "BRL|USD") private String currency;
 }
-// @Valid no controller dispara MethodArgumentNotValidException -> 400
+// @Valid on the controller raises MethodArgumentNotValidException -> 400
 ```
 
 **FluentValidation (.NET)**
@@ -139,10 +153,10 @@ public class OrderValidator : AbstractValidator<OrderDto> {
 
 ## Anti-patterns
 
-- ❌ Validar só no frontend e confiar que o request chega limpo no backend
-- ❌ Aceitar `userId`/`tenantId`/`role` vindo do payload em vez da sessão autenticada
-- ❌ Sanitizar (escape/regex) como substituto de validação de schema
-- ❌ Erro de validação genérico sem indicar qual campo falhou
-- ❌ Confiar em `Content-Type`/extensão declarada para validar tipo de arquivo
-- ❌ Validar só na borda mais visível (API) e ignorar fila, import, webhook
-- ❌ Payload sem limite de tamanho/profundidade
+- ❌ Validating only in the frontend and trusting that the request arrives clean
+- ❌ Accepting `userId`, `tenantId` or `role` from the payload instead of the authenticated session
+- ❌ Sanitising (escaping, regex) as a substitute for schema validation
+- ❌ A generic validation error that does not name the failing field
+- ❌ Trusting a declared `Content-Type` or file extension to determine a file's type
+- ❌ Validating only the most visible boundary (the API) and ignoring queues, imports and webhooks
+- ❌ A payload with no size or depth limit
