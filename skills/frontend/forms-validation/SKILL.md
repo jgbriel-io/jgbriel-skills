@@ -9,6 +9,8 @@ Conceito agnóstico de framework de UI: schema único de validação, reaproveit
 
 ## Princípio: schema é fonte única de verdade
 
+Erro que não pertence a um campo — falha de rede, 500, permissão negada na tela inteira — é `error-ux`. Aqui é o que o usuário digitou.
+
 O client valida para dar feedback rápido (UX). O server valida porque nunca confia no client (segurança) — ver skill `input-validation`. As duas validações não podem ser regras escritas duas vezes: divergem com o tempo e um dos lados fica desatualizado.
 
 ```
