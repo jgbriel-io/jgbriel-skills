@@ -1,74 +1,76 @@
 ---
 name: tcc-rascunho
-description: Transforma fragmentos brutos em seção formal de TCC, parágrafo a parágrafo, aplicando normas ABNT/FEPI, voz impessoal e citações. Use quando o usuário já tem matéria-prima acumulada e diz "vamos escrever a seção X do capítulo Y", "transformar esses fragmentos em texto", "rascunhar capítulo do TCC". A varredura final é tcc-revisao-impessoal.
+description: Turns raw fragments into a formal TCC section, paragraph by paragraph, applying ABNT/FEPI norms, impersonal voice and citations. Use when the user already has material accumulated and says "vamos escrever a seção X do capítulo Y", "transformar esses fragmentos em texto", "rascunhar capítulo do TCC". The final sweep is tcc-revisao-impessoal. The chapter text is written in Brazilian Portuguese.
 allowed-tools: Read, Write, Edit, Glob
 ---
 
 # TCC Rascunho
 
-Sessão de moldagem que pega um arquivo de fragmentos brutos e produz seção de capítulo do TCC seguindo normas ABNT/FEPI. **Parágrafo por parágrafo**, com argumento de formato a cada bloco.
+A shaping session that takes a file of raw fragments and produces a TCC chapter section under ABNT/FEPI norms. **Paragraph by paragraph**, arguing the format of each block.
 
-Pré-requisito: arquivo de fragmentos existir (saída de `tcc-fragmentos`) ou usuário ter notas próprias em qualquer formato.
+Prerequisite: a fragments file exists (the output of `tcc-fragmentos`) or the user has their own notes in any format.
 
-## Quando usar
+Talk to the user in Portuguese; the chapter text is always Brazilian Portuguese.
 
-- Usuário tem `docs/tcc/_fragmentos/cap{N}-fragmentos.md` cheio e quer começar a escrever.
-- Usuário tem notas soltas em qualquer formato e quer transformar em texto formal.
-- Usuário diz "vamos rascunhar a seção X.Y do capítulo X".
-- Capítulo está em rascunho parcial e usuário quer continuar.
+## When to use
 
-## Quando NÃO usar
+- The user has `docs/tcc/_fragmentos/cap{N}-fragmentos.md` full and wants to start writing.
+- The user has loose notes in any format and wants them turned into formal text.
+- The user says "vamos rascunhar a seção X.Y do capítulo X".
+- The chapter is partially drafted and the user wants to continue.
 
-- Capturar matéria-prima inicial → use `tcc-fragmentos`.
-- Revisão de voz/clichês em capítulo pronto → use `tcc-revisao-impessoal`.
-- Reescrita pontual de parágrafo já existente → editar direto, sem loop.
-- Aplicar formatação ABNT a documento já concluído → `tcc-writing` do projeto, se existir; senão, o modelo oficial da FEPI.
+## When NOT to use
 
-## Normas obrigatórias (não-negociáveis)
+- Capturing the initial raw material → use `tcc-fragmentos`.
+- Reviewing voice and clichés in a finished chapter → use `tcc-revisao-impessoal`.
+- One-off rewrite of an existing paragraph → edit directly, no loop.
+- Applying ABNT formatting to a finished document → the project's `tcc-writing`, if it exists; otherwise FEPI's official template.
 
-As normas completas ficam em `tcc-writing`, skill **local do projeto SyncClass** —
-não faz parte desta frota e pode não estar disponível na sessão. Procure por ela
-em `.claude/skills/` do projeto antes de começar. Se não achar, diga isso e siga
-pelas regras abaixo, que são as que importam ao rascunhar; qualquer norma além
-delas se pergunta ao usuário em vez de se inventar.
+## Mandatory norms (non-negotiable)
 
-- **Voz impessoal absoluta** — voz passiva ou terceira pessoa do singular. Nunca "eu", "nós", "implementei", "fizemos".
-- **Português brasileiro** — sempre.
-- **Citações ABNT** — direta curta entre aspas no corpo + `(AUTOR, ano, p. X)`. Direta longa (>3 linhas) com recuo 4cm, fonte 10, sem aspas, `(AUTOR, ano, p. X)` no final. Indireta com paráfrase + `(AUTOR, ano)`.
-- **Figuras/tabelas** — citadas no texto **antes** de aparecerem. Legenda acima ("Figura X – Título"), fonte abaixo ("Fonte: O autor (2026).").
-- **Glossário técnico** — primeira ocorrência de termo técnico no capítulo é explicada brevemente.
-- **Sem clichês** — "é importante", "é crucial", "atualmente", "nos dias de hoje".
+The full norms live in `tcc-writing`, a skill **local to the SyncClass project** —
+it is not part of this fleet and may not be available in the session. Look for it
+under the project's `.claude/skills/` before starting. If it is not there, say so
+and follow the rules below, which are the ones that matter while drafting; any
+norm beyond them is asked of the user rather than invented.
 
-Detalhes completos, quando a skill do projeto estiver disponível: `tcc-writing`.
+- **Absolute impersonal voice** — passive voice or third person singular. Never "eu", "nós", "implementei", "fizemos".
+- **Brazilian Portuguese** — always.
+- **ABNT citations** — short direct quote in quotation marks inline + `(AUTOR, ano, p. X)`. Long direct quote (>3 lines) indented 4cm, font 10, no quotation marks, `(AUTOR, ano, p. X)` at the end. Indirect with paraphrase + `(AUTOR, ano)`.
+- **Figures and tables** — cited in the text **before** they appear. Caption above ("Figura X – Título"), source below ("Fonte: O autor (2026).").
+- **Technical glossary** — the first occurrence of a technical term in the chapter gets a brief explanation.
+- **No clichés** — "é importante", "é crucial", "atualmente", "nos dias de hoje".
 
-## Processo
+Full detail, when the project skill is available: `tcc-writing`.
 
-### 1. Ler a pilha de fragmentos
+## Process
 
-Ler o arquivo de fragmentos **do início ao fim** antes de qualquer escrita. Formar mapa mental:
-- Que afirmações principais aparecem?
-- Que citações já estão coletadas?
-- Que decisões técnicas precisam de justificativa formal?
-- Que lacunas existem (afirmação sem suporte, decisão sem alternativas comparadas)?
+### 1. Read the fragment pile
 
-Se há lacunas óbvias, **nomeá-las** ao usuário antes de começar: "Faltam citações de apoio para a afirmação sobre Kanban — quer adicionar, ou cortamos essa parte?"
+Read the fragments file **end to end** before writing anything. Build the mental map:
+- Which main claims show up?
+- Which citations are already collected?
+- Which technical decisions still need a formal justification?
+- Which gaps exist (a claim without support, a decision with no alternatives compared)?
 
-### 2. Localizar arquivo do capítulo
+If there are obvious gaps, **name them** to the user before starting: "Faltam citações de apoio para a afirmação sobre Kanban — quer adicionar, ou cortamos essa parte?"
 
-Padrão SyncClass: `docs/tcc/cap{N}-{slug}.md`.
+### 2. Locate the chapter file
 
-Se a seção que será escrita ainda não existe no arquivo, criar o heading correto:
+SyncClass convention: `docs/tcc/cap{N}-{slug}.md`.
+
+If the section to be written is not in the file yet, create the right heading:
 ```markdown
 ## N.X Título da Seção
 ```
 
-Sem pontuação ao fim de títulos (exceto interrogação).
+No punctuation at the end of titles (except a question mark).
 
-### 3. Propor 2–3 aberturas candidatas
+### 3. Propose 2–3 candidate openings
 
-Para a seção, propor **2 ou 3 parágrafos de abertura** diferentes. Cada um implicando ângulo/tese distinta. Mostrar **todos** ao usuário antes de escrever no arquivo.
+For the section, propose **2 or 3 different opening paragraphs**. Each implying a distinct angle or thesis. Show **all of them** to the user before writing to the file.
 
-**Exemplo (Capítulo 3 — Metodologia, seção 3.1):**
+**Example (Capítulo 3 — Metodologia, seção 3.1):**
 
 > **Opção A** (contextualização ampla):
 > "A escolha metodológica em projetos de desenvolvimento de software fundamenta-se em critérios que extrapolam preferências técnicas individuais, abrangendo a natureza do problema investigado, o grau de participação do pesquisador e a flexibilidade exigida ao longo da execução. No presente trabalho, adotou-se a Pesquisa-Ação..."
@@ -79,61 +81,61 @@ Para a seção, propor **2 ou 3 parágrafos de abertura** diferentes. Cada um im
 > **Opção C** (citação como abertura):
 > "Conforme define Thiollent (2011, p. 14), 'a pesquisa-ação é um tipo de pesquisa social com base empírica que é concebida e realizada em estreita associação com uma ação'. Esta caracterização sintetiza a postura metodológica adotada no desenvolvimento do projeto SyncClass..."
 
-Aguardar usuário escolher (ou compor híbrida).
+Wait for the user to choose (or to compose a hybrid).
 
-### 4. Escrever **apenas** a abertura escolhida
+### 4. Write **only** the chosen opening
 
-Anexar ao arquivo do capítulo. Não escrever o próximo parágrafo.
+Append it to the chapter file. Do not write the next paragraph.
 
-### 5. Argumentar o próximo bloco
+### 5. Argue the next block
 
-Perguntar: "Dado este parágrafo, o que o leitor precisa ler em seguida?"
+Ask: "Dado este parágrafo, o que o leitor precisa ler em seguida?"
 
-Puxar fragmento relevante da pilha. Argumentar o **formato**:
+Pull the relevant fragment from the pile. Argue the **format**:
 
-#### Decisões de formato a tomar a cada bloco
+#### Format decisions to make at every block
 
-**Prosa vs. lista**
-- Prosa carrega argumento. Lista carrega itens paralelos.
-- Se itens são *verdadeiramente* paralelos (mesma estrutura sintática, mesma natureza), lista. Senão, prosa com conectivos.
-- Listas em TCC formal preferencialmente com hífen ou bullet padrão, ou enumeração `(i)`, `(ii)`, `(iii)` no corpo do parágrafo.
+**Prose vs. list**
+- Prose carries an argument. A list carries parallel items.
+- If the items are *truly* parallel (same syntactic structure, same nature), list. Otherwise, prose with connectives.
+- Lists in a formal TCC preferably use a hyphen or the default bullet, or `(i)`, `(ii)`, `(iii)` inline in the paragraph.
 
-**Tabela vs. estrutura repetida em prosa**
-- Mesma forma se repete 3+ vezes com mesmos campos? Tabela.
-- Senão, prosa com leads em negrito.
-- Toda tabela: legenda acima, fonte abaixo, citação no texto **antes** de aparecer.
+**Table vs. repeated structure in prose**
+- Same shape repeating 3+ times with the same fields? Table.
+- Otherwise, prose with bold leads.
+- Every table: caption above, source below, cited in the text **before** it appears.
 
-**Figura vs. descrição textual**
-- Figura quando a estrutura visual É o ponto (DER, diagrama UML, fluxo, arquitetura).
-- Prosa quando o ponto é argumento sobre algo.
-- Toda figura: legenda acima, fonte abaixo, citação no texto **antes** de aparecer.
+**Figure vs. textual description**
+- A figure when the visual structure IS the point (DER, UML diagram, flow, architecture).
+- Prose when the point is an argument about something.
+- Every figure: caption above, source below, cited in the text **before** it appears.
 
-**Citação direta vs. paráfrase**
-- Direta: quando as palavras exatas do autor importam. Curta entre aspas no corpo. Longa (>3 linhas) recuada.
-- Paráfrase: quando só a ideia importa. Geralmente mais fluida, recomendada como padrão.
+**Direct quote vs. paraphrase**
+- Direct: when the author's exact words matter. Short inline in quotation marks. Long (>3 lines) indented.
+- Paraphrase: when only the idea matters. Usually more fluid, recommended as the default.
 
-**Código no corpo vs. apêndice**
-- Trecho ≤5 linhas, ilustrativo: pode ir inline em bloco de código.
-- Mais que isso → Apêndice. Referenciar com "(Apêndice A)".
-- Nunca colar arquivo inteiro no corpo do TCC.
+**Code inline vs. appendix**
+- Snippet ≤5 lines, illustrative: it can go inline in a code block.
+- More than that → Appendix. Reference it with "(Apêndice A)".
+- Never paste a whole file into the body of the TCC.
 
-**Justificativa técnica — tripé**
-Para toda decisão técnica não-trivial:
-1. **Contexto** — qual problema/necessidade existia?
-2. **Alternativas** — que opções foram consideradas?
-3. **Critérios** — por que a escolhida atende melhor?
+**Technical justification — the tripod**
+For every non-trivial technical decision:
+1. **Context** — which problem or need existed?
+2. **Alternatives** — which options were considered?
+3. **Criteria** — why does the chosen one fit better?
 
-### 6. Escrever o bloco e parar
+### 6. Write the block and stop
 
-Anexar ao arquivo. Re-ler o arquivo do disco antes de cada escrita — usuário pode ter editado entre turnos. Nunca sobrescrever blocos anteriores.
+Append to the file. Re-read the file from disk before each write — the user may have edited between turns. Never overwrite earlier blocks.
 
-### 7. Loop 5–6 até a seção fechar
+### 7. Loop 5–6 until the section closes
 
-Usuário decide quando a seção está completa. Não tentar terminar autonomamente.
+The user decides when the section is complete. Do not try to finish it autonomously.
 
-## Postura conversacional
+## Conversational stance
 
-Push back ativo. Não deixar transições fracas passarem:
+Push back actively. Do not let weak transitions through:
 
 - "Esse parágrafo faz o quê pelo leitor que o anterior não fez?"
 - "Se eu cortar isso, o que quebra na cadeia argumentativa?"
@@ -142,18 +144,18 @@ Push back ativo. Não deixar transições fracas passarem:
 - "Tem afirmação aqui sem citação de apoio. Tem fragmento que cobre? Senão, ressalvar ou cortar."
 - "Esse vocabulário ('fiz', 'achei melhor') é da fase de fragmentos. Vamos converter para voz impessoal antes de salvar."
 
-## Pilha como pedreira, não roteiro
+## The pile is a quarry, not a script
 
-Fragmentos são **matéria-prima**. Pode-se:
-- Paragrafar um fragmento, dividi-lo em dois parágrafos, mesclar dois fragmentos em um, parafrasear, citar literal.
-- Reordenar conforme a lógica do capítulo, não a ordem de captura.
-- Deixar fragmentos sobrarem — está tudo bem, é o ponto de ter mais matéria-prima que o necessário.
+Fragments are **raw material**. It is fine to:
+- Turn a fragment into a paragraph, split it into two, merge two fragments into one, paraphrase, or quote literally.
+- Reorder by the chapter's logic, not by capture order.
+- Leave fragments unused — that is the point of having more material than needed.
 
-Se a pilha não tem o que a seção precisa, **nomear a lacuna explicitamente**: "Precisamos de um exemplo aqui e a pilha não tem — me dá um agora, ou cortamos esta subseção."
+If the pile lacks what the section needs, **name the gap explicitly**: "Precisamos de um exemplo aqui e a pilha não tem — me dá um agora, ou cortamos esta subseção."
 
-## Vocabulário acadêmico de transição
+## Academic transition vocabulary
 
-Reforço dos conectivos formais para fluidez:
+Formal connectives to keep the prose fluid:
 
 - **Causalidade:** "em virtude de", "decorrente de", "uma vez que", "tendo em vista que"
 - **Adversidade:** "no entanto", "todavia", "em contrapartida", "por outro lado"
@@ -162,9 +164,9 @@ Reforço dos conectivos formais para fluidez:
 - **Exemplificação:** "a título de exemplo", "como ilustração", "verifica-se em"
 - **Comparação:** "analogamente", "de maneira semelhante", "em contraste"
 
-## Conversão livre → impessoal em tempo real
+## Free → impersonal conversion, in real time
 
-Quando o fragmento está em primeira pessoa ou informal, **converter na hora** ao escrever no capítulo:
+When a fragment is in first person or informal, **convert it on the spot** while writing into the chapter:
 
 | Fragmento bruto | Texto formal |
 |---|---|
@@ -173,17 +175,17 @@ Quando o fragmento está em primeira pessoa ou informal, **converter na hora** a
 | "Achei melhor usar RLS" | "Considerou-se mais adequado o uso de Row Level Security (RLS)" |
 | "Deu certo a abordagem" | "A abordagem apresentou resultado satisfatório" |
 | "Tem 25 migrations" | "O projeto contempla 25 migrações SQL versionadas" |
-| "É importante notar que" | (cortar — clichê. Reformular afirmação direta) |
+| "É importante notar que" | (cut — cliché. Reformulate as a direct claim) |
 
-## Encerramento da sessão
+## Closing the session
 
-Quando o usuário diz que a seção está completa:
-1. Re-ler o arquivo inteiro do capítulo.
-2. Conferir rapidamente:
-   - Toda figura/tabela citada antes de aparecer?
-   - Toda citação no corpo tem entrada nas referências do projeto?
-   - Glossário: termos técnicos explicados na primeira ocorrência?
-   - Nenhuma primeira pessoa escapou?
-3. Sugerir próximo passo: outra seção, ou rodar `tcc-revisao-impessoal` no capítulo todo.
+When the user says the section is complete:
+1. Re-read the whole chapter file.
+2. Check quickly:
+   - Is every figure and table cited before it appears?
+   - Does every in-text citation have an entry in the project's references?
+   - Glossary: are technical terms explained at first occurrence?
+   - Did any first person slip through?
+3. Suggest the next step: another section, or running `tcc-revisao-impessoal` over the whole chapter.
 
-Não declarar a seção "pronta" — só o usuário pode.
+Do not declare the section "done" — only the user can.

@@ -1,52 +1,52 @@
 ---
-description: Gera commit message Conventional Commits a partir do diff staged. Mostra antes de commitar. Não comita sem confirmação.
+description: Writes a Conventional Commits message from the staged diff. Shows it before committing. Never commits without confirmation.
 allowed-tools: Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git commit:*)
 ---
 
-Gere mensagem de commit no padrão Conventional Commits para o diff staged.
+Write a Conventional Commits message for the staged diff.
 
-## Passos
+## Steps
 
-1. Rode `git diff --staged` para ver o que será comitado.
-2. Se vazio, parar e avisar: "Nada staged. Use `git add` antes."
-3. Analise as mudanças:
-   - Tipo dominante: `feat`, `fix`, `refactor`, `docs`, `chore`, `test`, `perf`, `style`, `build`, `ci`.
-   - Scope: módulo/pasta dominante (`auth`, `db`, `ui`, etc).
-   - Subject: imperativo, ≤50 chars, sem ponto final.
-   - Body: SÓ se o "porquê" não é óbvio pelo diff. Wrap em 72.
-4. Rode `git log -5 --oneline` para conferir estilo das últimas mensagens (case, scope conventions).
-5. **Mostre a mensagem proposta** ao usuário no formato:
+1. Run `git diff --staged` to see what will be committed.
+2. If it is empty, stop: "Nothing staged. Run `git add` first."
+3. Analyze the changes:
+   - Dominant type: `feat`, `fix`, `refactor`, `docs`, `chore`, `test`, `perf`, `style`, `build`, `ci`.
+   - Scope: the dominant module or folder (`auth`, `db`, `ui`, …).
+   - Subject: imperative, ≤50 chars, no final period.
+   - Body: ONLY when the "why" is not obvious from the diff. Wrap at 72.
+4. Run `git log -5 --oneline` to match the style of the recent messages (case, scope conventions).
+5. **Show the proposed message** to the user:
 
 ```
-Proposta:
+Proposed:
 <type>(<scope>): <subject>
 
-<body opcional>
+<optional body>
 
-Para comitar, confirme.
+Confirm to commit.
 ```
 
-6. **Espere confirmação explícita** antes de rodar `git commit`. Não comite proativamente.
+6. **Wait for explicit confirmation** before running `git commit`. Never commit proactively.
 
-7. Quando confirmar, comite via HEREDOC para preservar formatação:
+7. Once confirmed, commit through a HEREDOC so the formatting survives:
 
 ```bash
-git commit -m "$(cat <<'EOF'
+git commit -m "$(cat <<'MSG'
 <type>(<scope>): <subject>
 
 <body>
-EOF
+MSG
 )"
 ```
 
-## Anti-patterns a evitar
+## Anti-patterns
 
-- "Update files" / "Various changes" — sem informação.
-- Passado ("Added X") — usar imperativo ("add X").
-- Subject com ponto final.
-- Body repetindo o diff em prosa.
-- Co-author tags automáticas (a menos que o usuário peça).
+- "Update files" / "Various changes" — no information.
+- Past tense ("Added X") — use the imperative ("add X").
+- A subject ending in a period.
+- A body restating the diff in prose.
+- Automatic co-author tags, unless the user asks for them.
 
-## Se hooks falharem
+## If hooks fail
 
-Investigar a causa. **Não** sugerir `--no-verify`. Corrigir o problema e fazer **novo commit**, não amend.
+Investigate the cause. Do **not** suggest `--no-verify`. Fix the problem and make a **new commit**, not an amend.

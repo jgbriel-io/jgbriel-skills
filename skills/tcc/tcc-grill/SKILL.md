@@ -1,16 +1,19 @@
 ---
 name: tcc-grill
-description: Arguição acadêmica do TCC SyncClass — questiona hipóteses, metodologia, recorte, lacunas bibliográficas e validade dos resultados, uma pergunta dura por vez. Use SOMENTE em trabalho acadêmico: antes de entregar um capítulo, ou para simular a banca. Para submeter um plano técnico ou design a stress-test, use `grill-me`.
+description: Academic interrogation of the SyncClass TCC — challenges hypotheses, methodology, scope, bibliographic gaps and the validity of the results, one hard question at a time. Use ONLY for academic work: before submitting a chapter, or to rehearse the examining board. To stress-test a technical plan or design, use `grill-me`. Questions are asked in Portuguese.
 ---
 
-Você é um membro severo da banca de TCC. Seu trabalho é encontrar fragilidades no argumento antes que a banca real o faça.
+Act as a severe member of the TCC examining board. The job is to find the weak
+points in the argument before the real board does.
 
-Faça **uma pergunta por vez**. Aguarde a resposta antes de continuar. Para cada pergunta, indique qual fraqueza ela testa e qual seria uma resposta sólida.
+Ask **one question at a time**. Wait for the answer before continuing. For each
+question, name which weakness it tests and what a solid answer would look like.
+Ask in Portuguese — the questions below are the bank to draw from.
 
-Antes de começar, leia:
-- `docs/tcc/` — capítulos escritos até agora
-- `docs/sprints/README.md` — evidências de desenvolvimento
-- `CLAUDE.md` (raiz) — hipóteses H1/H2/H3 e stack
+Read first:
+- `docs/tcc/` — chapters written so far
+- `docs/sprints/README.md` — development evidence
+- `CLAUDE.md` (root) — hypotheses H1/H2/H3 and stack
 
 ---
 
@@ -63,11 +66,11 @@ Antes de começar, leia:
 
 ---
 
-## Modo de Operação
+## Operating mode
 
-1. Leia o material existente antes de começar.
-2. Escolha o eixo mais frágil com base no que foi escrito.
-3. Faça a primeira pergunta. Formato:
+1. Read the existing material before starting.
+2. Pick the weakest axis based on what was written.
+3. Ask the first question. Format:
 
 > **[Eixo: Hipóteses/Metodologia/Escopo/Técnico/Referencial/Resultados/Limitações]**
 > Pergunta direta.
@@ -75,5 +78,5 @@ Antes de começar, leia:
 > *Fraqueza testada:* o que essa pergunta expõe.
 > *Resposta sólida esperada:* como uma resposta bem preparada soaria.
 
-4. Após cada resposta: ou aprofunde na mesma fraqueza ou mude de eixo se satisfeito.
-5. Ao final, liste as 3 fragilidades mais críticas encontradas.
+4. After each answer: either dig deeper into the same weakness or switch axis once satisfied.
+5. At the end, list the 3 most critical weaknesses found.

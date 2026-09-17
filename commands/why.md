@@ -1,54 +1,54 @@
 ---
-description: Contexto histórico de uma linha ou trecho — git blame + log + último commit que tocou. Útil pra entender intenção original.
-argument-hint: "<arquivo>:<linha>  ou  <arquivo> <linha-inicial>-<linha-final>"
+description: Historical context for a line or range — git blame + log + the last commit that touched it. Use to recover the original intent.
+argument-hint: "<file>:<line>  or  <file> <start-line>-<end-line>"
 allowed-tools: Bash(git blame:*), Bash(git log:*), Bash(git show:*), Read
 ---
 
-Investigue o contexto histórico do trecho indicado em $ARGUMENTS.
+Investigate the history of the range given in $ARGUMENTS.
 
-## Parsing do argumento
+## Parsing the argument
 
-- Formato 1: `path:linha` (linha única).
-- Formato 2: `path linha-inicio linha-fim` ou `path linha-inicio:linha-fim`.
-- Formato 3: só `path` → último commit que tocou o arquivo inteiro.
+- Form 1: `path:line` (single line).
+- Form 2: `path start-end` or `path start:end`.
+- Form 3: `path` alone → the last commit that touched the whole file.
 
-Se ambíguo, pedir formato correto.
+If it is ambiguous, ask for the right form.
 
-## Investigação
+## Investigation
 
-1. **`git blame -L start,end <path>`** — quem escreveu cada linha, qual commit.
-2. Para o commit mais recente identificado no blame:
-   - `git log --oneline -1 <sha>` — mensagem.
-   - `git show <sha> --stat` — escopo da mudança.
-   - `git show <sha> -- <path>` — diff específico do arquivo.
-3. **Histórico do arquivo:** `git log --oneline -5 -- <path>` — últimas 5 mudanças.
-4. **Mensagens contextuais:** se algum commit do histórico menciona issue/PR (`#123`), notar.
+1. **`git blame -L start,end <path>`** — who wrote each line, in which commit.
+2. For the most recent commit found in the blame:
+   - `git log --oneline -1 <sha>` — the message.
+   - `git show <sha> --stat` — the scope of the change.
+   - `git show <sha> -- <path>` — the diff for this file only.
+3. **File history:** `git log --oneline -5 -- <path>` — the last 5 changes.
+4. **External references:** if a commit in that history mentions an issue or PR (`#123`), note it.
 
 ## Output
 
 ```markdown
-## Contexto: <path>:<linha>
+## Context: <path>:<line>
 
-### Trecho
+### Range
 ```
-<conteúdo das linhas-alvo (ler arquivo)>
+<contents of the target lines (read the file)>
 ```
 
-### Última mudança neste trecho
-- Commit: `<sha curto>` por <autor> em <data>
-- Mensagem: <commit subject>
-- Contexto: <body do commit, se houver, ou "(sem body)">
+### Last change to this range
+- Commit: `<short sha>` by <author> on <date>
+- Message: <commit subject>
+- Context: <commit body, or "(no body)">
 
-### Diff dessa mudança
-<saída de git show focada no trecho>
+### Diff of that change
+<git show output, focused on the range>
 
-### Histórico recente do arquivo
+### Recent file history
 - `<sha>` — <subject>
 - `<sha>` — <subject>
 - ...
 
-### Referências externas
-- Issues/PRs mencionadas: #N, #M (se houver)
+### External references
+- Issues/PRs mentioned: #N, #M (if any)
 ```
 
-Sob 500 palavras. Foco em **intenção** (por que mudou), não só **o quê**.
+Under 500 words. Focus on **intent** (why it changed), not only on what changed.

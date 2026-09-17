@@ -1,6 +1,6 @@
 ---
 name: obsidian-vault
-description: Cria, busca e conecta notas no vault pessoal do Obsidian seguindo as convenções da wiki — estrutura de pastas, wikilink por caminho, regras de alias, checagem de link órfão. Use quando o usuário disser "salva no vault", "anota no Obsidian", "cria nota na wiki", "adiciona no vault", de qualquer projeto ou diretório. Documentação de projeto inteira é project-sync.
+description: Creates, searches and links notes in the personal Obsidian vault following the wiki conventions — folder structure, wikilinks by path, alias rules, orphan-link checks. Use when the user says "salva no vault", "anota no Obsidian", "cria nota na wiki", "adiciona no vault", from any project or directory. A whole project's documentation is project-sync.
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 

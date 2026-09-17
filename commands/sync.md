@@ -1,27 +1,27 @@
 ---
-description: Sincroniza branch atual com remote — fetch, pull rebase, status final. Não toca outras branches.
-allowed-tools: Bash(git fetch:*), Bash(git pull:*), Bash(git status:*), Bash(git branch:*), Bash(git rev-list:*)
+description: Syncs the current branch with its remote — fetch, pull rebase, final status. Touches no other branch.
+allowed-tools: Bash(git fetch:*), Bash(git pull:*), Bash(git status:*), Bash(git branch:*), Bash(git rev-list:*), Bash(git rev-parse:*)
 model: haiku
 ---
 
-Sincronize a branch atual com o remote:
+Sync the current branch with its remote:
 
-1. `git branch --show-current` → guardar nome da branch.
+1. `git branch --show-current` → keep the branch name.
 2. `git fetch --all --prune`
-3. Conferir se há upstream configurado: `git rev-parse --abbrev-ref --symbolic-full-name @{u}` (silencia erro).
-4. Se sem upstream, parar e avisar: "Sem upstream configurado. Configure com `git branch --set-upstream-to=origin/<branch>`."
-5. Conferir uncommitted changes: `git status --porcelain`. Se houver, parar e avisar: "Há mudanças locais não comitadas. Comite ou stash antes de fazer pull rebase."
+3. Check for a configured upstream: `git rev-parse --abbrev-ref --symbolic-full-name @{u}` (silence the error).
+4. If there is no upstream, stop: "No upstream configured. Set one with `git branch --set-upstream-to=origin/<branch>`."
+5. Check for uncommitted changes: `git status --porcelain`. If there are any, stop: "Uncommitted local changes. Commit or stash them before pulling with rebase."
 6. `git pull --rebase`
-7. Se rebase falhar com conflitos:
-   - Parar imediatamente.
-   - Mostrar `git status` para o usuário.
-   - Dizer: "Rebase parou em conflitos. Resolva manualmente, depois `git rebase --continue` ou `git rebase --abort`."
-   - **Não** tentar resolver conflitos automaticamente.
-8. Se rebase ok, mostrar resultado final:
+7. If the rebase stops on conflicts:
+   - Stop immediately.
+   - Show `git status` to the user.
+   - Say: "The rebase stopped on conflicts. Resolve them, then `git rebase --continue` or `git rebase --abort`."
+   - Do **not** resolve conflicts automatically.
+8. If the rebase succeeded, show the final state:
    ```
-   Branch: <nome>
-   Atualizado para: <último commit SHA + mensagem>
+   Branch: <name>
+   Now at: <latest commit SHA + subject>
    Working tree: <clean | dirty>
    ```
 
-Sem narração extra. Se algo falha em qualquer passo, parar e reportar.
+No extra narration. If any step fails, stop and report it.

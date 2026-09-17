@@ -1,36 +1,37 @@
 ---
-description: Diff resumido contra ref (branch, sha, HEAD~N). Mostra arquivos tocados + categorização das mudanças.
+description: Summarized diff against a ref (branch, sha, HEAD~N). Shows the files touched plus what kind of change each one is.
 argument-hint: "[ref, default = main]"
 allowed-tools: Bash(git diff:*), Bash(git log:*), Bash(git status:*), Read
 ---
 
-Mostre diff resumido entre HEAD e $ARGUMENTS (default `main` ou `master`).
+Show a summarized diff between HEAD and $ARGUMENTS (default `main` or `master`).
 
-## Passos
+## Steps
 
-1. **Resolver base:** se vazio, detectar `main` ou `master`. Se branch inexistente, perguntar.
+1. **Resolve the base:** if empty, detect `main` or `master`. If the branch does not exist, ask.
 
-2. **Stat das mudanças:**
+2. **Change stat:**
    ```
    git diff <base>...HEAD --stat
    ```
 
-3. **Categorização semântica:** para cada arquivo, classificar:
-   - 🆕 Novo arquivo (`A` em `--name-status`).
-   - ✏️ Modificado (`M`).
-   - 🗑️ Deletado (`D`).
-   - 📛 Renomeado (`R`).
-4. **Commits incluídos:**
+3. **Semantic categorization:** classify each file from `--name-status`:
+   - 🆕 new file (`A`)
+   - ✏️ modified (`M`)
+   - 🗑️ deleted (`D`)
+   - 📛 renamed (`R`)
+
+4. **Commits included:**
    ```
    git log <base>..HEAD --oneline
    ```
 
-5. **Conflitos potenciais:** verificar se há arquivos modificados em ambos os lados:
+5. **Possible conflicts:** list both sides and intersect them in your head — no temp files:
    ```
-   git diff <base>...HEAD --name-only > /tmp/our.txt
-   git diff HEAD...<base> --name-only > /tmp/their.txt
+   git diff <base>...HEAD --name-only
+   git diff HEAD...<base> --name-only
    ```
-   Interseção = arquivos onde merge pode dar conflito.
+   A file in both lists is where the merge may conflict.
 
 ## Output
 
@@ -41,19 +42,19 @@ Mostre diff resumido entre HEAD e $ARGUMENTS (default `main` ou `master`).
 - <sha> <subject>
 - ...
 
-## Arquivos (<N tocados, +X / -Y linhas>)
-🆕 path/novo.ts (+45)
-✏️ path/modif.ts (+12 / -8)
-🗑️ path/removido.ts (-30)
+## Files (<N touched, +X / -Y lines>)
+🆕 path/new.ts (+45)
+✏️ path/changed.ts (+12 / -8)
+🗑️ path/removed.ts (-30)
 
-## Categorias dominantes
-- <feat/fix/refactor/etc>: <N arquivos>
+## Dominant categories
+- <feat/fix/refactor/…>: <N files>
 
-## Possíveis conflitos no merge
-- <arquivo>  ← modificado nos dois lados
+## Possible merge conflicts
+- <file>  ← modified on both sides
 
-## Próximo passo sugerido
-<1 frase: rebase? merge? continue trabalhando?>
+## Suggested next step
+<1 sentence: rebase? merge? keep working?>
 ```
 
-Sob 400 palavras. Foco em **o que mudou**, não no diff cru.
+Under 400 words. Focus on **what changed**, not on the raw diff.
