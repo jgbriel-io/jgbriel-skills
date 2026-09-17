@@ -1,47 +1,47 @@
 ---
-description: Cria branch nova a partir de main/master (atualizado) e faz switch. Detecta a branch base automaticamente.
-argument-hint: "<nome-da-branch>"
-allowed-tools: Bash(git branch:*), Bash(git checkout:*), Bash(git switch:*), Bash(git fetch:*), Bash(git pull:*), Bash(git status:*)
+description: Creates a new branch from an up-to-date main/master and switches to it. Detects the base branch automatically.
+argument-hint: "<branch-name>"
+allowed-tools: Bash(git branch:*), Bash(git checkout:*), Bash(git switch:*), Bash(git fetch:*), Bash(git pull:*), Bash(git status:*), Bash(git remote:*)
 model: haiku
 ---
 
-Cria branch `$ARGUMENTS` a partir da branch base do repo (main ou master) atualizada.
+Create branch `$ARGUMENTS` from the repo's base branch (main or master), updated first.
 
-## Passos
+## Steps
 
-1. **Validar nome:**
-   - Se `$ARGUMENTS` vazio, perguntar nome.
-   - Se contém espaços, substituir por hífen e avisar: "Renomeei para `<nome-com-hifen>`."
-   - Sem caracteres especiais perigosos (`..`, `~`, `^`, `:`, `\`, espaços já tratados).
+1. **Validate the name:**
+   - If `$ARGUMENTS` is empty, ask for the name.
+   - If it contains spaces, replace them with hyphens and say so: "Renamed to `<name-with-hyphens>`."
+   - No dangerous characters (`..`, `~`, `^`, `:`, `\`; spaces already handled).
 
-2. **Conferir uncommitted changes:**
+2. **Check for uncommitted changes:**
    ```
    git status --porcelain
    ```
-   Se houver, parar: "Há mudanças locais. Comite, stash ou descarte antes de criar branch nova."
+   If there are any, stop: "Local changes present. Commit, stash or discard them before creating a branch."
 
-3. **Detectar branch base:**
+3. **Detect the base branch:**
    ```
    git remote show origin | grep "HEAD branch"
    ```
-   Fallback: tentar `main`, depois `master`. Se nenhuma existir, perguntar usuário.
+   Fallback: try `main`, then `master`. If neither exists, ask the user.
 
-4. **Atualizar base:**
+4. **Update the base:**
    ```
    git fetch origin <base>
    git switch <base>
    git pull --ff-only
    ```
 
-5. **Criar branch nova e switch:**
+5. **Create the branch and switch:**
    ```
    git switch -c $ARGUMENTS
    ```
 
-6. **Confirmar:**
+6. **Confirm:**
    ```
-   Branch '$ARGUMENTS' criada a partir de '<base>' (sha <curto>).
-   Working tree limpo.
+   Branch '$ARGUMENTS' created from '<base>' (sha <short>).
+   Working tree clean.
    ```
 
-Se algum passo falha, parar e reportar.
+If any step fails, stop and report it.

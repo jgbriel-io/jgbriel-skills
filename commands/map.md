@@ -1,35 +1,35 @@
 ---
-description: Mapa de um diretório — listagem por arquivo com responsabilidade detectada. Invoca agent researcher.
-argument-hint: "<diretório, default = src/>"
-allowed-tools: Read, Grep, Glob
+description: Map of a directory — one line per file with its detected responsibility. Delegates to the researcher agent.
+argument-hint: "<directory, default = src/>"
+allowed-tools: Task, Read, Grep, Glob
 ---
 
-Invoque o agent `researcher` para mapear o diretório: $ARGUMENTS
+Call the `researcher` agent to map the directory: $ARGUMENTS
 
-Se vazio, default para `src/`. Se não existir, pedir path correto.
+If empty, default to `src/`. If it does not exist, ask for the right path.
 
-## Briefing pro agent
+## Briefing for the agent
 
 ```
-Mapear diretório: $ARGUMENTS
+Map the directory: $ARGUMENTS
 
-Para cada arquivo (e subdiretório), produzir 1 linha com:
-- Path relativo ao diretório alvo.
-- Tipo (arquivo de código, teste, config, doc).
-- Responsabilidade principal em ≤10 palavras.
+For each file (and subdirectory), produce one line with:
+- Path relative to the target directory.
+- Kind (source, test, config, doc).
+- Main responsibility in ≤10 words.
 
-Para subdiretórios profundos, recursão 2 níveis. Resumir resto em "(...) + N arquivos."
+Recurse 2 levels into deep subdirectories. Summarize the rest as "(...) + N files".
 
 Output:
 ### <dir>/
-- `arquivo.ts` — descrição curta
+- `file.ts` — short description
 - `sub/`
-  - `outro.ts` — descrição
-  - (...) + 3 arquivos
+  - `other.ts` — description
+  - (...) + 3 files
 
-Sob 400 palavras. Sem prosa adicional.
+Under 400 words. No extra prose.
 ```
 
 ## Output
 
-Repasse o mapa verbatim ao usuário.
+Pass the map back to the user verbatim.

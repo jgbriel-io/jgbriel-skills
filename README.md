@@ -59,17 +59,17 @@ solta em `skills/` não é descoberta sozinha.
 
 | Comando | Descrição |
 |---|---|
-| `/branch` | Cria branch nova a partir de main/master (atualizado) e faz switch. |
-| `/commit` | Gera commit message Conventional Commits a partir do diff staged. |
-| `/diff` | Diff resumido contra ref (branch, sha, HEAD~N). |
-| `/map` | Mapa de um diretório — listagem por arquivo com responsabilidade detectada. |
-| `/sync` | Sincroniza branch atual com remote — fetch, pull rebase, status final. |
-| `/tcc-revisar` | Revisão acadêmica de capítulo do TCC via agent tcc-orientador. |
-| `/tcc-status` | Snapshot do progresso do TCC SyncClass — status de cada capítulo (1-10), pendências, próximos passos. |
-| `/undo` | Desfaz último commit (soft reset) — mantém mudanças staged, só remove o commit. |
-| `/where` | Localiza onde símbolo, função, classe ou string é definido/usado. |
-| `/why` | Contexto histórico de uma linha ou trecho — git blame + log + último commit que tocou. |
-| `/wip` | Commit rápido WIP pra salvar progresso. |
+| `/branch` | Creates a new branch from an up-to-date main/master and switches to it. |
+| `/commit` | Writes a Conventional Commits message from the staged diff. |
+| `/diff` | Summarized diff against a ref (branch, sha, HEAD~N). |
+| `/map` | Map of a directory — one line per file with its detected responsibility. |
+| `/sync` | Syncs the current branch with its remote — fetch, pull rebase, final status. |
+| `/tcc-revisar` | Academic review of a TCC chapter through the tcc-orientador agent. |
+| `/tcc-status` | Snapshot of SyncClass TCC progress — status of each chapter (1-10), what is pending, next steps. |
+| `/undo` | Undoes the last commit with a soft reset — keeps the changes staged, removes only the commit. |
+| `/where` | Locates where a symbol, function, class or string is defined and used. |
+| `/why` | Historical context for a line or range — git blame + log + the last commit that touched it. |
+| `/wip` | Quick WIP commit to save progress. |
 <!-- inventory:commands:end -->
 
 <!-- inventory:agents:start -->
@@ -79,7 +79,7 @@ solta em `skills/` não é descoberta sozinha.
 |---|---|
 | `planner` | Breaks a task or feature into an ordered implementation plan with explicit dependencies, risks, and exit criteria. |
 | `researcher` | Read-only code locator and codebase mapper. |
-| `tcc-orientador` | Revisor acadêmico no papel de orientador severo de TCC. |
+| `tcc-orientador` | Academic reviewer playing a severe TCC advisor. |
 <!-- inventory:agents:end -->
 
 **Hooks** — conectados pelo próprio plugin, sem fiação em `settings.json`:
