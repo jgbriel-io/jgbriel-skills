@@ -19,23 +19,17 @@
 # Run from Git Bash.
 set -uo pipefail
 
-# The fleet ships as plugins, so a fleet skill lives in the versioned plugin
-# cache, not in ~/.claude/skills. That directory is still checked: it holds any
-# personal skill installed outside the marketplace.
-#
-# CAVEAT: personal-beats-project is documented for personal scope. Whether a
-# *plugin* skill shadows a project skill the same way is NOT verified here --
-# confirm against the docs before trusting a "shadowed" verdict on a plugin hit.
-PLUGIN_CACHE="$HOME/.claude/plugins/cache"
+# A PLUGIN skill does not shadow anything: it is listed under its own namespace,
+# so a project `tdd` and a plugin `tdd` coexist as `tdd` and `jgbriel-skills:tdd`.
+# Measured, not assumed -- a project skill and a fleet skill with the same name
+# were both offered in the same session. The plugin cache is therefore not
+# scanned; only unnamespaced personal scope can take a project skill's name.
 FLEET="$HOME/.claude/skills"
 CMDS="$HOME/.claude/commands"
 
-# Prints the directory of a fleet skill by name, or nothing when absent.
+# Prints the directory of a personal skill by name, or nothing when absent.
 fleet_dir() {
-  local n=$1 d
-  [ -d "$FLEET/$n" ] && { printf '%s' "$FLEET/$n"; return 0; }
-  d=$(find "$PLUGIN_CACHE" -mindepth 5 -maxdepth 5 -type d -path "*/skills/$n" 2>/dev/null | head -1)
-  [ -n "$d" ] && printf '%s' "$d"
+  [ -d "$FLEET/$1" ] && printf '%s' "$FLEET/$1"
 }
 ROOTS=("$@")
 [ ${#ROOTS[@]} -eq 0 ] && ROOTS=("/d/Projetos")
