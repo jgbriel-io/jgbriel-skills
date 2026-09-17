@@ -1,48 +1,50 @@
 ---
 name: tcc-defesa
-description: Monta a apresentação de defesa do TCC SyncClass a partir dos capítulos escritos — arco narrativo, roteiro slide a slide com tempo, script de fala, corte do que não apresentar e plano de ensaio. Use quando o usuário disser "preparar a defesa", "montar apresentação do TCC", "slides da defesa", "roteiro da banca", "o que apresentar na defesa". Não é treino de perguntas (isso é tcc-grill) nem parecer do documento (tcc-auditoria-banca) — é a construção da apresentação em si.
+description: Builds the defense presentation for the SyncClass TCC out of the written chapters — narrative arc, slide-by-slide script with timings, speaking script, what to cut, and a rehearsal plan. Use when the user says "preparar a defesa", "montar apresentação do TCC", "slides da defesa", "roteiro da banca", "o que apresentar na defesa". Not question drilling (that is tcc-grill) and not a report on the document (tcc-auditoria-banca) — this builds the presentation itself. Output is written in Portuguese.
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
 # TCC — Defesa
 
-Transforma o TCC escrito em apresentação de defesa. O documento tem ~100
-páginas; a banca vê 15–20 minutos. O trabalho desta skill é decidir o que
-sobrevive à compressão e em que ordem — não resumir tudo.
+Turns the written TCC into a defense presentation. The document runs ~100
+pages; the board sees 15–20 minutes. This skill decides what survives the
+compression and in what order — not how to summarize everything.
 
-Família tcc-*: `tcc-fragmentos` → `tcc-rascunho` → `tcc-revisao-impessoal` →
-`tcc-auditoria-banca` → **esta** → `tcc-grill` (treino de perguntas, rodar
-depois do roteiro pronto).
+tcc-* family: `tcc-fragmentos` → `tcc-rascunho` → `tcc-revisao-impessoal` →
+`tcc-auditoria-banca` → **this one** → `tcc-grill` (question drilling, run it
+once the script is ready).
 
-## Processo
+The script and slides are written in Portuguese.
 
-### 1. Levantar o material
+## Process
 
-- Ler os capítulos finais (perguntar o path se não achar em
-  `**/capitulos-final/` ou `**/projeto-escrito/`).
-- Métricas do projeto: ler as canônicas no `CLAUDE.md` do vault/projeto
-  (seção "Métricas canônicas") e usar SEMPRE esses números — a banca compara
-  com o texto. Não citar de memória: a fonte é uma só.
-- Perguntar: tempo de fala definido pela FEPI? (assumir 20min se não souber,
-  confirmar). Data da defesa? Formato (presencial/remoto, slides obrigatórios?).
+### 1. Gather the material
 
-### 2. Definir o arco
+- Read the final chapters (ask for the path if nothing is under
+  `**/capitulos-final/` or `**/projeto-escrito/`).
+- Project metrics: read the canonical ones in the vault/project `CLAUDE.md`
+  ("Métricas canônicas" section) and ALWAYS use those numbers — the board
+  compares them against the text. Never quote from memory: there is one source.
+- Ask: speaking time set by FEPI? (assume 20 min if unknown, confirm). Defense
+  date? Format (in person or remote, slides mandatory?).
 
-Arco padrão de defesa (adaptar, não engessar):
+### 2. Define the arc
 
-1. Problema e contexto (quem sofre, por quê) — curto, a banca leu o texto
-2. Objetivos e hipóteses (H1/H2/H3) — literais, como estão no documento
-3. Método (por que Pesquisa-Ação + sprints; 1 slide, não capítulo)
-4. O que foi construído (demo ou screenshots do SyncClass — o momento forte)
-5. Resultados por hipótese (evidência → veredito: confirmada/parcial/refutada)
-6. Limitações (falar antes que perguntem — desarma a banca)
+Default defense arc (adapt it, do not freeze it):
+
+1. Problema e contexto (who suffers, why) — short, the board read the text
+2. Objetivos e hipóteses (H1/H2/H3) — literal, exactly as in the document
+3. Método (why Pesquisa-Ação + sprints; 1 slide, not a chapter)
+4. O que foi construído (demo or SyncClass screenshots — the strong moment)
+5. Resultados por hipótese (evidence → verdict: confirmada/parcial/refutada)
+6. Limitações (raise them before they ask — it disarms the board)
 7. Conclusão e trabalhos futuros
 
-Regra de tempo: ~1 min por slide. 20 min → 15–18 slides úteis + capa/obrigado.
+Timing rule: ~1 min per slide. 20 min → 15–18 useful slides + cover/thanks.
 
-### 3. Roteiro slide a slide
+### 3. Slide-by-slide script
 
-Para cada slide, entregar:
+For each slide, deliver:
 
 ```
 Slide N — <título curto>
@@ -51,29 +53,28 @@ Fala: <2-3 frases do que dizer, linguagem falada, não texto do TCC>
 Tempo: <min>
 ```
 
-- 1 ideia por slide. Slide com dois assuntos vira dois slides ou perde um.
-- Números canônicos aparecem UMA vez cada, no slide certo — repetir dilui.
-- Figuras do TCC (DER, arquitetura) valem mais que texto: apontar quais capítulos
-  têm figuras aproveitáveis.
+- One idea per slide. A slide with two subjects becomes two slides or loses one.
+- Canonical numbers appear ONCE each, on the right slide — repeating dilutes them.
+- Figures from the TCC (DER, architecture) are worth more than text: name which
+  chapters hold reusable figures.
 
-### 4. O que NÃO apresentar
+### 4. What NOT to present
 
-Listar explicitamente o que fica de fora e por quê (referencial teórico
-extenso, detalhes de implementação, tabelas grandes). A banca pergunta sobre
-o que está no texto — a apresentação não precisa cobrir tudo, precisa
-sustentar a narrativa.
+List explicitly what stays out and why (long literature review, implementation
+details, large tables). The board asks about what is in the text — the
+presentation does not have to cover everything, it has to hold the narrative.
 
-### 5. Ensaio
+### 5. Rehearsal
 
-- Ler o roteiro em voz alta cronometrando — estourou o tempo, cortar slide,
-  nunca acelerar a fala.
-- Quiz de transição: "o que vem depois do slide de metodologia?" até fluir.
-- Fechar oferecendo: "roteiro pronto — quer treinar as perguntas da banca?
+- Read the script aloud against a timer — over time means cutting a slide,
+  never speaking faster.
+- Transition quiz: "o que vem depois do slide de metodologia?" until it flows.
+- Close by offering: "roteiro pronto — quer treinar as perguntas da banca?
   (`/tcc-grill`)".
 
-## Limites
+## Limits
 
-- Não gera o arquivo de slides (PowerPoint/Canva é do autor) — gera o
-  **roteiro** que vira slides.
-- Não inventa resultados nem números — só o que está nos capítulos e nas
-  métricas canônicas.
+- Does not generate the slide file (PowerPoint/Canva belongs to the author) —
+  it generates the **script** that becomes slides.
+- Invents no results and no numbers — only what is in the chapters and in the
+  canonical metrics.
