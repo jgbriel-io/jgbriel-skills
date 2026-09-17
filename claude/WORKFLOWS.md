@@ -35,19 +35,20 @@ Receitas práticas combinando slash commands, skills e agents.
 ## Decisão de Arquitetura
 
 ```
-/zoom-out                         → contexto amplo antes de mergulhar
-/grill-with-docs                  → valida hipótese contra domain model/docs
-/improve-codebase-architecture    → deepening opportunities, módulos, interfaces
-  ↓ documentar ADR em docs/architecture/decisions.md
+/codebase-memory     → mapa estrutural: quem chama o quê, dependências, impacto
+/domain-modeling     → valida contra o modelo de domínio e registra o ADR
+/codebase-design     → onde cortar o seam, interface do módulo, deepening
+  ↓ ADR registrado pelo próprio domain-modeling
 ```
 
 ## Refactoring
 
 ```
-/zoom-out      → entender escopo e dependências
-/tdd           → red-green-refactor se há testes
-/scope         → quebrar em slices independentes
-  ↓ implementar slice por slice
+/codebase-memory  → escopo real: callers, fan-in/fan-out, dead code
+/codebase-design  → decidir a fronteira antes de mexer
+/plan             → quebrar em slices verificáveis, cada uma com prova
+/tdd              → red-green-refactor onde há lógica
+  ↓ /implement slice por slice
 /review → /commit  (por slice)
 ```
 
