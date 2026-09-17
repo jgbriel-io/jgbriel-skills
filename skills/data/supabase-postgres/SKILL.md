@@ -3,11 +3,11 @@ name: supabase-postgres
 description: Apply Postgres conventions through the Supabase client — column selection, single vs maybeSingle, range pagination, RPCs for multi-table transactions, RLS policies, schema design. Use when the user asks about Supabase schema, RLS policies, or writing queries against Supabase. Plain Postgres without the Supabase client is postgres-conventions; migrations are safe-migrations; a slow query is query-performance; the client hooks around it are supabase-hooks.
 ---
 
-# Supabase Postgres — Boas Práticas
+# Supabase Postgres
 
-> As mesmas convenções de `postgres-conventions`, escritas no cliente Supabase em
-> vez de SQL puro. Migration é `safe-migrations`, query lenta é
-> `query-performance`, e o hook que consome isto é `supabase-hooks`.
+> The same conventions as `postgres-conventions`, written against the Supabase
+> client instead of raw SQL. Migrations are `safe-migrations`, a slow query is
+> `query-performance`, and the hooks consuming this are `supabase-hooks`.
 
 ## Queries
 
@@ -15,84 +15,87 @@ description: Apply Postgres conventions through the Supabase client — column s
 // ❌
 supabase.from('users').select('*')
 
-// ✅ Selecionar apenas colunas necessárias
+// ✅ Select only the columns you need
 supabase.from('users').select('id, name, email, status')
 ```
 
 ```ts
-// .single() — lança erro se não encontrar (PGRST116)
+// .single() — throws when nothing is found (PGRST116)
 .eq('user_id', id).single()
 
-// .maybeSingle() — retorna null silenciosamente
+// .maybeSingle() — returns null silently
 .eq('user_id', id).maybeSingle()
 ```
 
-Paginação: `.range(page * size, (page + 1) * size - 1).order('created_at', { ascending: false })`
+Pagination: `.range(page * size, (page + 1) * size - 1).order('created_at', { ascending: false })`
 
-RPCs para operações transacionais: `supabase.rpc('fn_name', { p_owner_id: id })`
+RPCs for transactional operations: `supabase.rpc('fn_name', { p_owner_id: id })`
 
-## Índices
+## Indexes
 
 ```sql
--- FKs usadas em WHERE/JOIN
-CREATE INDEX idx_tabela_coluna ON tabela(coluna);
+-- FKs used in WHERE/JOIN
+CREATE INDEX idx_table_column ON table(column);
 
--- ORDER BY frequente
-CREATE INDEX idx_tabela_created_at ON tabela(created_at DESC);
+-- Frequent ORDER BY
+CREATE INDEX idx_table_created_at ON table(created_at DESC);
 
--- Filtros combinados
-CREATE INDEX idx_tabela_owner_status ON tabela(owner_id, status);
+-- Combined filters
+CREATE INDEX idx_table_owner_status ON table(owner_id, status);
 ```
 
 ## RLS
 
 ```sql
--- Sempre habilitar em novas tabelas
-ALTER TABLE nova_tabela ENABLE ROW LEVEL SECURITY;
+-- Always enable it on new tables
+ALTER TABLE new_table ENABLE ROW LEVEL SECURITY;
 
--- Policy de owner (tenant isolation)
-CREATE POLICY "owner_own_data" ON nova_tabela
+-- Owner policy (tenant isolation)
+CREATE POLICY "owner_own_data" ON new_table
   FOR ALL TO authenticated
   USING (owner_id = (SELECT owner_id FROM profiles WHERE user_id = auth.uid()));
 
--- Policy de admin
-CREATE POLICY "admin_all" ON nova_tabela
+-- Admin policy
+CREATE POLICY "admin_all" ON new_table
   FOR ALL TO authenticated
   USING ((SELECT is_admin()));
 ```
 
-**CRÍTICO:** Funções helpers como `is_admin()` DEVEM ter `SECURITY DEFINER` — sem isso causam recursão infinita em policies.
+Helper functions like `is_admin()` need `SECURITY DEFINER`. Without it they
+recurse infinitely inside the policy that calls them, and the table becomes
+unreadable rather than merely slow.
 
-## Schema Design
+## Schema design
 
 - PKs: `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`
 - Timestamps: `created_at TIMESTAMPTZ DEFAULT NOW()`, `updated_at TIMESTAMPTZ DEFAULT NOW()`
 - Soft delete: `deleted_at TIMESTAMPTZ`
-- Status: `TEXT CHECK (status IN ('ativo', 'inativo'))`
-- Valores monetários: `NUMERIC(10,2)` não `FLOAT`
+- Status: `TEXT CHECK (status IN ('active', 'inactive'))`
+- Money: `NUMERIC(10,2)`, never `FLOAT`
 
-## Funções
+## Functions
 
 ```sql
-CREATE OR REPLACE FUNCTION minha_funcao()
+CREATE OR REPLACE FUNCTION my_function()
 RETURNS void LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
 BEGIN
-  -- lógica
+  -- logic
 END;
 $$;
 ```
 
-Sempre `SET search_path` — sem isso é vulnerável a injection de schema.
+Always `SET search_path`: without it the function resolves names against
+whatever schema the caller has in scope, which is a schema-injection hole.
 
 ## Anti-patterns
 
-- ❌ `SELECT *` em tabelas grandes
+- ❌ `SELECT *` on large tables
 - ❌ N+1 queries
-- ❌ Funções sem `SET search_path`
-- ❌ Tabelas sem RLS
-- ❌ PKs sequenciais (INTEGER/SERIAL)
-- ❌ Cálculos no frontend que poderiam ser views/funções no banco
-- ❌ Policies com funções recursivas sem `SECURITY DEFINER`
+- ❌ Functions without `SET search_path`
+- ❌ Tables without RLS
+- ❌ Sequential PKs (INTEGER/SERIAL)
+- ❌ Computing in the frontend what a view or database function should compute
+- ❌ Policies calling recursive functions without `SECURITY DEFINER`

@@ -3,128 +3,147 @@ name: query-performance
 description: Diagnoses slow SQL queries by reading execution plans and picking the right index strategy — composite, partial, covering. Use when user asks about slow queries, query optimization, EXPLAIN/execution plans, missing indexes, N+1 queries, or database performance tuning.
 ---
 
-# Query Performance — Diagnóstico e Índices
+# Query Performance
 
-Vale para qualquer SGBD relacional (Postgres, MySQL, SQL Server, Oracle). Os nomes dos operadores mudam, o raciocínio não.
+Applies to any relational engine — Postgres, MySQL, SQL Server, Oracle. The
+operator names change; the reasoning does not.
 
-## Fluxo de diagnóstico
+## Diagnosis flow
 
-1. Identificar a query lenta (log de slow query, APM, Query Store) — nunca otimizar às cegas
-2. Rodar o plano de execução **com dados reais**, não só estimado
-3. Procurar scan completo (full/sequential scan) em tabela grande
-4. Comparar linhas estimadas vs linhas reais — divergência grande = estatísticas desatualizadas
-5. Olhar o algoritmo de join e as operações de sort — costumam ser o custo real, não o scan
-6. Criar/ajustar índice, rodar o plano de novo, comparar custo antes/depois
-7. Medir impacto em escrita (todo índice novo tem custo em INSERT/UPDATE/DELETE)
+1. Identify the slow query from evidence — slow-query log, APM, Query Store.
+   Never optimize blind.
+2. Run the execution plan **with real execution**, not the estimate alone.
+3. Look for a full or sequential scan on a large table.
+4. Compare estimated rows against actual rows. A large gap means stale statistics,
+   and the whole plan is suspect.
+5. Look at the join algorithm and the sort operations — they are usually the real
+   cost, not the scan.
+6. Create or adjust the index, re-run the plan, and compare cost before and after.
+7. Measure the write cost. Every new index is paid for on INSERT, UPDATE and DELETE.
 
-## Como ler um plano de execução
+## Reading an execution plan
 
-Todo plano de execução tem os mesmos elementos, independente do motor:
+Every plan has the same elements, whatever the engine:
 
-- **Custo** (startup..total ou estimated subtree cost) — número relativo, não tempo absoluto
-- **Linhas estimadas vs reais** — se o otimizador erra a estimativa, o plano inteiro pode estar errado
-- **Tipo de acesso à tabela**:
-  - full/sequential scan (ou table scan) — lê a tabela inteira
-  - index scan / index seek — usa índice pra localizar linhas
-  - index-only scan / covering — resolve a query só com o índice, sem tocar a tabela
-- **Estratégia de join**:
-  - nested loop — bom quando um dos lados é pequeno
-  - hash join — bom para datasets grandes sem ordenação
-  - merge join — bom quando as entradas já vêm ordenadas (por índice)
-- **Operações de sort/agregação** — costumam custar mais que o scan em si; se aparecem em toda query repetida, considerar índice já ordenado
+- **Cost** (startup..total, or estimated subtree cost) — a relative number, not a
+  time
+- **Estimated vs actual rows** — when the optimizer misjudges this, the whole plan
+  can be wrong
+- **Table access**:
+  - full/sequential scan — reads the whole table
+  - index scan / index seek — uses an index to locate rows
+  - index-only scan / covering — answers from the index without touching the table
+- **Join strategy**:
+  - nested loop — good when one side is small
+  - hash join — good for large unsorted datasets
+  - merge join — good when both inputs already arrive sorted, usually by index
+- **Sort and aggregation** — often more expensive than the scan itself. If they
+  show up in a query that runs constantly, consider an index that is already in
+  the required order
 
 ```sql
--- ❌ Olhar só o plano estimado
-EXPLAIN SELECT * FROM pedidos WHERE cliente_id = 123;
+-- ❌ Reading the estimate only
+EXPLAIN SELECT * FROM orders WHERE customer_id = 123;
 
--- ✅ Rodar com execução real (linhas reais, tempo real, buffers)
-EXPLAIN ANALYZE SELECT * FROM pedidos WHERE cliente_id = 123;
+-- ✅ Real execution: actual rows, actual time, buffers
+EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 123;
 ```
 
-## Índices — qual tipo usar
+## Which index to use
 
-| Situação | Tipo de índice |
+| Situation | Index type |
 |---|---|
-| Coluna usada em `WHERE`/`JOIN` isolada | Índice simples |
-| Duas ou mais colunas sempre filtradas juntas | Índice composto (ordem: igualdade antes de range) |
-| Filtro recorrente por um subconjunto (`status = 'ativo'`, `deleted_at IS NULL`) | Índice parcial |
-| Query só lê colunas que cabem no índice | Índice covering (evita lookup na tabela) |
-| Filtro por função/expressão (`LOWER(email)`, `date_trunc('day', ...)`) | Índice de expressão |
+| One column used in `WHERE`/`JOIN` | Simple index |
+| Two or more columns always filtered together | Composite (equality columns before range ones) |
+| Recurring filter on a subset (`status = 'active'`, `deleted_at IS NULL`) | Partial index |
+| The query reads only columns the index can hold | Covering index, which avoids the table lookup |
+| Filter on a function or expression (`LOWER(email)`, `date_trunc('day', ...)`) | Expression index |
 
 ```sql
--- Índice composto: coluna de igualdade primeiro, range depois
-CREATE INDEX idx_pedidos_cliente_data ON pedidos (cliente_id, criado_em);
+-- Composite: equality column first, range column after
+CREATE INDEX idx_orders_customer_date ON orders (customer_id, created_at);
 
--- Índice parcial: menor, mais rápido, só serve se a query usa o mesmo filtro
-CREATE INDEX idx_pedidos_ativos ON pedidos (cliente_id) WHERE status = 'ativo';
+-- Partial: smaller and faster, but only used when the query repeats the filter
+CREATE INDEX idx_orders_active ON orders (customer_id) WHERE status = 'active';
 
--- Índice de expressão: sem ele, WHERE LOWER(email) = ... força scan completo
-CREATE INDEX idx_usuarios_email_lower ON usuarios (LOWER(email));
+-- Expression: without it, WHERE LOWER(email) = ... forces a full scan
+CREATE INDEX idx_users_email_lower ON users (LOWER(email));
 ```
 
-A ordem das colunas em um índice composto importa: o motor só usa o índice de forma eficiente da esquerda pra direita. `(cliente_id, criado_em)` resolve `WHERE cliente_id = ?` e `WHERE cliente_id = ? AND criado_em > ?`, mas não resolve bem `WHERE criado_em > ?` sozinho.
+Column order in a composite index matters: the engine uses it efficiently only
+left to right. `(customer_id, created_at)` serves `WHERE customer_id = ?` and
+`WHERE customer_id = ? AND created_at > ?`, but does little for
+`WHERE created_at > ?` on its own.
 
-## O que impede o uso de um índice
+## What stops an index from being used
 
 ```sql
--- ❌ Função sobre a coluna indexada anula o índice
-WHERE LOWER(email) = 'a@b.com'  -- sem índice de expressão, vira full scan
+-- ❌ A function over the indexed column cancels the index
+WHERE LOWER(email) = 'a@b.com'  -- without an expression index, this is a full scan
 
--- ❌ Wildcard no início do LIKE não usa índice B-tree
-WHERE nome LIKE '%silva'
+-- ❌ A leading wildcard cannot use a B-tree index
+WHERE name LIKE '%silva'
 
--- ❌ Cast implícito de tipo (coluna INT comparada com string)
-WHERE codigo = '123'  -- se codigo é INT, pode invalidar o índice
+-- ❌ Implicit type cast (INT column compared against a string)
+WHERE code = '123'  -- if code is INT, this can invalidate the index
 
--- ❌ OR entre colunas sem índice combinado ou sem UNION
-WHERE cliente_id = 1 OR vendedor_id = 1
+-- ❌ OR across columns with no combined index and no UNION
+WHERE customer_id = 1 OR seller_id = 1
 ```
 
-## Outras causas de lentidão (não são sobre índice)
+## Slowness that is not about indexes
 
-- N+1: uma query por item de uma lista em vez de um único `JOIN`/`IN`
-- `SELECT *` quando só algumas colunas são usadas — mais I/O, impede index-only scan
-- Paginação sem limite, ou com `OFFSET` grande (motor ainda percorre e descarta as linhas puladas)
-- Estatísticas desatualizadas — o otimizador decide o plano com base em estimativas de cardinalidade; sem `ANALYZE`/atualização de estatísticas, ele erra o plano mesmo com índice certo
+- N+1: one query per item in a list instead of a single `JOIN` or `IN`
+- `SELECT *` when only a few columns are used — more I/O, and it rules out an
+  index-only scan
+- Unbounded pagination, or a large `OFFSET`: the engine still walks and discards
+  every skipped row
+- Stale statistics. The optimizer picks a plan from cardinality estimates, so
+  without `ANALYZE` it chooses badly even when the right index exists
 
 ## Checklist
 
-- [ ] Plano coletado com execução real (dados reais, não só estimativa)
-- [ ] Scan completo em tabela grande identificado e justificado (ou removido)
-- [ ] Linhas estimadas próximas das reais (senão, atualizar estatísticas)
-- [ ] Índice testado reduz custo do plano de forma mensurável
-- [ ] Índice novo não duplica um já existente (mesma coluna líder)
-- [ ] Impacto em escrita avaliado (tabela com muitos INSERTs não recebe índice a esmo)
-- [ ] Paginação sem `OFFSET` alto (cursor/keyset quando o volume é grande)
+- [ ] Plan captured with real execution, against real data
+- [ ] Any full scan on a large table identified and either justified or removed
+- [ ] Estimated rows close to actual rows, or statistics refreshed
+- [ ] The candidate index measurably reduces plan cost
+- [ ] The new index does not duplicate an existing one with the same leading column
+- [ ] Write impact considered — a write-heavy table does not get indexes casually
+- [ ] Pagination avoids a large `OFFSET`; keyset or cursor at volume
 
-## Exemplos por stack
+## By stack
 
-**Postgres** (incluindo Supabase) — `EXPLAIN (ANALYZE, BUFFERS)` mostra custo, linhas reais e I/O de buffer; índice parcial e `CREATE INDEX CONCURRENTLY` evitam lock em produção:
+**Postgres** (Supabase included) — `EXPLAIN (ANALYZE, BUFFERS)` shows cost, actual
+rows and buffer I/O; partial indexes and `CREATE INDEX CONCURRENTLY` avoid locking
+production:
 ```sql
-EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM pedidos WHERE cliente_id = 123;
-CREATE INDEX CONCURRENTLY idx_pedidos_cliente ON pedidos (cliente_id);
+EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM orders WHERE customer_id = 123;
+CREATE INDEX CONCURRENTLY idx_orders_customer ON orders (customer_id);
 ```
 
-**MySQL** — `EXPLAIN ANALYZE` (8.0+) mostra o plano real de execução; índice composto segue a mesma regra de ordem de colunas, sem suporte nativo a índice parcial:
+**MySQL** — `EXPLAIN ANALYZE` (8.0+) shows the real plan; composite indexes follow
+the same column-order rule, and there is no native partial index:
 ```sql
-EXPLAIN ANALYZE SELECT * FROM pedidos WHERE cliente_id = 123 AND status = 'ativo';
-CREATE INDEX idx_pedidos_cliente_status ON pedidos (cliente_id, status);
+EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 123 AND status = 'active';
+CREATE INDEX idx_orders_customer_status ON orders (customer_id, status);
 ```
 
-**SQL Server** — plano de execução real via `SET STATISTICS IO, TIME ON` ou "Include Actual Execution Plan"; índice covering usa `INCLUDE` pra guardar colunas extras sem entrar na chave:
+**SQL Server** — real plan via `SET STATISTICS IO, TIME ON` or "Include Actual
+Execution Plan"; a covering index uses `INCLUDE` to carry extra columns without
+putting them in the key:
 ```sql
 SET STATISTICS IO ON;
-SELECT id, nome FROM pedidos WHERE cliente_id = 123;
+SELECT id, name FROM orders WHERE customer_id = 123;
 
-CREATE INDEX idx_pedidos_cliente ON pedidos (cliente_id) INCLUDE (nome, status);
+CREATE INDEX idx_orders_customer ON orders (customer_id) INCLUDE (name, status);
 ```
 
 ## Anti-patterns
 
-- ❌ Criar índice sem comparar o plano antes/depois
-- ❌ Índice composto com a coluna errada na frente (não bate com o filtro mais comum)
-- ❌ Índice em toda coluna "pra garantir" — cada índice tem custo de escrita e espaço
-- ❌ Confiar em plano estimado sem rodar com execução real
-- ❌ Resolver lentidão de query com cache na aplicação sem investigar a causa no banco
-- ❌ Ignorar `OFFSET` alto em paginação de tabela grande
-- ❌ Deixar estatísticas desatualizadas depois de uma carga grande de dados
+- ❌ Creating an index without comparing the plan before and after
+- ❌ A composite index whose leading column does not match the common filter
+- ❌ Indexing every column "to be safe" — each one costs writes and space
+- ❌ Trusting the estimated plan without running a real execution
+- ❌ Papering over a slow query with an application cache before finding the cause
+- ❌ Ignoring a large `OFFSET` when paginating a large table
+- ❌ Leaving statistics stale after a big data load

@@ -1,157 +1,186 @@
 ---
 name: seed-data
-description: Explains reproducible seed data per environment — determinism, idempotency, dependency ordering, and masking real data for dev/test/staging. Database/ORM-agnostic. Use when user asks about seed data, fixtures, db seed, populate database, dados de teste, or mocking a dev/staging database.
+description: Explains reproducible seed data per environment — determinism, idempotency, dependency ordering, and masking real data for dev/test/staging. Database/ORM-agnostic. Use when user asks about seed data, fixtures, db seed, populate database, "dados de teste", or mocking a dev/staging database.
 ---
 
-# Seed Data — Reproduzível por Ambiente
+# Seed Data
 
-Seed é dado inserido de propósito pra deixar um ambiente utilizável — diferente de migration (muda schema) e de dado de produção (real, do usuário). Vale pra qualquer banco/ORM: o problema é sempre o mesmo — gerar dado determinístico, idempotente e do tamanho certo pro ambiente.
+Seed is data inserted on purpose to make an environment usable — distinct from a
+migration, which changes schema, and from production data, which is real and
+belongs to users. The problem is the same in any database or ORM: generate data
+that is deterministic, idempotent, and the right size for the environment.
 
-## Seed x Migration x Fixture
+## Seed vs migration vs fixture
 
-| Conceito | O que é | Quando roda |
+| Concept | What it is | When it runs |
 |---|---|---|
-| Migration | Muda estrutura (schema) | Todo deploy, todo ambiente |
-| Seed | Popula dado de referência/exemplo | Setup de ambiente (dev, CI, staging) |
-| Fixture | Dado fixo pra um teste específico | Só durante a execução daquele teste |
+| Migration | Changes structure | Every deploy, every environment |
+| Seed | Populates reference or example data | Environment setup: dev, CI, staging |
+| Fixture | Fixed data for one specific test | Only during that test |
 
 ```
-// ❌ Seed misturado dentro de arquivo de migration
-ALTER TABLE produtos ADD COLUMN categoria_id INT;
-INSERT INTO produtos (nome, categoria_id) VALUES ('Exemplo', 1);
+// ❌ Seed mixed into a migration file
+ALTER TABLE products ADD COLUMN category_id INT;
+INSERT INTO products (name, category_id) VALUES ('Example', 1);
 
-// ✅ Migration só muda estrutura; seed é script/comando separado, versionado à parte
+// ✅ The migration only changes structure; seed is its own versioned script
 ```
 
-## Determinismo
+## Determinism
 
-Seed que gera dado diferente a cada execução quebra teste, quebra comparação entre ambientes e impossibilita debug ("no meu deu esse bug, no seu não").
+Seed that produces different data on every run breaks tests, breaks comparison
+between environments, and makes debugging impossible — "it reproduces here and
+not on your machine".
 
 ```ts
-// ❌ Faker sem seed fixo — dado muda a cada rodada
-const nome = faker.person.fullName();
+// ❌ Faker with no fixed seed — the data changes every run
+const name = faker.person.fullName();
 
-// ✅ RNG com seed fixo — mesmo dado sempre, em qualquer máquina/CI
+// ✅ RNG with a fixed seed — the same data on every machine and in CI
 faker.seed(42);
-const nome = faker.person.fullName();
+const name = faker.person.fullName();
 ```
 
-- Nunca usar `now()`/`Date.now()`/`random()` direto no dado gerado — fixar timestamp de referência (`const AGORA = new Date('2024-01-01')`) e derivar datas a partir dele.
-- IDs previsíveis quando possível (sequenciais ou UUID gerado com seed fixo), pra poder referenciar em teste (`WHERE id = 1`) sem precisar consultar antes.
+- Never call `now()`, `Date.now()` or `random()` directly in generated data. Fix a
+  reference timestamp (`const NOW = new Date('2024-01-01')`) and derive dates from
+  it.
+- Predictable ids where possible — sequential, or UUIDs generated from a fixed
+  seed — so a test can reference `WHERE id = 1` without querying first.
 
-## Idempotência
+## Idempotency
 
-Rodar o seed duas vezes não pode duplicar linha nem quebrar por violação de unique/FK.
+Running the seed twice must not duplicate a row or fail on a unique or foreign key.
 
 ```sql
--- ❌ INSERT puro — segunda execução duplica ou falha em constraint única
-INSERT INTO categorias (nome) VALUES ('Eletrônicos');
+-- ❌ Plain INSERT — the second run duplicates or violates a unique constraint
+INSERT INTO categories (name) VALUES ('Electronics');
 
--- ✅ Upsert — idempotente em qualquer número de execuções
-INSERT INTO categorias (id, nome) VALUES (1, 'Eletrônicos')
-ON CONFLICT (id) DO UPDATE SET nome = EXCLUDED.nome;
+-- ✅ Upsert — idempotent at any number of runs
+INSERT INTO categories (id, name) VALUES (1, 'Electronics')
+ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
 ```
 
-Alternativas equivalentes por ferramenta: `findOrCreate`/`upsert` no ORM, `INSERT ... ON DUPLICATE KEY UPDATE` (MySQL), ou truncar as tabelas de seed antes de reinserir (só em ambiente não-produtivo, nunca em dado real).
+Equivalents per tool: `findOrCreate`/`upsert` in an ORM,
+`INSERT ... ON DUPLICATE KEY UPDATE` in MySQL, or truncating the seeded tables
+before reinserting — non-production environments only, never against real data.
 
-## Ordem de dependências
+## Dependency order
 
-Seed de tabela com FK precisa respeitar a ordem de inserção (pai antes de filho) e, ao limpar, a ordem inversa (filho antes de pai) — ou desabilitar checagem de FK temporariamente, se o banco suportar.
+Seeding a table with foreign keys has to respect insertion order (parent before
+child) and, when clearing, the reverse (child before parent) — or temporarily
+disable FK checking where the engine allows it.
 
 ```
-// ❌ Seed de pedidos antes de clientes existirem — FK falha
-seedPedidos(); seedClientes();
+// ❌ Seeding orders before customers exist — the FK fails
+seedOrders(); seedCustomers();
 
-// ✅ Respeita o grafo de dependência: referência antes de quem referencia
-seedClientes(); seedProdutos(); seedPedidos();
+// ✅ Follow the dependency graph: the referenced before the referencing
+seedCustomers(); seedProducts(); seedOrders();
 ```
 
-Em bases maiores, extrair a ordem automaticamente a partir do schema (topological sort pelas FKs) evita manter a lista manualmente.
+In larger databases, derive the order from the schema (a topological sort over the
+FKs) rather than maintaining the list by hand.
 
-## Seed por ambiente
+## Seed per environment
 
-| Ambiente | Volume | Origem do dado | Objetivo |
+| Environment | Volume | Source | Goal |
 |---|---|---|---|
-| Dev local | Pequeno/médio, realista | 100% sintético (Faker/gerador) | Ambiente utilizável sem depender de ninguém |
-| Teste/CI | Mínimo, só o necessário pro caso testado | 100% sintético, determinístico | Teste rápido e reprodutível |
-| Staging/homologação | Próximo do volume real | Cópia de produção **mascarada**, ou sintético em escala | Validar comportamento com volume/distribuição real |
-| Produção | — | Nunca seed automático | Seed é coisa de ambiente não-produtivo |
+| Local dev | Small to medium, realistic | Fully synthetic (Faker or a generator) | A usable environment that depends on nobody |
+| Test/CI | Minimal, only what the case needs | Fully synthetic, deterministic | Fast, reproducible tests |
+| Staging | Close to real volume | **Masked** production copy, or synthetic at scale | Validate behaviour at real volume and distribution |
+| Production | — | Never an automatic seed | Seeding belongs to non-production environments |
 
-- Nunca rodar script de seed contra produção — se precisa popular dado de referência em produção (ex: tabela de status, categoria fixa), isso é migration de dado, não seed, e segue a mesma disciplina de `safe-migrations`.
-- Dado sintético em dev deve parecer real o suficiente pra pegar bug de formatação/tamanho (nome longo, acento, CPF inválido de propósito), mas nunca ser dado de pessoa real.
+- Never run a seed script against production. Reference data that production
+  genuinely needs — a status table, a fixed category list — is a data migration,
+  and follows `safe-migrations`.
+- Synthetic dev data should look real enough to catch formatting and length bugs:
+  long names, accents, a deliberately invalid document number. It must never be a
+  real person's data.
 
-## Mascaramento ao copiar produção
+## Masking a production copy
 
-Quando staging precisa de volume/distribuição real, copia-se produção mas mascarando todo dado pessoal antes do dado chegar em qualquer ambiente não-produtivo — nome, e-mail, telefone, documento, endereço trocados por gerado consistente (mesmo `id` sempre vira o mesmo nome fake, pra manter joins e testes de regressão funcionando). Pseudonimização reversível (hash) não é suficiente — ver checklist de mascaramento e retenção em `lgpd-checklist`.
+When staging needs real volume and distribution, copy production but mask every
+piece of personal data **before** it reaches any non-production environment —
+name, email, phone, document, address replaced by consistent generated values, so
+that the same `id` always maps to the same fake name and joins and regression
+tests keep working. Reversible pseudonymisation (a hash) is not enough; see
+`lgpd-checklist` for the masking and retention checklist.
 
 ```
-// ❌ Dump de produção restaurado direto em staging
-pg_restore producao.dump
+// ❌ Production dump restored straight into staging
+pg_restore production.dump
 
-// ✅ Dump passa por pipeline de mascaramento antes de chegar em staging
-pg_restore producao.dump | mask-pii --config=masking.yml
+// ✅ The dump goes through a masking pipeline before staging sees it
+pg_restore production.dump | mask-pii --config=masking.yml
 ```
 
-## Volume e performance
+## Volume and performance
 
-- Seed de dev: rápido (segundos), não minutos — se está lento, reduzir volume ou paralelizar inserts em lote (`COPY`/bulk insert em vez de um INSERT por linha).
-- Seed de carga/performance é um script separado do seed de dev (objetivo diferente: milhões de linhas, não legibilidade).
-- Seed de teste automatizado deve criar só o mínimo de dado que o caso de teste precisa — seed genérico e gigante torna teste lento e frágil (mudança no seed quebra teste que não tem nada a ver).
+- Dev seed: seconds, not minutes. If it is slow, cut the volume or batch the
+  inserts (`COPY`/bulk insert instead of one INSERT per row).
+- A load or performance seed is a separate script with a different goal: millions
+  of rows, not readability.
+- An automated test seeds only the minimum its case needs. One giant shared seed
+  makes tests slow and brittle, and a change to it breaks tests that have nothing
+  to do with it.
 
 ## Checklist
 
-- [ ] Seed determinístico — mesma execução, mesmo dado, em qualquer máquina/CI (RNG e datas com seed/valor fixo)
-- [ ] Idempotente — rodar N vezes não duplica nem quebra constraint
-- [ ] Respeita ordem de dependência de FK (inserção e limpeza)
-- [ ] Separado de arquivo de migration — script/comando próprio, versionado no repo
-- [ ] Nenhum dado pessoal real em dev/teste/CI
-- [ ] Cópia de produção para staging passa por mascaramento antes de qualquer acesso não-produtivo
-- [ ] Seed de teste automatizado cria só o dado mínimo do caso, não o dataset completo de dev
-- [ ] Sem script de seed com acesso habilitado contra produção
+- [ ] Deterministic — the same run produces the same data on any machine and in CI (seeded RNG, fixed dates)
+- [ ] Idempotent — running it N times neither duplicates nor breaks a constraint
+- [ ] Respects FK dependency order, on insert and on cleanup
+- [ ] Separate from migration files: its own versioned script or command
+- [ ] No real personal data in dev, test or CI
+- [ ] A production copy destined for staging is masked before any non-production access
+- [ ] Automated tests seed only their own minimum, not the full dev dataset
+- [ ] No seed script with production access enabled
 
 ## Anti-patterns
 
-- ❌ Seed com `faker`/`random` sem seed fixo — dado muda a cada execução, teste vira flaky
-- ❌ `INSERT` puro sem upsert/checagem — segunda execução duplica linha ou quebra
-- ❌ Seed misturado dentro de arquivo de migration versionado
-- ❌ Restaurar dump de produção em dev/staging sem mascarar dado pessoal antes
-- ❌ Pseudonimizar (hash reversível) e chamar de "mascarado" — continua sendo dado pessoal
-- ❌ Um seed gigante único servindo dev, teste e staging ao mesmo tempo, com finalidades diferentes
-- ❌ Script de seed com string de conexão/credencial de produção acessível
-- ❌ Ordem de inserção manual sem considerar FK — quebra toda vez que uma tabela nova é adicionada
+- ❌ `faker`/`random` with no fixed seed — data changes every run and tests go flaky
+- ❌ Plain `INSERT` with no upsert or check, so the second run duplicates or fails
+- ❌ Seed mixed into a versioned migration file
+- ❌ Restoring a production dump into dev or staging without masking first
+- ❌ Calling reversible pseudonymisation "masked" — it is still personal data
+- ❌ One giant seed serving dev, test and staging, which want different things
+- ❌ A seed script holding a reachable production connection string
+- ❌ A hand-maintained insertion order that ignores the FK graph, and breaks whenever a table is added
 
-## Exemplos por stack
+## By stack
 
-**Supabase (`supabase/seed.sql`)** — rodado automaticamente por `supabase db reset` em dev local:
+**Supabase (`supabase/seed.sql`)** — run automatically by `supabase db reset` in
+local dev:
 ```sql
-insert into categorias (id, nome) values (1, 'Eletrônicos')
-on conflict (id) do update set nome = excluded.nome;
+insert into categories (id, name) values (1, 'Electronics')
+on conflict (id) do update set name = excluded.name;
 ```
 
-**Prisma + Postgres (Node/TS)** — `prisma/seed.ts`, com Faker seedado:
+**Prisma + Postgres (Node/TS)** — `prisma/seed.ts`, with a seeded Faker:
 ```ts
 import { faker } from '@faker-js/faker';
 faker.seed(42);
 
 async function main() {
-  const categoria = await prisma.categoria.upsert({
+  const category = await prisma.category.upsert({
     where: { id: 1 },
     update: {},
-    create: { id: 1, nome: 'Eletrônicos' },
+    create: { id: 1, name: 'Electronics' },
   });
-  // ... resto do grafo de dependência, sempre upsert
+  // ... the rest of the dependency graph, always upsert
 }
 ```
-Registrado em `package.json` (`"prisma": { "seed": "ts-node prisma/seed.ts" }`), rodado via `prisma db seed` — nunca dentro de uma migration gerada.
+Registered in `package.json` (`"prisma": { "seed": "ts-node prisma/seed.ts" }`)
+and run through `prisma db seed` — never inside a generated migration.
 
-**Python (SQLAlchemy/Django) com Faker seedado**:
+**Python (SQLAlchemy/Django) with a seeded Faker**:
 ```python
 from faker import Faker
 fake = Faker()
 Faker.seed(42)
 
 def seed():
-    categoria, _ = Categoria.objects.get_or_create(id=1, defaults={"nome": "Eletrônicos"})
-    # get_or_create/update_or_create garante idempotência
+    category, _ = Category.objects.get_or_create(id=1, defaults={"name": "Electronics"})
+    # get_or_create/update_or_create is what makes it idempotent
 ```
-Django expõe isso como `management command` (`python manage.py seed`); SQLAlchemy puro roda como script chamado a partir de um `Makefile`/task runner.
+Django exposes this as a management command (`python manage.py seed`); plain
+SQLAlchemy runs it as a script invoked from a `Makefile` or task runner.
