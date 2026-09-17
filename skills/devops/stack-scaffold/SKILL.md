@@ -19,7 +19,7 @@ Ask (one at a time, skip what's already known from context):
    - **Vite + React + Supabase** (default) — SPA/painel, side projects, quick freelas
    - **Next.js** (App Router) — sites institucionais, landing pages, apps fullstack leves pra cliente
    - **NestJS** — backend/API dedicado (cliente já tem frontend, ou precisa de serviço separado)
-2. Project name + target dir (default `D:/Projetos/projetos-pessoais/<name>` for personal; ask for freela client work)
+2. Project name + target dir — ask for it. The personal default lives in `~/.claude/projects-map.md`, outside this repo; freelance work goes wherever that client's folder is.
 3. Package manager (default pnpm; detect global availability first)
 4. Data layer: Supabase (new via `supabase init` or existing project ref), plain PostgreSQL, or client already has a backend/API?
 5. Frontend only: router needed? (React Router vs single-page — Vite only; Next.js has file-based routing)

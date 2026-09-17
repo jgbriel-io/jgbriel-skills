@@ -120,7 +120,7 @@ Checklist de triagem periódica:
 
 ## Correlação com logging
 
-Error tracker e logs estruturados devem compartilhar o mesmo `request_id`/`trace_id`. Um evento de erro sem log associado (ou vice-versa) quebra a investigação — ao configurar o tracker, garantir que o campo de correlação é o mesmo emitido no logger da aplicação (ver skill `structured-logging`).
+O `request_id`/`trace_id` é o mesmo dos logs — o formato e a propagação dele são `structured-logging`, e o que nunca pode ser logado vale igual aqui. Error tracker e logs estruturados devem compartilhar o mesmo `request_id`/`trace_id`. Um evento de erro sem log associado (ou vice-versa) quebra a investigação — ao configurar o tracker, garantir que o campo de correlação é o mesmo emitido no logger da aplicação (ver skill `structured-logging`).
 
 ## Exemplos por stack
 

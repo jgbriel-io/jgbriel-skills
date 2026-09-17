@@ -14,7 +14,7 @@ página de deployment dele no vault — esta skill executa, verifica e registra.
 ### 1. Localizar o runbook
 
 - Vault: `wiki/Projetos/<nome>/deployment/<Nome> - Deploy.md`
-- Fallback: `D:/Projetos/<caminho>/docs/deployment/`
+- Fallback: `docs/deployment/` dentro do próprio projeto
 
 Se não existir: entrevistar (uma pergunta por vez) e criar a página antes de
 executar — onde hospeda, como builda, como sobe (git push / FTP / painel /

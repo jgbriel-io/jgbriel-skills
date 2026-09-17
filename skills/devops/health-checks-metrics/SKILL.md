@@ -179,6 +179,8 @@ def readyz():
 REQUEST_LATENCY = Histogram("http_request_duration_seconds", "latency", ["route", "method"])
 ```
 
+Uma probe que falha e um erro capturado são sinais diferentes: probe mede se o processo deve receber tráfego, `error-tracking` mede o que quebrou dentro dele, e `structured-logging` é onde o `trace_id` liga os dois.
+
 O padrão (liveness barata e local, readiness com dependência direta, métricas RED/USE com label de cardinalidade fixa) é idêntico entre stacks — muda apenas a lib (Terminus, Actuator no Java/Spring, health check middleware no Go/Ruby, `/health` custom em qualquer runtime).
 
 ## Anti-patterns
