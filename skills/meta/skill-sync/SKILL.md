@@ -64,7 +64,7 @@ LOCAL-ONLY pair with near-identical content is a rename, not two skills.
   not upstream `grill-me`. Diffing it against the same-named skill will always
   show total divergence; diff against `grilling` instead.
 - **The core loop — `discuss`, `research`, `plan`, `implement`, `diagnose`,
-  `pr-acceptance`, `resolve-review`.** Each is a three-way merge of this repo's
+  `pr-acceptance` (which absorbed `resolve-review`).** Each is a three-way merge of this repo's
   version, `mattpocock/skills` and [`lucasmonstrox/utevo-lux`](https://github.com/lucasmonstrox/utevo-lux),
   and utevo-lux is a **second upstream** for them. A wholesale pull from Matt
   reverts that merge. `plan` and `pr-acceptance` have no upstream counterpart at

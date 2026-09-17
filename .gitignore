@@ -30,3 +30,4 @@ claude/skills/impeccable/
 
 # private repo roster for scripts/audit-labels.sh - never commit
 scripts/.pipeline-repos
+__pycache__/

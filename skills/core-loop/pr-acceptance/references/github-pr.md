@@ -1,6 +1,6 @@
 # GitHub PR context and operations
 
-Shared reference for `code-review` and `resolve-review`. Use the available GitHub connector or the `gh` CLI; pick whichever tool can retrieve the complete content. The examples below use the placeholders `OWNER/REPO`, `NUMBER` and `COMMENT_ID`, which must be replaced with the confirmed target.
+Shared reference for both modes of `pr-acceptance` and for `code-review`. Use the available GitHub connector or the `gh` CLI; pick whichever tool can retrieve the complete content. The examples below use the placeholders `OWNER/REPO`, `NUMBER` and `COMMENT_ID`, which must be replaced with the confirmed target.
 
 ## Reading it all
 

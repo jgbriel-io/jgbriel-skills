@@ -78,7 +78,18 @@ tools: Read
 """)
     assert has(mismatch, "does not match file"), mismatch
 
-    print("ok — 5 checks")
+    with tempfile.TemporaryDirectory() as d:
+        same_a = os.path.join(d, "a.md")
+        same_b = os.path.join(d, "b.md")
+        other = os.path.join(d, "c.md")
+        for f in (same_a, same_b):
+            open(f, "w", encoding="utf-8").write("# protocol\nsame bytes\n")
+        open(other, "w", encoding="utf-8").write("# protocol\ndifferent\n")
+        dupes = sweep.duplicate_refs([same_a, same_b, other])
+        assert len(dupes) == 1, dupes
+        assert sorted(next(iter(dupes.values()))) == sorted([same_a, same_b]), dupes
+
+    print("ok — 6 checks")
 
 
 if __name__ == "__main__":

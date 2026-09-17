@@ -66,13 +66,14 @@ remendado sem isso volta.
 ## Pull request
 
 ```
-/pr-acceptance   → o PR entrega o que foi pedido? critério a critério
-/code-review     → eixo de correção, nativo; pr-acceptance já dobra o resultado dentro
-/resolve-review  → aplica o que um revisor humano pediu, um commit por mudança
+/pr-acceptance accept   → o PR entrega o que foi pedido? critério a critério
+/code-review            → eixo de correção, nativo; o modo accept já dobra o resultado dentro
+/pr-acceptance resolve  → aplica o que um revisor humano pediu, um commit por mudança
 ```
 
-Os três eixos são distintos: requisito (`pr-acceptance`), defeito
-(`code-review`), resposta ao revisor (`resolve-review`).
+Os três eixos são distintos: requisito (`pr-acceptance accept`), defeito
+(`code-review`), resposta ao revisor (`pr-acceptance resolve`). O modo é sempre
+explícito: `accept` não escreve nada, `resolve` faz commit e push.
 
 ## TCC — escrever capítulo
 

@@ -20,6 +20,7 @@ not automatically wrong, but it is past everything that has been shown to work
 here, and the burden is on it.
 """
 import glob
+import hashlib
 import os
 import re
 import sys
@@ -172,6 +173,21 @@ def audit_flat(path, kind):
     return lines, out
 
 
+def duplicate_refs(paths):
+    """{content hash: [ref paths]} for the hashes carried by more than one file.
+
+    Two skills that call the same API used to each carry their own copy of the
+    protocol — 81 identical lines, kept in sync by memory alone. Deleting the
+    copy fixes today; this is what stops the next one, because a duplicate is
+    mechanical fact and needs no judgement to spot.
+    """
+    seen = {}
+    for ref in paths:
+        with open(ref, "rb") as f:
+            seen.setdefault(hashlib.md5(f.read()).hexdigest(), []).append(ref)
+    return {h: p for h, p in seen.items() if len(p) > 1}
+
+
 def collect(arg):
     """(paths, kind) for a category name, `agents`, `commands`, or everything."""
     if arg in ("agents", "commands"):
@@ -198,6 +214,16 @@ def main():
             print(f"  {n:4} {s}")
         return 0
 
+    dupes = {}
+    for group, kind in targets:
+        if kind != "skills":
+            continue
+        refs = [r for path in group
+                for r in sorted(glob.glob(os.path.join(os.path.dirname(path), "references", "*.md")))]
+        for copies in duplicate_refs(refs).values():
+            for ref in copies:
+                dupes[ref] = [os.path.relpath(c, ROOT) for c in copies if c != ref]
+
     blocked = 0
     for group, kind in targets:
         for path in group:
@@ -206,6 +232,9 @@ def main():
                 for ref in sorted(glob.glob(os.path.join(os.path.dirname(path), "references", "*.md"))):
                     if len(re.findall(r"^```", open(ref, encoding="utf-8").read(), re.M)) % 2:
                         findings.append(("BLOCKER", f"unbalanced fence in references/{os.path.basename(ref)}"))
+                    if ref in dupes:
+                        findings.append(("BLOCKER", f"references/{os.path.basename(ref)} is byte-identical to " +
+                                         ", ".join(f"`{d}`" for d in dupes[ref]) + " — share one copy"))
             else:
                 _, findings = audit_flat(path, kind)
             if not findings:

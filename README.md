@@ -88,7 +88,7 @@ solta em `skills/` não é descoberta sozinha.
 - `context-mode-cache-heal.mjs` — auto-cura o cache do plugin context-mode no `SessionStart`
 
 <!-- inventory:skills:start -->
-**85 skills**, em 13 pastas de categoria:
+**84 skills**, em 13 pastas de categoria:
 
 <details><summary><code>backend</code> — 6 skills</summary>
 
@@ -121,7 +121,7 @@ solta em `skills/` não é descoberta sozinha.
 | `wrangler` | Cloudflare Workers CLI for deploying, developing, and managing Workers, KV, R2, D1, Vectorize, Hyperdrive, Workers AI, … |
 
 </details>
-<details><summary><code>core-loop</code> — 13 skills</summary>
+<details><summary><code>core-loop</code> — 12 skills</summary>
 
 | Skill | Uso |
 |---|---|
@@ -135,9 +135,8 @@ solta em `skills/` não é descoberta sozinha.
 | `handoff` | Compact the current conversation into a handoff document for another agent to pick up. |
 | `implement` | Implement planned work — a plan, PRD, issue or agreed task. |
 | `plan` | Produce an implementation plan — ordered steps, explicit dependencies, mechanical proofs, risks and exit criteria. |
-| `pr-acceptance` | Judge whether a PR delivers what was asked — loads the originating issue/spec, the PR description and its discussions, … |
+| `pr-acceptance` | Work a PR from either end — `accept` judges whether it delivers what was asked (issue/spec, description and discussions… |
 | `research` | Investigate a question or topic against primary sources and the repo's own history, then capture verified findings as a… |
-| `resolve-review` | Address the change requests a human reviewer left on a PR — read the full description, issues, reviews and discussions,… |
 
 </details>
 <details><summary><code>data</code> — 6 skills</summary>
