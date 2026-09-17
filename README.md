@@ -109,8 +109,8 @@ solta em `skills/` não é descoberta sozinha.
 | Skill | Uso |
 |---|---|
 | `cv-sync` | Pipeline do currículo: edita os .tex canônicos, recompila, distribui para o site e o vault, commita e confere a produçã… |
-| `job-description-analyzer` | Analyze job postings, calculate match scores, identify gaps, and create application strategy. |
-| `resume-tailor` | Customize resume for specific job postings while maintaining truthfulness. |
+| `job-description-analyzer` | Analisa uma vaga contra o perfil do usuário — requisito obrigatório separado do desejável, nota de aderência, lacunas, … |
+| `resume-tailor` | Adapta o currículo para uma vaga específica sem inventar nada — reordena habilidades, reescreve bullets para a linguage… |
 
 </details>
 <details><summary><code>cloudflare</code> — 4 skills</summary>

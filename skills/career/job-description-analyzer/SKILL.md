@@ -1,21 +1,12 @@
 ---
 name: job-description-analyzer
-description: Analyze job postings, calculate match scores, identify gaps, and create application strategy. Use when user wants to analyze a job posting, asks "should I apply", wants a match percentage, or mentions "analyze this job", "am I qualified", "match score". Use before resume tailoring.
+description: Analisa uma vaga contra o perfil do usuário — requisito obrigatório separado do desejável, nota de aderência, lacunas, red flags do mercado brasileiro (PJ sem benefício convertido, salário a combinar, senioridade incoerente) e decisão de aplicar ou não. Use quando o usuário colar uma vaga, disser "vale a pena aplicar", "analisa essa vaga", "tô qualificado pra isso", "quantos por cento eu bato". Vem antes de resume-tailor, que só compensa se a nota justificar.
 ---
 
 # Job Description Analyzer
 
-## When to Use This Skill
-
-Use this skill when the user:
-- Wants to analyze a job posting
-- Asks "should I apply to this job?"
-- Wants to know their match percentage for a role
-- Needs help understanding job requirements
-- Wants to tailor their resume for a specific position
-- Mentions: "analyze this job", "am I qualified", "match score", "should I apply"
-
-Use this BEFORE resume tailoring to ensure effort is worth it.
+Run this before `resume-tailor`: tailoring a resume for a posting worth skipping
+is the expensive half of the mistake.
 
 ## Core Capabilities
 
@@ -72,9 +63,10 @@ Break job description into categories:
 Identify three types:
 
 **Hard Skills** (Technical abilities)
-- Tools: Salesforce, Python, AWS, Excel
-- Methodologies: Agile, Six Sigma, SDLC
-- Certifications: PMP, CPA, AWS Certified
+- Tools: the stack named in the posting, exactly as the posting spells it
+- Methodologies: Scrum, Kanban, CI/CD
+- Certifications: the ones Brazilian postings actually ask for — AWS, Azure,
+  Scrum Master — not the US professional licences
 
 **Soft Skills** (Interpersonal)
 - Leadership, collaboration, communication
@@ -82,9 +74,10 @@ Identify three types:
 - Adaptability, initiative
 
 **Industry/Domain Knowledge**
-- B2B SaaS, healthcare, fintech
-- Enterprise vs SMB
-- Regulatory knowledge (HIPAA, SOX, GDPR)
+- B2B SaaS, fintech, varejo, saúde
+- Enterprise, PME ou startup
+- Regulatório: **LGPD** primeiro; GDPR e PCI-DSS quando o produto atende fora do
+  Brasil. HIPAA e SOX quase nunca se aplicam aqui
 
 ### Step 3: Calculate Match Score
 
@@ -128,15 +121,18 @@ Scan for warning signs:
 
 **Culture Red Flags:**
 - "Rockstar/Ninja/Guru"
-- "We work hard, play hard"
-- "Unlimited vacation"
-- "Like a family"
+- "Aqui é uma família", "vestir a camisa", "sangue nos olhos"
+- "Ambiente jovem e dinâmico" como substituto de descrição de cargo
+- Senioridade incoerente com o escopo: júnior fazendo trabalho de pleno pelo
+  salário de estágio é o padrão brasileiro a detectar
 
-**Compensation Red Flags:**
-- "Competitive salary" (won't tell you range)
-- "Equity-heavy" (low cash compensation)
-- "Commission-based" (no base salary)
-- "DOE" with no range
+**Compensation Red Flags (mercado brasileiro):**
+- "Salário a combinar" — sem faixa, e quase sempre abaixo do mercado
+- **PJ sem os benefícios convertidos** — comparar sempre com o CLT equivalente,
+  não com o bruto: férias, 13º, FGTS e INSS saem do seu bolso
+- "Pacote agressivo de equity" numa empresa sem rodada anunciada
+- Comissão sem fixo, ou banco de horas apresentado como benefício
+- Vaga "remota" que exige mudança de cidade em três meses
 
 ## Report format
 

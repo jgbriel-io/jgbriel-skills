@@ -1,19 +1,13 @@
 ---
 name: resume-tailor
-description: Customize resume for specific job postings while maintaining truthfulness. Use when user wants to tailor/customize their resume for a role, or mentions "tailor resume", "customize resume", "target role", "match job description". Use after job-description-analyzer.
+description: Adapta o currículo para uma vaga específica sem inventar nada — reordena habilidades, reescreve bullets para a linguagem do anúncio, encaixa palavra-chave que o ATS procura e marca a linha entre adaptar e mentir. Use quando o usuário disser "adapta meu currículo pra essa vaga", "customiza o CV", "deixa alinhado com o anúncio". Analisar se vale aplicar é job-description-analyzer; compilar e publicar é cv-sync. Use after job-description-analyzer.
 ---
 
 # Resume Tailor
 
-## When to Use This Skill
-
-Use this skill when the user wants to:
-- Customize their resume for a specific job posting
-- Adjust their resume to match job requirements
-- Create a targeted version of their resume
-- Mentions: "tailor resume", "customize resume", "target role", "specific job", "match job description"
-
-Use AFTER job-description-analyzer to know what to emphasize.
+Run `job-description-analyzer` first — it decides whether this posting is worth
+tailoring for. When the tailored version is ready, `cv-sync` is what compiles and
+publishes it.
 
 ## Core Capabilities
 
@@ -210,7 +204,7 @@ untouched. Without it the resume drifts toward whatever the posting flattered.
 - This is your "source of truth"
 
 ### Create Targeted Versions
-- Name files clearly: "JohnSmith_Resume_ProductManager_TechCorp.pdf"
+- Nome do arquivo em português e legível: `Joao-Silva-CV-Desenvolvedor-Backend.pdf`
 - Track which version went to which company
 - Save tailoring notes for interview prep
 
@@ -236,7 +230,7 @@ Before submitting any resume:
 6. ✅ Company/industry terminology is used correctly
 7. ✅ All claims are truthful
 8. ✅ File is named appropriately
-9. ✅ ATS formatting maintained
+9. ✅ Formatação legível por ATS mantida (Gupy, Solides e Kenoby são os comuns aqui)
 10. ✅ Saved for interview prep reference
 
 ## Output format
@@ -252,5 +246,9 @@ makes the tailoring reviewable instead of trusted.
 - Always start with the job description analyzer
 - Keep tailoring changes documented for interview prep
 - Maintain master resume as source of truth
-- Never sacrifice ATS compatibility for tailoring
+- Nunca sacrificar compatibilidade com ATS pela customização: no Brasil a
+  triagem inicial passa por Gupy, Solides ou Kenoby na maioria das vagas de
+  porte, e o que elas não leem não chega a um humano
+- O currículo publicado pelo `cv-sync` é o genérico. A versão adaptada para uma
+  vaga é entregue àquela vaga, não vai para o site
 - Test keyword match after tailoring
