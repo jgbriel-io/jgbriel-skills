@@ -3,148 +3,171 @@ name: e2e-testing
 description: Guides writing reliable end-to-end tests — programmatic auth fixtures instead of UI login, per-run data isolation, accessible selectors (role/label), and when E2E is the right layer vs. integration/unit. Use when user asks about E2E tests, flaky tests, test selectors, login fixtures for tests, Playwright, Cypress, or Selenium.
 ---
 
-# E2E Testing — Ponta a Ponta
+# E2E Testing
 
-## Quando usar E2E (vs. integração/unitário)
+## When E2E is the right layer
 
-| Camada | O que valida | Custo | Quando usar |
+| Layer | What it proves | Cost | When |
 |---|---|---|---|
-| Unitário | Lógica pura, função isolada | Baixíssimo | Sempre — primeira linha de defesa |
-| Integração | Contrato entre módulos, API real + banco | Baixo/médio | Regras de negócio, camada service/API/repositório |
-| E2E | Jornada completa via UI real (browser) | Alto | Só fluxos críticos: login, checkout, cadastro, fluxo de pagamento |
+| Unit | Pure logic, one function | Very low | Always — the first line of defence |
+| Integration | The contract between modules, real API plus database | Low to medium | Business rules, service/API/repository layer |
+| E2E | A whole journey through the real UI | High | Critical flows only: login, checkout, sign-up, payment |
 
-Regra prática: se o comportamento pode ser provado sem subir um browser, não é E2E. E2E não substitui integração — é a camada mais lenta e mais frágil da pirâmide, use com parcimônia. Ver skill `tdd` para o ciclo red-green-refactor e `integration-testing` para testes de integração.
+Rule of thumb: if the behaviour can be proven without a browser, it is not E2E.
+E2E does not replace integration — it is the slowest and most fragile layer of the
+pyramid, so spend it sparingly. See `tdd` for the red-green-refactor cycle and
+`integration-testing` for the layer below.
 
-## Fixture de autenticação
+## Authentication fixtures
 
-Login pela UI em todo teste é lento e flaky — cada teste herda a fragilidade da tela de login, mesmo quando login não é o que está sendo testado. Autentique programaticamente (chamada direta à API de auth, ou reaproveitando uma sessão/token já obtida) e só então abra a página que interessa.
-
-```
-// ❌ login pela UI em todo teste
-abrir("/login")
-preencher("#email", "user@test.com")
-preencher("#senha", "123456")
-clicar("Entrar")
-esperarUrl("/dashboard")
-// ... o teste de verdade só começa aqui
-
-// ✅ autenticação via API/fixture, sessão já pronta ao abrir a página
-autenticarViaApi("user@test.com", "123456")  // injeta cookie/token/localStorage
-abrir("/perfil")
-// teste começa direto no comportamento sob teste
-```
-
-- O fluxo de login em si só é testado por UI *uma vez*, no teste dedicado a login.
-- Reaproveitar sessão entre testes do mesmo usuário (setup em `beforeAll`/fixture global) é aceitável quando o teste não precisa de estado de auth limpo.
-
-## Isolamento de dados por execução
-
-Cada teste cria e limpa os próprios dados. Nunca depender de registro fixo em ambiente compartilhado nem da ordem de execução de outro teste — isso quebra em paralelização e em re-execução.
+Logging in through the UI in every test is slow and flaky: each test inherits the
+fragility of the login screen even when login is not what is under test.
+Authenticate programmatically — call the auth API directly, or reuse a session or
+token already obtained — and only then open the page you care about.
 
 ```
-// ❌ depende de dado fixo criado manualmente meses atrás
-abrir("/clientes/123/pedidos")
+// ❌ UI login in every test
+open("/login")
+fill("#email", "user@test.com")
+fill("#password", "123456")
+click("Sign in")
+waitForUrl("/dashboard")
+// ... the real test only starts here
 
-// ✅ cria e destrói o próprio dado, com identificador único por execução
-cliente = api.criarCliente({ nome: `Cliente E2E ${uuid()}` })
-api.criarPedido(cliente.id, { valor: 100 })
-abrir(`/clientes/${cliente.id}/pedidos`)
+// ✅ authenticate through the API, session ready before the page opens
+authenticateViaApi("user@test.com", "123456")  // injects cookie/token/localStorage
+open("/profile")
+// the test starts on the behaviour under test
+```
+
+- The login flow itself is exercised through the UI *once*, in the test dedicated
+  to login.
+- Reusing a session across tests for the same user (a `beforeAll` or a global
+  fixture) is fine whenever the test does not need clean auth state.
+
+## Per-run data isolation
+
+Each test creates and cleans up its own data. Never depend on a fixed record in a
+shared environment, or on another test having run first — both break under
+parallelism and under re-runs.
+
+```
+// ❌ depends on fixed data somebody created by hand months ago
+open("/customers/123/orders")
+
+// ✅ creates and destroys its own data, with a per-run unique identifier
+customer = api.createCustomer({ name: `E2E Customer ${uuid()}` })
+api.createOrder(customer.id, { amount: 100 })
+open(`/customers/${customer.id}/orders`)
 // ...
-api.deletarCliente(cliente.id)  // teardown, mesmo se o teste falhar
+api.deleteCustomer(customer.id)  // teardown, even when the test fails
 ```
 
 Checklist:
-- [ ] Dado criado via API/seed do próprio teste, não via UI (setup por UI é lento e não é o que está sob teste)
-- [ ] Identificador único por execução (uuid/timestamp) — evita colisão em execução paralela
-- [ ] Teardown garantido mesmo em caso de falha (`afterEach`/`finally`, não só o caminho feliz)
-- [ ] Teste passa rodando sozinho e passa rodando junto com toda a suíte, em qualquer ordem
+- [ ] Data created through the API or a seed, not through the UI — UI setup is slow and is not what is under test
+- [ ] A unique identifier per run (uuid or timestamp), so parallel runs cannot collide
+- [ ] Teardown guaranteed on failure too (`afterEach`/`finally`, not just the happy path)
+- [ ] The test passes alone and passes inside the full suite, in any order
 
-## Seletores acessíveis
+## Accessible selectors
 
-Seletor por classe CSS ou XPath posicional quebra a cada mudança de estilo ou de DOM, sem relação com o comportamento testado. Selecionar por role/label acessível é estável porque é o mesmo contrato que usuário e leitor de tela dependem — e força a UI a ser acessível de verdade (ver `accessibility-audit`).
-
-```
-// ❌ acoplado a implementação/estilo
-selecionar(".btn-primary.submit-form")
-selecionar("div > span:nth-child(2)")
-selecionar("//div[3]/button")
-
-// ✅ contrato de acessibilidade — sobrevive a refactor visual
-selecionarPorRole("button", { nome: "Salvar" })
-selecionarPorLabel("E-mail")
-selecionarPorTexto("Pedido criado com sucesso")
-```
-
-`data-testid` é fallback aceitável só quando não existe role/label natural (ex.: elemento puramente visual usado para asserção de estado) — ainda assim prefira antes ajustar o componente para expor semântica acessível.
-
-## Estabilidade (evitar flakiness)
+A CSS class or a positional XPath breaks on every style or DOM change, with no
+relation to the behaviour under test. Selecting by role or accessible label is
+stable because it is the same contract users and screen readers depend on — and
+it pushes the UI to be genuinely accessible (see `accessibility-audit`).
 
 ```
-// ❌ espera fixa — ou é curta demais (flaky) ou desperdiça tempo (lenta)
-esperar(3000)
-clicar("Salvar")
+// ❌ coupled to implementation and styling
+select(".btn-primary.submit-form")
+select("div > span:nth-child(2)")
+select("//div[3]/button")
 
-// ✅ espera pela condição real
-esperarVisivel(selecionarPorTexto("Pedido criado com sucesso"))
-clicar("Salvar")
+// ✅ the accessibility contract — survives a visual refactor
+selectByRole("button", { name: "Save" })
+selectByLabel("Email")
+selectByText("Order created successfully")
 ```
 
-- Nunca `sleep`/`waitForTimeout` fixo — esperar elemento visível, request finalizada, URL mudar.
-- Teste que falha às vezes não é "flaky, roda de novo" — é bug no teste (condição de corrida, dado compartilhado, seletor ambíguo) ou no produto. Investigar a causa, não mascarar com retry.
-- Retry automático do runner é rede de segurança para infra instável, não desculpa para teste malfeito.
+`data-testid` is an acceptable fallback only where no natural role or label exists
+— a purely visual element asserted for state, say. Even then, prefer fixing the
+component to expose accessible semantics.
 
-## Estrutura recomendada
+## Stability
 
-- Encapsular seletores e ações repetidas em page objects/helpers — evita duplicar `selecionarPorRole(...)` em dezenas de arquivos e centraliza o ponto de manutenção quando a UI muda.
-- Um teste = uma jornada/comportamento. Não empilhar várias asserções de fluxos diferentes num teste só (dificulta saber o que quebrou).
-- Suíte E2E deve poder rodar em paralelo (workers/sharding) — se não pode, geralmente é sintoma de dado não isolado.
+```
+// ❌ a fixed wait — either too short (flaky) or wasteful (slow)
+wait(3000)
+click("Save")
 
-## Exemplos por stack
+// ✅ wait for the real condition
+waitVisible(selectByText("Order created successfully"))
+click("Save")
+```
 
-**Playwright (TS)** — auth via `storageState` reaproveitado entre testes:
+- Never a fixed `sleep`/`waitForTimeout`. Wait for an element to be visible, a
+  request to settle, a URL to change.
+- A test that fails sometimes is not "flaky, run it again" — it is a bug, either
+  in the test (race condition, shared data, ambiguous selector) or in the product.
+  Find the cause rather than masking it with a retry.
+- The runner's automatic retry is a safety net for unstable infrastructure, not an
+  excuse for a badly written test.
+
+## Structure
+
+- Wrap repeated selectors and actions in page objects or helpers: it avoids
+  copying `selectByRole(...)` across dozens of files and gives the UI change one
+  place to land.
+- One test, one journey. Stacking assertions from different flows into a single
+  test makes it hard to tell what broke.
+- The suite should run in parallel (workers or sharding). If it cannot, that is
+  usually a symptom of unisolated data.
+
+## By stack
+
+**Playwright (TS)** — auth through `storageState`, reused across tests:
 ```ts
 test.beforeAll(async ({ request }) => {
   await request.post('/api/auth/login', { data: { email, password } });
 });
 test.use({ storageState: 'auth.json' });
 
-test('edita perfil', async ({ page }) => {
+test('edits the profile', async ({ page }) => {
   await page.goto('/profile');
-  await page.getByRole('button', { name: 'Salvar' }).click();
+  await page.getByRole('button', { name: 'Save' }).click();
 });
 ```
 
-**Cypress** — auth programática via comando customizado:
+**Cypress** — programmatic auth through a custom command:
 ```js
 Cypress.Commands.add('login', (email, password) => {
   cy.request('POST', '/api/auth/login', { email, password })
     .then(({ body }) => window.localStorage.setItem('token', body.token));
 });
 
-it('edita perfil', () => {
+it('edits the profile', () => {
   cy.login('user@test.com', '123456');
   cy.visit('/profile');
-  cy.findByRole('button', { name: 'Salvar' }).click();
+  cy.findByRole('button', { name: 'Save' }).click();
 });
 ```
 
-**Selenium (Python)** — auth via API, seletor por atributo de acessibilidade:
+**Selenium (Python)** — auth through the API, selection by accessibility attribute:
 ```python
-def test_edita_perfil(driver, api_client):
+def test_edits_profile(driver, api_client):
     token = api_client.login("user@test.com", "123456")
     driver.add_cookie({"name": "session", "value": token})
     driver.get(f"{BASE_URL}/profile")
-    driver.find_element(By.CSS_SELECTOR, "[role='button'][aria-label='Salvar']").click()
+    driver.find_element(By.CSS_SELECTOR, "[role='button'][aria-label='Save']").click()
 ```
 
 ## Anti-patterns
 
-- ❌ Login pela UI em todo teste que não é sobre login
-- ❌ Depender de dado fixo/seed compartilhado entre testes ou ambientes
-- ❌ Seletor por classe CSS, XPath posicional ou estrutura de DOM
-- ❌ `sleep`/`waitForTimeout` fixo em vez de esperar condição
-- ❌ Teste que só passa numa ordem específica de execução
-- ❌ Cobrir com E2E o que já é validado por teste de integração/unitário
-- ❌ Rodar a suíte E2E inteira, sem paralelização, a cada commit
-- ❌ Mascarar teste flaky com retry em vez de investigar a causa raiz
-- ❌ Teardown ausente ou só no caminho feliz (dado órfão acumula e contamina execuções futuras)
+- ❌ UI login in every test that is not about login
+- ❌ Depending on fixed data shared across tests or environments
+- ❌ Selecting by CSS class, positional XPath or DOM structure
+- ❌ A fixed `sleep`/`waitForTimeout` instead of waiting on a condition
+- ❌ A test that only passes in one execution order
+- ❌ Covering with E2E what an integration or unit test already proves
+- ❌ Running the whole E2E suite, unparallelised, on every commit
+- ❌ Hiding a flaky test behind a retry instead of finding the cause
+- ❌ Teardown missing, or only on the happy path — orphaned data accumulates and contaminates later runs
