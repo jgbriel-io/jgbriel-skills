@@ -314,10 +314,21 @@ serena setup claude-code               # registers the MCP at user scope
 `serena setup` issues the `claude mcp add --scope user` itself — do not assemble
 that command by hand. `--project-from-cwd` makes the server take the project from
 the directory the session opened in. `uv` itself came from the GitHub release
-tarball, extracted into `~/.local/bin`. The optional Claude Code hooks are at
-[oraios.github.io/serena](https://oraios.github.io/serena/02-usage/030_clients.html#claude-code):
-`SessionStart` (`serena-hooks activate`) is configured, while `PreToolUse`
-(`remind`, `auto-approve`) and `SessionEnd` (`cleanup`) are **not** yet.
+tarball, extracted into `~/.local/bin`.
+
+Serena's optional hooks are configured in `~/.claude/settings.json`, all four with
+absolute paths so they do not depend on PATH:
+
+| Event | Command | Job |
+|---|---|---|
+| `SessionStart` | `serena-hooks activate` | prompts the agent to activate the project |
+| `PreToolUse` (matcher `""`) | `serena-hooks remind` | nudges toward the symbolic tools after too many consecutive `grep`/`read_file` calls |
+| `PreToolUse` (matcher `mcp__serena__*`) | `serena-hooks auto-approve` | auto-approves Serena's own tool calls |
+| `SessionEnd` | `serena-hooks cleanup` | clears the session's hook data |
+
+They live in `settings.json`, not in this repo, because that file is machine state
+— see §1. The other machine needs them added by hand, from
+[oraios.github.io/serena](https://oraios.github.io/serena/02-usage/030_clients.html#claude-code).
 
 ### Outside Claude Code — CocoIndex
 
