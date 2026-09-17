@@ -1,6 +1,6 @@
 ---
 name: cv-sync
-description: Pipeline de atualização do currículo — edita os .tex canônicos, recompila com pdflatex, renomeia para os nomes de distribuição, copia para o site jgbriel.dev e D:\documentos\pessoais, commita (deploy automático), verifica produção e registra release no vault. Use quando o usuário disser "atualiza o cv", "cv-sync", "muda X no currículo", "recompila o currículo", "sobe o cv novo", "troca o pdf do site", ou pedir qualquer alteração de conteúdo nos CVs. Não é otimização de conteúdo por vaga (isso é resume-tailor/job-description-analyzer) — é o pipeline fonte → PDF → site → vault.
+description: Pipeline do currículo: edita os .tex canônicos, recompila, distribui para o site e o vault, commita e confere a produção. Use quando o usuário disser "atualiza o cv", "cv-sync", "muda X no currículo", "sobe o cv novo", ou pedir qualquer alteração de conteúdo nos CVs. Otimizar conteúdo para uma vaga é resume-tailor.
 ---
 
 # cv-sync

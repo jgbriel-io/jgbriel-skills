@@ -82,7 +82,7 @@ A reference to the parent issue on the issue tracker (if the source was an exist
 
 A concise description of this vertical slice. Describe the end-to-end behavior, not layer-by-layer implementation.
 
-Avoid specific file paths or code snippets — they go stale fast. Exception: if the `/prototype` skill produced code that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it here and note briefly that it came from a prototype, trimmed to the decision-rich parts.
+Avoid specific file paths or code snippets — they go stale fast. Exception: if a prototype produced code that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it here and note briefly that it came from a prototype, trimmed to the decision-rich parts.
 
 ## Acceptance criteria
 

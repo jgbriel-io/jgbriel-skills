@@ -1,6 +1,6 @@
 ---
 name: token-audit
-description: Audit Claude Code token consumption across all sessions and projects — weekly trend, heaviest sessions/projects, marathon-session detection (long-lived sessions that compound cache_read cost every turn), and turn-dense skill detection (a skill burning many turns in a short window, independent of session length, catching loop-style skills like a past "impeccable" incident before they become chronic). Use when the user says "quanto token eu gastei", "token audit", "quais skills custam mais", "sessão gastando muito", "check my usage", or as periodic maintenance (suggested monthly).
+description: Audita consumo de token do Claude Code entre sessões e projetos — tendência semanal, sessões e projetos mais pesados, sessões maratona (que recompõem cache_read a cada turno) e skills que queimam muitos turnos num intervalo curto. Use quando o usuário disser "quanto token eu gastei", "token audit", "quais skills custam mais", "sessão gastando muito", ou como manutenção periódica.
 allowed-tools: Bash, Read
 ---
 
