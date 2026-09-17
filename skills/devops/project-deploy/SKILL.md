@@ -1,6 +1,6 @@
 ---
 name: project-deploy
-description: Executa o deploy de um projeto do usuário seguindo o runbook documentado no vault — checklist passo a passo, confirmação antes de ações irreversíveis, verificação pós-deploy e registro da release. Use quando o usuário disser "deploy da site-cliente-a", "publica o site", "sobe pra produção", "deploy do jgabriel.dev", ou nomear deploy de qualquer projeto próprio. Se o runbook não existir, entrevista e cria. Tooling Cloudflare específico é das skills wrangler/cloudflare.
+description: Executa o deploy de um projeto seguindo o runbook documentado no vault — checklist passo a passo, confirmação antes de ação irreversível, verificação pós-deploy e registro da release. Use quando o usuário disser "publica o site", "sobe pra produção", "faz o deploy", ou nomear o deploy de um projeto dele. Se o runbook não existir, entrevista e cria. Tooling Cloudflare específico é wrangler/cloudflare.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
@@ -56,11 +56,12 @@ Na página de deployment do vault, apender uma linha:
 
 Criar a tabela `## Releases` se não existir. Atualizar `updated:` do frontmatter.
 
-## Projetos conhecidos
+## Qual projeto, e onde está o runbook
 
-| Projeto | Hospedagem | Runbook |
-|---|---|---|
-| site-cliente-a | Hostinger | `wiki/Projetos/site-cliente-a/deployment/` |
-| jgabriel.dev | — ver runbook | `wiki/Projetos/jgabriel.dev/deployment/` |
+Cada projeto tem o próprio runbook em `wiki/Projetos/<nome>/deployment/`, no
+vault. Resolva o nome pelo mapa em `~/.claude/projects-map.md` — arquivo de
+máquina, fora deste repo, o mesmo que `project-sync` lê. Projeto que não estiver
+lá: pergunte a hospedagem e o caminho, e ofereça acrescentar a linha.
 
-Projeto fora da tabela: perguntar e adicionar aqui após o primeiro deploy.
+Nunca escreva o nome de um projeto de cliente aqui: este repositório é público, e
+uma tabela de clientes num arquivo versionado é exposição, não conveniência.
