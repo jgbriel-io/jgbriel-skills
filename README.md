@@ -159,7 +159,7 @@ solta em `skills/` não é descoberta sozinha.
 | `docs-writing` | Technical documentation style guide for README, docs/, ADRs, JSDoc/TSDoc, and inline code comments. |
 | `estimation` | Applies effort-estimation technique to any deliverable, technical or not — task decomposition, three-point estimation (… |
 | `incident-postmortem` | Runs a blameless incident postmortem — timeline with timestamps, impact, root cause (5 whys), and corrective actions wi… |
-| `proposta-comercial` | Transforma um briefing de cliente em proposta comercial de freela — escopo fechado (incluído/excluído), entregáveis, cr… |
+| `proposta-comercial` | Turns a client briefing into a freelance commercial proposal — closed scope (included and excluded), deliverables, sche… |
 | `to-issues` | Break a plan, spec, or PRD into independently-grabbable issues on the project issue tracker using tracer-bullet vertica… |
 | `to-prd` | Turn the current conversation into a PRD and publish it to the project issue tracker — no interview, just synthesis of … |
 | `triage` | Move issues and external PRs through a state machine of triage roles — categorise, verify, grill if needed, and write a… |
@@ -228,7 +228,7 @@ solta em `skills/` não é descoberta sozinha.
 | `lgpd-checklist` | LGPD compliance checklist for projects handling personal data — data inventory, legal basis, retention/anonymization, d… |
 | `multi-tenant-isolation-audit` | Audits multi-tenant systems for cross-tenant data leakage — missing isolation filters, privileged-role bypass (service_… |
 | `secrets-management` | Manage secrets and sensitive config across environments and CI — classify sensitive vs. |
-| `security-review-checklist` | Varredura OWASP de um PR ou release — injection, XSS, SSRF, IDOR, CSRF, desserialização insegura — como checklist explí… |
+| `security-review-checklist` | An OWASP-style sweep of a PR or release — injection, XSS, SSRF, IDOR, CSRF, insecure deserialization — as an explicit c… |
 
 </details>
 <details><summary><code>tcc</code> — 6 skills</summary>

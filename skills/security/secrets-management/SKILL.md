@@ -3,125 +3,157 @@ name: secrets-management
 description: Manage secrets and sensitive config across environments and CI — classify sensitive vs. public vars, avoid leaking secrets into repos/logs/builds, rotate credentials, respond to a leak. Provider/vault/CI-agnostic. Use when user asks about env vars, .env files, API keys, CI secrets, secret rotation, or a credential leak.
 ---
 
-# Gestão de Segredos
+# Secrets Management
 
-Segredo = qualquer valor que concede acesso ou identifica um sistema de forma privilegiada (API key, senha, token, connection string, certificado privado, webhook secret). Se vazar, alguém de fora ganha acesso não autorizado.
+A secret is any value that grants access or identifies a system in a privileged
+way: an API key, a password, a token, a connection string, a private certificate,
+a webhook secret. If it leaks, someone outside gains access they should not have.
 
-## Classificação: sensível vs. público
+## Classification: sensitive vs. public
 
-Nem toda variável de ambiente é um segredo. Confundir os dois lados causa dois erros opostos: segredo exposto como se fosse config pública, ou paranoia travando config que não precisa de proteção.
+Not every environment variable is a secret, and conflating the two produces
+opposite mistakes — a secret exposed as though it were public config, or paranoia
+locking down config that needs no protection.
 
-| Sinal | Sensível (segredo) | Público (config) |
+| Signal | Sensitive (a secret) | Public (config) |
 |---|---|---|
-| Concede acesso a um sistema | Sim (API key, senha de DB, token) | Não |
-| Aparece embutido no bundle do client | Nunca deveria | OK (ex: URL de API, feature flag) |
-| Rotação necessária se vazar | Sim | Não se aplica |
-| Exemplo | `DATABASE_PASSWORD`, `STRIPE_SECRET_KEY`, `JWT_SIGNING_KEY` | `APP_NAME`, `PUBLIC_API_URL`, `LOG_LEVEL` |
+| Grants access to a system | Yes — API key, database password, token | No |
+| Ends up inside the client bundle | Never should | Fine: an API URL, a feature flag |
+| Needs rotation if leaked | Yes | Not applicable |
+| Example | `DATABASE_PASSWORD`, `STRIPE_SECRET_KEY`, `JWT_SIGNING_KEY` | `APP_NAME`, `PUBLIC_API_URL`, `LOG_LEVEL` |
 
-Prefixos tipo `NEXT_PUBLIC_`, `VITE_`, `PUBLIC_` **não tornam o valor seguro** — só controlam se o bundler injeta no client. Nunca colocar segredo atrás desse prefixo:
+Prefixes like `NEXT_PUBLIC_`, `VITE_` and `PUBLIC_` **do not make a value safe**.
+They only control whether the bundler injects it into the client. Never put a
+secret behind one:
 
 ```bash
-# ❌ vaza para o bundle do browser
+# ❌ leaks into the browser bundle
 VITE_STRIPE_SECRET_KEY=sk_live_...
 
-# ✅ só acessível no server
+# ✅ server only
 STRIPE_SECRET_KEY=sk_live_...
 VITE_STRIPE_PUBLISHABLE_KEY=pk_live_...
 ```
 
-Se o valor concede acesso ou é assinatura/hash reversível de algo privado, trate como segredo — independente de onde ele mora hoje.
+If a value grants access, or is a reversible signature or hash of something
+private, treat it as a secret regardless of where it currently lives.
 
-## Onde segredo não pode estar
+## Where a secret must never be
 
 ```bash
-# ❌ hardcoded no código
+# ❌ hardcoded
 const apiKey = "sk_live_51H8x...";
 
-# ❌ commitado em .env versionado
+# ❌ committed in a versioned .env
 git add .env
 
-# ❌ em log, mesmo que "só" debug
-console.log('config carregada:', process.env);
-logger.info(`chamando API com key ${apiKey}`);
+# ❌ in a log, even a debug one
+console.log('config loaded:', process.env);
+logger.info(`calling the API with key ${apiKey}`);
 
-# ❌ em mensagem de erro que sobe pro frontend
-throw new Error(`Falha ao autenticar com token ${token}`);
+# ❌ in an error message that reaches the frontend
+throw new Error(`Failed to authenticate with token ${token}`);
 
-# ❌ em query string
-fetch(`https://api.exemplo.com/dados?api_key=${key}`);
+# ❌ in a query string
+fetch(`https://api.example.com/data?api_key=${key}`);
 ```
 
 ```bash
-# ✅ nunca commitar o arquivo real, só o template
+# ✅ never commit the real file, only the template
 # .gitignore
 .env
 .env.local
 .env.*.local
 
-# .env.example (commitado, sem valores reais)
+# .env.example (committed, no real values)
 DATABASE_URL=
 STRIPE_SECRET_KEY=
 ```
 
-Segredo em query string vaza em logs de proxy/CDN/browser history — usar header (`Authorization`, `X-Api-Key`) ou body.
+A secret in a query string leaks into proxy logs, CDN logs and browser history.
+Use a header (`Authorization`, `X-Api-Key`) or the body.
 
-## Segredo em pipeline de CI
+## Secrets in CI
 
-Regra geral, válida em qualquer provedor (GitHub Actions, GitLab CI, Azure DevOps, Jenkins, CircleCI):
+The same rules hold across providers — GitHub Actions, GitLab CI, Azure DevOps,
+Jenkins, CircleCI:
 
-- Segredo nunca em texto plano no arquivo de pipeline versionado — usar o cofre de secrets nativo do provedor (encrypted secrets/variables), injetado como env var só no step que precisa.
-- Restringir por ambiente/branch quando o provedor suportar (secret de produção não disponível em PR de fork/branch não protegida).
-- Mascarar no log: a maioria das plataformas mascara automaticamente valores de secret registrados como tal — mas isso quebra se o segredo for concatenado, base64'd ou transformado antes de aparecer no log. Nunca fazer `echo $SECRET` ou printar variável de ambiente inteira para debug.
-- PRs de fork/contribuidor externo não devem ter acesso a secrets do repositório (comportamento padrão da maioria dos provedores — não desabilitar).
-- Build artifact (imagem Docker, bundle) não deve conter segredo de build embutido — usar build secrets/multi-stage build para que a camada final não carregue a chave.
+- Never in plain text in a versioned pipeline file. Use the provider's native
+  secret store, injected as an environment variable only in the step that needs it.
+- Restrict by environment or branch where the provider allows it, so a production
+  secret is not available to a fork PR or an unprotected branch.
+- Masking in logs: most platforms mask registered secret values automatically, but
+  that breaks as soon as the secret is concatenated, base64-encoded or otherwise
+  transformed before it is printed. Never `echo $SECRET`, and never print the whole
+  environment for debugging.
+- Fork and external-contributor PRs should not reach repository secrets. That is
+  the default on most providers — do not turn it off.
+- A build artifact (a Docker image, a bundle) must not carry a build-time secret.
+  Use build secrets or a multi-stage build so the final layer does not hold the key.
 
 ```dockerfile
-# ❌ segredo persiste na camada da imagem
+# ❌ the secret persists in the image layer
 ARG NPM_TOKEN
 RUN echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc && npm install
 
-# ✅ build secret não persiste (BuildKit)
+# ✅ a build secret that does not persist (BuildKit)
 RUN --mount=type=secret,id=npm_token \
     NPM_TOKEN=$(cat /run/secrets/npm_token) npm install
 ```
 
-## Rotação
+## Rotation
 
-- Segredo de longa duração (API key estática, senha de serviço) precisa de rotação periódica — não só reativa a incidente.
-- Rotação sem downtime: gerar credencial nova, atualizar consumidores, aguardar propagação, revogar a antiga. Nunca revogar antes de confirmar que a nova está em uso.
-- Preferir credencial de curta duração (token com expiração, STS/assume-role) a chave estática sempre que o provedor suportar — reduz o custo de rotação e o blast radius de um vazamento.
-- Automatizar quando possível: cofre de segredos com rotação nativa (ex: rotação agendada de credencial de banco) elimina o processo manual, que é o que mais falha.
+- A long-lived secret — a static API key, a service password — needs periodic
+  rotation, not only a reaction to an incident.
+- Rotate without downtime: create the new credential, update the consumers, wait
+  for propagation, then revoke the old one. Never revoke before confirming the new
+  one is in use.
+- Prefer short-lived credentials — an expiring token, STS or assume-role — over a
+  static key wherever the provider supports it. It lowers both the cost of
+  rotation and the blast radius of a leak.
+- Automate it where possible. A vault with native rotation removes the manual
+  process, which is the part that fails.
 
-## Checklist de resposta a vazamento
+## Leak response checklist
 
-Segredo vazou (commit, log público, screenshot, repositório tornado público por engano). Ordem importa — revogar primeiro, investigar depois:
+A secret has leaked — a commit, a public log, a screenshot, a repository made
+public by mistake. Order matters: revoke first, investigate afterwards.
 
-- [ ] Revogar/invalidar a credencial vazada imediatamente no provedor de origem (não esperar confirmar o impacto)
-- [ ] Gerar credencial nova e atualizar todos os consumidores (app, CI, outros serviços)
-- [ ] Se vazou em commit: assumir que está no histórico do Git para sempre — revogar é o que importa, não `git rm` (reescrever histórico não remove de forks/clones já feitos)
-- [ ] Auditar logs de uso da credencial vazada no provedor (acesso indevido no intervalo entre vazamento e revogação)
-- [ ] Verificar se a credencial dava acesso a dados de outros sistemas/clientes — avaliar necessidade de notificação (LGPD, contrato com cliente — ver skill lgpd-checklist)
-- [ ] Identificar a causa raiz (env var sem `.gitignore`, log verboso, secret hardcoded) e corrigir para não repetir
-- [ ] Se o segredo estava em repositório público, considerar o vazamento definitivo — não há "desfazer" um push público
-- [ ] Documentar o incidente: o que vazou, janela de exposição, ação tomada
+- [ ] Revoke the leaked credential immediately at its provider, without waiting to confirm the impact
+- [ ] Issue a new credential and update every consumer: the app, CI, other services
+- [ ] If it leaked in a commit, assume it is in git history forever. Revoking is what matters, not `git rm` — rewriting history does not reach forks and clones already made
+- [ ] Audit the provider's usage logs for the leaked credential, covering the window between exposure and revocation
+- [ ] Check whether the credential reached other systems' or clients' data, and assess notification duties (LGPD, client contract — see `lgpd-checklist`)
+- [ ] Find the root cause — a missing `.gitignore` entry, a verbose log, a hardcoded secret — and fix it so it does not recur
+- [ ] If the secret was in a public repository, treat the leak as permanent. There is no undo for a public push
+- [ ] Write the incident down: what leaked, the exposure window, the action taken
 
 ## Anti-patterns
 
-- ❌ Segredo de produção igual ao de dev/staging (um vazamento compromete todos os ambientes)
-- ❌ `.env` real commitado, mesmo que "privado" (repositório pode virar público depois)
-- ❌ Confiar em prefixo de bundler (`PUBLIC_`, `VITE_`, `NEXT_PUBLIC_`) para decidir o que é seguro expor
-- ❌ Segredo compartilhado entre múltiplos serviços/clientes (um vazamento derruba isolamento multi-tenant)
-- ❌ Rotação só depois de vazamento confirmado, nunca periódica
-- ❌ Log de request/response completo sem redigir headers de auth e body com credenciais
-- ❌ Secret de CI acessível em pipeline de branch não protegida ou PR de fork
-- ❌ Reescrever histórico do Git achando que isso "remove" um segredo já vazado publicamente
+- ❌ The same secret in production and in dev or staging — one leak compromises every environment
+- ❌ A real `.env` committed, even to a "private" repository, which can become public later
+- ❌ Trusting a bundler prefix (`PUBLIC_`, `VITE_`, `NEXT_PUBLIC_`) to decide what is safe to expose
+- ❌ One secret shared across services or clients, so a single leak breaks multi-tenant isolation
+- ❌ Rotation only after a confirmed leak, never on a schedule
+- ❌ Logging full requests and responses without redacting auth headers and credential-bearing bodies
+- ❌ A CI secret reachable from an unprotected branch or a fork PR
+- ❌ Rewriting git history in the belief that it "removes" a secret already leaked publicly
 
-## Exemplos por stack
+## By stack
 
-**Vite / Next.js / Node** — variáveis lidas via `process.env` (ou `import.meta.env` no Vite); sem prefixo público, ficam só no server/build local; segredo real em `.env.local` (gitignored), template em `.env.example`.
+**Vite / Next.js / Node** — variables read through `process.env` (or
+`import.meta.env` in Vite); without a public prefix they stay on the server and in
+the local build. The real secret lives in `.env.local` (gitignored), with the
+template in `.env.example`.
 
-**Supabase** — `SUPABASE_SERVICE_ROLE_KEY` nunca no client (bypassa RLS); só a `anon key` vai pro frontend, protegida pelas policies RLS.
+**Supabase** — `SUPABASE_SERVICE_ROLE_KEY` never reaches the client, because it
+bypasses RLS. Only the anon key goes to the frontend, protected by the RLS
+policies.
 
-**Python** — `python-dotenv` ou `os.environ` para carregar `.env` local; em produção, variável injetada pelo runtime (não versionar `.env`); libs como `python-decouple` separam config de segredo.
+**Python** — `python-dotenv` or `os.environ` to load a local `.env`; in production
+the variable is injected by the runtime and `.env` is never versioned. Libraries
+like `python-decouple` separate config from secrets.
 
-**Go** — segredo lido de env var (`os.Getenv`) ou de um client de vault (Vault, AWS Secrets Manager SDK) no boot da aplicação; evitar `flag` com default contendo valor real.
+**Go** — read secrets from environment variables (`os.Getenv`) or from a vault
+client (Vault, the AWS Secrets Manager SDK) at boot. Avoid a `flag` whose default
+carries a real value.

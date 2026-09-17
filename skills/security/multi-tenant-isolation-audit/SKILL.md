@@ -5,102 +5,122 @@ description: Audits multi-tenant systems for cross-tenant data leakage — missi
 
 # Multi-Tenant Isolation Audit
 
-Auditoria de isolamento entre tenants (clientes, organizações, contas) num sistema multi-tenant. Não ensina a implementar o mecanismo de isolamento — isso é responsabilidade das skills de banco/framework (ex: `supabase-postgres`/`postgres-conventions` pra RLS). Aqui o objetivo é auditar: existe isolamento? está correto? tem furo?
+Auditing isolation between tenants — clients, organisations, accounts — in a
+multi-tenant system. This skill does not teach how to implement the isolation
+mechanism; that belongs to the database and framework skills
+(`supabase-postgres`/`postgres-conventions` for RLS). The job here is to audit:
+does isolation exist, is it correct, and where does it leak?
 
-## O que é isolamento multi-tenant
+## What isolation means
 
-Todo recurso (linha, arquivo, mensagem, job) pertence a exatamente um tenant. Toda operação de leitura/escrita precisa estar restrita ao tenant do usuário autenticado — nunca ao tenant que o client alega ser.
+Every resource — a row, a file, a message, a job — belongs to exactly one tenant.
+Every read and write is restricted to the authenticated user's tenant, never to
+the tenant the client claims to be.
 
 ```
-// ❌ tenant vem do payload/client
+// ❌ the tenant comes from the payload
 GET /invoices?companyId=123
 
-// ✅ tenant vem da sessão/token, nunca do input
+// ✅ the tenant comes from the session or token, never from input
 GET /invoices  →  companyId = session.tenantId
 ```
 
-## Mecanismos de isolamento (qualquer um destes é válido)
+## Isolation mechanisms (any of these is valid)
 
-| Mecanismo | Onde vive a garantia | Risco típico |
+| Mechanism | Where the guarantee lives | Typical risk |
 |---|---|---|
-| RLS / row-security no banco | Banco de dados | Bypass via role privilegiada (service_role, superuser) |
-| Filtro `tenant_id` em toda query (ORM/repository) | Camada de aplicação | Um dev esquece o filtro numa query nova |
-| Schema-per-tenant | Conexão/schema search_path | Migration ou job roda no schema errado |
-| Database-per-tenant | Connection string | Connection pool compartilhado entre tenants por engano |
+| RLS / row security in the database | The database | Bypass through a privileged role: service_role, superuser |
+| A `tenant_id` filter in every query (ORM/repository) | The application layer | One developer forgets the filter on a new query |
+| Schema per tenant | Connection and `search_path` | A migration or job runs against the wrong schema |
+| Database per tenant | Connection string | A connection pool accidentally shared across tenants |
 
-Nenhum mecanismo é seguro por padrão — todos dependem de disciplina em algum ponto do sistema. A auditoria é achar esse ponto.
+No mechanism is safe by default; each depends on discipline somewhere. The audit
+is about finding that somewhere.
 
-## Onde o isolamento vaza (superfície de auditoria)
+## Where isolation leaks
 
-- **Queries diretas**: endpoint novo que esqueceu o filtro/policy
-- **Joins e agregações**: join entre tabela com tenant_id e tabela sem, ou view/relatório que soma dados de todos os tenants
-- **Bypass por papel privilegiado**: conexão admin/service-role/superuser que pula RLS ou roda com filtro desabilitado — usada em jobs, seeds, migrations, scripts internos
-- **Background jobs / filas / cron**: processam lote sem contexto de tenant, ou herdam contexto do último request processado
-- **Cache e índice de busca**: chave de cache/search sem tenant_id — resultado de um tenant aparece pra outro
-- **Storage de arquivos**: path previsível (`/uploads/{fileId}`) sem checar dono, permitindo acesso cross-tenant por enumeração de ID
-- **Webhooks e integrações externas**: payload de retorno não valida a qual tenant pertence antes de gravar
-- **Exports e relatórios**: função de export que roda com privilégio elevado "pra performance" e ignora o filtro padrão
-- **Logs e mensagens de erro**: erro vaza dado de outro tenant (ex: "email já cadastrado" revela existência de registro)
-- **Impersonation / suporte**: modo "logar como cliente X" sem registro de auditoria e sem escopo revogado ao sair
+- **Direct queries**: a new endpoint that forgot the filter or the policy
+- **Joins and aggregations**: joining a tenant-scoped table to one without a
+  tenant, or a view or report that sums across every tenant
+- **Privileged-role bypass**: an admin, service-role or superuser connection that
+  skips RLS or runs with filtering disabled — used in jobs, seeds, migrations and
+  internal scripts
+- **Background jobs, queues, cron**: batches processed with no tenant context, or
+  inheriting the context of the last request handled
+- **Cache and search index**: a cache or search key without the tenant id, so one
+  tenant's result surfaces for another
+- **File storage**: a predictable path (`/uploads/{fileId}`) with no ownership
+  check, allowing cross-tenant access by enumerating ids
+- **Webhooks and integrations**: a callback payload persisted without validating
+  which tenant it belongs to
+- **Exports and reports**: an export that runs with elevated privilege "for
+  performance" and skips the standard filter
+- **Logs and error messages**: an error that leaks another tenant's data — "email
+  already registered" reveals that a record exists
+- **Impersonation and support mode**: "log in as client X" with no audit trail and
+  no scope revoked on exit
 
-## Testando isolamento
+## Testing isolation
 
-Todo recurso multi-tenant precisa de teste automatizado que tenta o acesso cross-tenant e espera falha — não só o caminho feliz.
+Every multi-tenant resource needs an automated test that attempts cross-tenant
+access and expects failure — not only the happy path.
 
 ```
-Padrão do teste de isolamento, qualquer stack:
-1. cria tenant A e tenant B
-2. cria recurso R como tenant A
-3. autentica como tenant B
-4. tenta ler/atualizar/deletar R
-5. assert: 403/404/vazio — nunca 200 com dado de A
+The isolation test, in any stack:
+1. create tenant A and tenant B
+2. create resource R as tenant A
+3. authenticate as tenant B
+4. attempt to read, update and delete R
+5. assert: 403/404/empty — never 200 carrying A's data
 ```
 
-Rodar essa matriz pra cada endpoint/tabela nova é o teste de regressão mais barato contra vazamento entre clientes. Ver skill `integration-testing` para como versionar isso como suíte automatizada.
+Running that matrix against every new endpoint or table is the cheapest regression
+test there is against leaking between clients. See `integration-testing` for how
+to keep it as a versioned suite.
 
 ## Checklist
 
-- [ ] Toda tabela/coleção nova tem mecanismo de isolamento aplicado (RLS habilitada, filtro tenant_id no repository, ou schema correto) — não só as "sensíveis"
-- [ ] Tenant/company/org id vem do token de sessão autenticado, nunca de query param, body ou header controlado pelo client
-- [ ] Toda conexão/role privilegiada (service_role, superuser, admin API key) tem uso mapeado e justificado — se pula o isolamento, tem outro controle equivalente no código que a usa
-- [ ] Jobs assíncronos, filas e cron carregam o tenant_id explicitamente no payload da mensagem — nunca inferido de contexto global/thread-local que pode vazar entre execuções
-- [ ] Joins/agregações/relatórios cross-tabela não misturam dados de tenants diferentes
-- [ ] Cache keys e índices de busca incluem tenant_id
-- [ ] Paths de storage/arquivo não são adivinháveis por ID sequencial sem checagem de dono
-- [ ] Webhooks validam a qual tenant o evento pertence antes de persistir
-- [ ] Mensagens de erro não revelam existência/detalhe de dado de outro tenant
-- [ ] Existe teste automatizado de isolamento (tenant A não acessa recurso de tenant B) para cada endpoint/tabela crítica
-- [ ] Modo impersonation/suporte (se existir) é auditado e com escopo revogado ao sair
-- [ ] Migrations e seeds rodam respeitando o mesmo mecanismo de isolamento, sem bypass "porque é script"
+- [ ] Every new table or collection has an isolation mechanism applied — RLS enabled, a repository-level `tenant_id` filter, or the right schema — not only the "sensitive" ones
+- [ ] The tenant, company or org id comes from the authenticated session token, never from a query parameter, body or client-controlled header
+- [ ] Every privileged connection or role (service_role, superuser, admin API key) has a mapped, justified use; where it skips isolation, the calling code carries an equivalent control
+- [ ] Async jobs, queues and cron carry the tenant id explicitly in the message payload — never inferred from a global or thread-local that can leak between runs
+- [ ] Cross-table joins, aggregations and reports do not mix tenants
+- [ ] Cache keys and search indexes include the tenant id
+- [ ] Storage paths are not guessable by sequential id without an ownership check
+- [ ] Webhooks validate which tenant an event belongs to before persisting it
+- [ ] Error messages do not reveal the existence or detail of another tenant's data
+- [ ] An automated isolation test exists for each critical endpoint and table
+- [ ] Impersonation or support mode, where it exists, is audited and its scope revoked on exit
+- [ ] Migrations and seeds respect the same isolation mechanism, with no bypass "because it is a script"
 
 ## Anti-patterns
 
-- ❌ Confiar em filtro client-side (`.eq('tenant_id', ...)` montado no frontend) como única garantia — sem policy/checagem server-side isso é cosmético
-- ❌ Usar conexão privilegiada (service_role/admin) no caminho comum "porque é mais simples" em vez de reservá-la pra casos excepcionais e auditados
-- ❌ `tenant_id` aceito como parâmetro do client em vez de derivado da sessão
-- ❌ Job/worker que herda tenant de uma variável global/thread-local reaproveitada entre execuções
-- ❌ Teste de isolamento ausente — só existe teste de caminho feliz por tenant
-- ❌ Tabela nova "temporária" ou "interna" sem isolamento porque "não é dado de cliente ainda"
-- ❌ Export/relatório com query separada que ignora o mesmo filtro usado no resto do sistema
-- ❌ Mensagem de erro que diferencia "não existe" de "existe mas não é seu" (vaza existência cross-tenant)
+- ❌ Trusting a client-side filter (`.eq('tenant_id', ...)` assembled in the frontend) as the only guarantee — without a server-side policy it is cosmetic
+- ❌ Using a privileged connection on the common path "because it is simpler", instead of reserving it for exceptional, audited cases
+- ❌ Accepting `tenant_id` as a client parameter rather than deriving it from the session
+- ❌ A job or worker that inherits its tenant from a global reused across runs
+- ❌ No isolation test at all — only a happy path per tenant
+- ❌ A "temporary" or "internal" new table with no isolation, because "it is not client data yet"
+- ❌ An export or report with its own query that ignores the filter the rest of the system uses
+- ❌ An error message that distinguishes "does not exist" from "exists but is not yours", leaking existence across tenants
 
-## Exemplos por stack
+## By stack
 
-**Supabase/Postgres + RLS:**
+**Supabase/Postgres with RLS:**
 ```sql
--- Teste de isolamento direto no banco, como role da aplicação (não superuser)
+-- Isolation tested in the database, as the application role rather than superuser
 set role app_user;
 set app.current_user_id = '<user-id-tenant-b>';
 select * from invoices where id = '<invoice-id-tenant-a>';
--- Esperado: 0 linhas (RLS bloqueou), nunca a linha do tenant A
+-- Expected: 0 rows, because RLS blocked it. Never tenant A's row.
 ```
 
-**NestJS/TypeORM (tenant_id explícito em todo repository):**
+**NestJS/TypeORM (explicit `tenant_id` in every repository):**
 ```ts
-// ❌ tenant_id vem do controller
+// ❌ the tenant id arrives from the controller's caller
 findAll(tenantId: string) { return this.repo.find({ where: { tenantId } }); }
 
-// ✅ tenant_id sempre extraído do request autenticado, nunca de parâmetro do caller
+// ✅ always taken from the authenticated request, never from a caller parameter
 @Injectable()
 export class InvoicesService {
   findAll(@CurrentTenant() tenantId: string) {
@@ -109,12 +129,12 @@ export class InvoicesService {
 }
 ```
 
-**Django (filtro central via manager, não por view):**
+**Django (one central filter in the manager, not per view):**
 ```python
-# Middleware injeta o tenant atual; o manager aplica o filtro por padrão
+# Middleware sets the current tenant; the manager applies the filter by default
 class TenantManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(tenant_id=get_current_tenant())
-# Toda model multi-tenant usa esse manager — o filtro não fica a critério
-# de cada view lembrar de aplicar.
+# Every multi-tenant model uses this manager, so the filter does not depend on
+# each view remembering to apply it.
 ```

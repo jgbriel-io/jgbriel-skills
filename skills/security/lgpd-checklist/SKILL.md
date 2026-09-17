@@ -3,84 +3,106 @@ name: lgpd-checklist
 description: LGPD compliance checklist for projects handling personal data — data inventory, legal basis, retention/anonymization, data subject rights. Use when user asks about LGPD, personal data handling, privacy compliance, data retention policy, or "direito do titular"/data subject requests. Stack-agnostic — depends on data type, not framework.
 ---
 
-# LGPD — Checklist de Conformidade
+# LGPD Compliance Checklist
 
-Aplica-se a qualquer sistema que colete, armazene ou processe dado pessoal, independente de linguagem ou stack. O que muda entre projetos é o **tipo de dado** tratado (cadastral, sensível, financeiro, saúde), não o framework. Relevante em qualquer projeto freela pra cliente que lide com dado de usuário final — vale checar mesmo em MVP pequeno.
+Applies to any system that collects, stores or processes personal data, whatever
+the language or stack. What varies between projects is the **kind of data** —
+identifying, sensitive, financial, health — not the framework. Relevant to any
+freelance project for a client handling end-user data, and worth checking even in
+a small MVP.
 
-## Quando usar esta skill
+The Brazilian legal terms stay in Portuguese throughout: *titular*, *controlador*
+and *operador* are defined in the law, not translations of data subject,
+controller and processor.
 
-- Novo projeto ou feature que coleta dado de pessoa física (cliente, funcionário, paciente, candidato)
-- Revisão de schema/modelo de dados antes de subir pra produção
-- Cliente pergunta "isso está em conformidade com LGPD?"
-- Auditoria de retenção de dados ou pedido de exclusão de um titular
+## When to use this skill
 
-## Dado pessoal x dado pessoal sensível
+- A new project or feature collecting data about a natural person — a customer,
+  an employee, a patient, a candidate
+- Reviewing a schema or data model before it reaches production
+- The client asks whether something is LGPD compliant
+- A retention audit, or a *titular* asking for deletion
 
-- **Dado pessoal**: qualquer informação que identifique ou torne identificável uma pessoa natural (nome, e-mail, CPF, IP, geolocalização, ID de dispositivo)
-- **Dado pessoal sensível**: origem racial/étnica, convicção religiosa, opinião política, filiação sindical, dado de saúde ou vida sexual, dado genético/biométrico
-- Dado sensível exige base legal mais restrita e controles de segurança mais rígidos — trate como "sensível até prova em contrário" quando o tipo de projeto for saúde, RH ou biometria
+## Personal data vs sensitive personal data
 
-## Checklist — Inventário de dado pessoal
+- **Personal data**: anything that identifies, or makes identifiable, a natural
+  person — name, email, CPF, IP address, geolocation, device id.
+- **Sensitive personal data**: racial or ethnic origin, religious belief, political
+  opinion, union membership, health or sex life, genetic or biometric data.
+- Sensitive data demands a narrower legal basis and stricter controls. In health,
+  HR or biometrics projects, treat data as sensitive until proven otherwise.
 
-- [ ] Mapear toda tabela/coleção que armazena dado pessoal (nome, e-mail, CPF, telefone, endereço, IP, cookies, geolocalização)
-- [ ] Marcar explicitamente colunas de dado sensível (saúde, biometria, orientação, dado de menor de idade)
-- [ ] Documentar de onde cada dado vem (formulário, integração de terceiro, webhook, importação em lote)
-- [ ] Documentar para onde cada dado vai (logs, filas, serviços terceiros, backups, planilhas de exportação, analytics)
-- [ ] Identificar campos de dado pessoal em logs de aplicação e de infraestrutura — esses são o ponto cego mais comum (ver skill `structured-logging`)
-- [ ] Mapear dado pessoal em anexos e arquivos não-estruturados (uploads, PDFs, imagens), não só em colunas de banco
+## Checklist — personal data inventory
 
-## Checklist — Base legal
+- [ ] Every table or collection holding personal data is mapped (name, email, CPF, phone, address, IP, cookies, geolocation)
+- [ ] Sensitive columns are marked explicitly (health, biometrics, orientation, data about minors)
+- [ ] Each piece of data has a documented origin: a form, a third-party integration, a webhook, a bulk import
+- [ ] Each piece of data has a documented destination: logs, queues, third-party services, backups, exported spreadsheets, analytics
+- [ ] Personal data in application and infrastructure logs is identified — the most common blind spot (see `structured-logging`)
+- [ ] Personal data in attachments and unstructured files (uploads, PDFs, images) is mapped too, not only database columns
 
-- [ ] Cada finalidade de tratamento de dado tem uma base legal identificada e documentada (consentimento, execução de contrato, obrigação legal, legítimo interesse, etc.) — antes de coletar, não depois
-- [ ] Se a base for consentimento: o texto é específico pra finalidade, não um "aceito os termos" genérico; o consentimento é registrado com data/hora e é possível revogar
-- [ ] Se a base for legítimo interesse: existe um teste de balanceamento documentado (necessidade, finalidade, impacto no titular) — não é só "achamos que é razoável"
-- [ ] Coleta de dado não vai além da finalidade declarada (minimização) — campo "por via das dúvidas" é red flag
-- [ ] Dado de criança/adolescente tem tratamento com base legal específica e, quando aplicável, consentimento dos pais/responsável
-- [ ] Compartilhamento com terceiros (processadores) tem contrato/cláusula de proteção de dado e finalidade delimitada
+## Checklist — legal basis
 
-## Checklist — Retenção e anonimização
+- [ ] Every processing purpose has an identified, documented legal basis — consent, contract performance, legal obligation, legitimate interest — decided before collection, not after
+- [ ] Where the basis is consent: the wording is specific to the purpose rather than a generic "I accept the terms", the consent is recorded with a timestamp, and it can be withdrawn
+- [ ] Where the basis is legitimate interest: a balancing test is documented (necessity, purpose, impact on the *titular*), not just an assertion that it seems reasonable
+- [ ] Collection does not exceed the declared purpose. A field kept "just in case" is a red flag
+- [ ] Data about children and adolescents has its own legal basis and, where applicable, parental consent
+- [ ] Sharing with third parties (*operadores*) is covered by a contract clause on data protection, with the purpose bounded
 
-- [ ] Cada tipo de dado tem prazo de retenção definido, ligado à finalidade ou obrigação legal — não "guardar para sempre por segurança"
-- [ ] Existe rotina (job agendado, trigger, processo manual documentado) que executa a exclusão/anonimização ao fim do prazo
-- [ ] Anonimização é irreversível de fato — pseudonimização (hash reversível, ID trocado por token) não é anonimização e continua sendo dado pessoal
-- [ ] Backups seguem o mesmo prazo de retenção que os dados vivos, ou há processo pra expurgar dado pessoal de backups antigos
-- [ ] Ambientes de teste/homologação não usam dump de produção com dado real sem anonimização prévia
-- [ ] Exclusão de conta do titular propaga para dados derivados (cache, índice de busca, data warehouse, ferramentas de analytics/marketing)
+## Checklist — retention and anonymisation
 
-## Checklist — Direitos do titular
+- [ ] Every data type has a retention period tied to its purpose or to a legal obligation — never "keep it forever, just in case"
+- [ ] A routine exists that actually performs the deletion or anonymisation when the period ends: a scheduled job, a trigger, or a documented manual process
+- [ ] Anonymisation is genuinely irreversible. Pseudonymisation — a reversible hash, an id swapped for a token — is not anonymisation and remains personal data
+- [ ] Backups follow the same retention period as live data, or there is a process to purge personal data from old backups
+- [ ] Test and staging environments never use a production dump with real data unless it was anonymised first
+- [ ] Deleting an account propagates to derived data: cache, search index, data warehouse, analytics and marketing tools
 
-- [ ] Existe fluxo (endpoint, formulário, processo manual) pra atender pedido de acesso aos dados do titular
-- [ ] Existe fluxo pra correção de dado incorreto/desatualizado
-- [ ] Existe fluxo pra exclusão (eliminação) de dados, respeitando exceções legais quando houver (ex: obrigação fiscal)
-- [ ] Existe fluxo pra portabilidade (exportar dado do titular em formato estruturado)
-- [ ] Existe fluxo pra revogação de consentimento, e a revogação é aplicada retroativamente ao tratamento que dependia dela
-- [ ] Existe canal identificado de contato do titular (e-mail, formulário) e prazo de resposta definido internamente
-- [ ] Decisão automatizada que afeta o titular (score de crédito, triagem de currículo) pode ser explicada e contestada mediante solicitação
+## Checklist — rights of the *titular*
 
-## Checklist — Segurança e incidentes
+- [ ] There is a flow — endpoint, form, or documented manual process — to serve an access request
+- [ ] There is a flow to correct inaccurate or outdated data
+- [ ] There is a flow for deletion, honouring legal exceptions where they exist, such as tax obligations
+- [ ] There is a flow for portability: exporting the *titular*'s data in a structured format
+- [ ] There is a flow to withdraw consent, and withdrawal is applied retroactively to the processing that depended on it
+- [ ] There is an identified contact channel and an internally defined response deadline
+- [ ] An automated decision affecting the *titular* — a credit score, CV screening — can be explained and contested on request
 
-- [ ] Dado pessoal sensível é criptografado em repouso, não só em trânsito
-- [ ] Controle de acesso por papel — só quem precisa do dado pra função tem acesso a ele (princípio do menor privilégio)
-- [ ] Log de acesso a dado sensível existe e é auditável (quem acessou o quê, quando)
-- [ ] Existe plano de resposta a incidente que cobre: contenção, avaliação de risco ao titular, comunicação à autoridade competente e aos titulares afetados quando o risco for relevante (ver `secrets-management` pro checklist técnico de resposta a vazamento)
-- [ ] Fornecedores/processadores terceiros (hosting, e-mail transacional, analytics, CRM) estão listados e têm cláusula de proteção de dado no contrato
+## Checklist — security and incidents
+
+- [ ] Sensitive personal data is encrypted at rest, not only in transit
+- [ ] Access control by role: only those who need the data for their job can reach it (least privilege)
+- [ ] Access to sensitive data is logged and auditable — who read what, and when
+- [ ] An incident response plan covers containment, assessing the risk to the *titular*, and notifying the authority and the affected people where the risk is material (see `secrets-management` for the technical leak-response checklist)
+- [ ] Third-party providers — hosting, transactional email, analytics, CRM — are listed and carry a data protection clause
 
 ## Anti-patterns
 
-- ❌ Coletar dado "por via das dúvidas" sem finalidade definida
-- ❌ Checkbox de aceite genérico cobrindo tratamentos completamente diferentes
-- ❌ Dado pessoal em log de aplicação sem mascaramento (CPF, senha, cartão em texto plano)
-- ❌ Confundir pseudonimização com anonimização
-- ❌ Reter dado indefinidamente porque "pode ser útil depois"
-- ❌ Copiar dump de produção pra ambiente de teste sem anonimizar
-- ❌ Base legal decidida depois que o cliente/titular questiona, não antes da coleta
-- ❌ Fluxo de exclusão que apaga da tabela principal mas esquece cache, backup e data warehouse
-- ❌ Tratar todo dado sensível (saúde, biometria) com o mesmo nível de controle de um cadastro comum
+- ❌ Collecting data "just in case", with no defined purpose
+- ❌ One generic acceptance checkbox covering completely different kinds of processing
+- ❌ Personal data in application logs with no masking: CPF, passwords, card numbers in plain text
+- ❌ Confusing pseudonymisation with anonymisation
+- ❌ Retaining data indefinitely because "it might be useful later"
+- ❌ Copying a production dump into a test environment without anonymising it
+- ❌ Deciding the legal basis after the client or the *titular* asks, rather than before collecting
+- ❌ A deletion flow that clears the main table but forgets the cache, the backups and the data warehouse
+- ❌ Treating sensitive data (health, biometrics) with the same controls as an ordinary contact record
 
-## Exemplos por tipo de projeto
+## By project type
 
-**E-commerce/loja para cliente freela**: dado de pagamento (nunca armazenar número de cartão completo — usar tokenização do gateway), histórico de compra como perfil pra recomendação exige base legal própria (legítimo interesse ou consentimento, não só "execução de contrato"), endereço de entrega tem prazo de retenção ligado à garantia/nota fiscal.
+**E-commerce for a freelance client**: payment data — never store the full card
+number; use the gateway's tokenisation. Purchase history used as a profile for
+recommendations needs its own legal basis (legitimate interest or consent, not
+merely "contract performance"). The delivery address has a retention period tied
+to warranty and invoicing rules.
 
-**Saúde (prontuário, telemedicina)**: dado de saúde é sensível por definição — criptografia em repouso é mínimo, não diferencial. Prazo de retenção de prontuário costuma ser definido por norma do conselho profissional, não pela empresa/cliente. Acesso precisa de trilha de auditoria detalhada (quem viu o prontuário de quem).
+**Health (records, telemedicine)**: health data is sensitive by definition, so
+encryption at rest is the floor rather than a differentiator. Record retention is
+usually set by the professional council's rules, not by the company. Access needs
+a detailed audit trail: who read whose record.
 
-**RH / recrutamento / plataforma de curso (ex: SaaS educacional)**: currículo e dado de candidato/aluno não aprovado tem prazo de retenção curto e finalidade específica — manter "banco de talentos" exige consentimento separado. Avaliação/score automatizado cai na regra de decisão automatizada explicável.
+**HR, recruitment, or an education platform**: a CV and the data of a candidate or
+student who was not accepted have a short retention period and a specific purpose.
+Keeping a "talent pool" requires separate consent. Automated scoring falls under
+the explainable-automated-decision rule.
