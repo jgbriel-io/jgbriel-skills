@@ -261,12 +261,21 @@ Vêm de marketplaces externas, não deste repo. Ficam em `~/.claude/plugins/`.
 
 | Plugin | Marketplace | O que adiciona |
 |---|---|---|
-| `caveman` | `juliusbrussee/caveman` | Modo de resposta comprimido + skills `caveman:*` |
-| `ponytail` | `ponytail` | Modo YAGNI: a solução mais preguiçosa que funciona |
-| `context-mode` | `mksglu/context-mode` | Tools `ctx_*` — processa output grande fora da conversa |
+| `caveman` | `JuliusBrussee/caveman` | Modo de resposta comprimido + skills `caveman:*` e os agents `cavecrew-*` |
+| `ponytail` | `DietrichGebert/ponytail` | Modo YAGNI: a solução mais preguiçosa que funciona, com `/ponytail-review`, `-audit`, `-debt` |
+| `context-mode` | `mksglu/context-mode` | Tools `ctx_*` — processa output grande fora da conversa, em base FTS5 persistente |
+| `jgbriel-skills` | `jgbriel` (este repo) | A frota inteira |
+
+Marketplaces registradas: as três acima, `jgbriel` e `anthropics/claude-plugins-official`.
+`claude plugin marketplace list` mostra o estado real da máquina.
 
 O namespace no nome (`caveman:cavecrew-builder`) indica que veio de plugin. Os
 comandos de cada um estão em [GUIDE.md](GUIDE.md).
+
+Os dois primeiros são **modos de comportamento**, não ferramentas: ativam por
+`SessionStart` hook e valem para a sessão inteira até `stop caveman` / `stop
+ponytail`. Caveman governa como o texto sai, ponytail governa o que é construído —
+por isso os dois rodam juntos sem conflito.
 
 ---
 
@@ -281,8 +290,22 @@ servidor de escopo de usuário mora em `~/.claude.json`, registrado por
 
 | Server | Comando | Uso |
 |---|---|---|
+| `codebase-memory-mcp` | `~/.local/bin/codebase-memory-mcp` | Grafo de conhecimento do código: `search_graph`, `trace_path`, `query_graph`. Escopo de usuário, já instalado no Linux |
+| `serena` | `uv tool install -p 3.13 serena-agent` | Recuperação e edição **no nível do símbolo** via language server — o que grep não dá. [oraios/serena](https://github.com/oraios/serena) |
 | `github` | `npx @modelcontextprotocol/server-github` | Requer `GITHUB_PERSONAL_ACCESS_TOKEN` no ambiente |
 | `supabase` | `npx @supabase/mcp-server-supabase@latest --read-only` | Requer `SUPABASE_ACCESS_TOKEN`; read-only por flag explícita |
+
+`codebase-memory-mcp` e `serena` se sobrepõem de propósito: o grafo responde
+"quem chama o quê" sobre um índice já construído, o serena responde sobre o estado
+atual do arquivo via LSP. Quando discordam, o LSP está certo.
+
+### Fora do Claude Code
+
+[CocoIndex](https://github.com/cocoindex-io/cocoindex) não é MCP server: é
+biblioteca Python de indexação incremental — fonte, transformação, destino
+(pgvector, grafo), reprocessando só o delta a cada commit. Entra num projeto que
+precisa de busca semântica própria, não na configuração do agente. Traz a própria
+skill para agentes em `skills/cocoindex/` do repo deles.
 
 ---
 
