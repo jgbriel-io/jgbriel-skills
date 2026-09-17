@@ -3,217 +3,226 @@ name: docs-writing
 description: Technical documentation style guide for README, docs/, ADRs, JSDoc/TSDoc, and inline code comments. Use when writing or reviewing technical documentation, READMEs, API docs, architecture decision records, or any non-academic prose in the codebase. Does NOT apply to the TCC's academic prose, which has its own voice and norms — that is tcc-rascunho for drafting and tcc-revisao-impessoal for the final pass.
 ---
 
-# Estilo de Documentação Técnica
+# Technical Documentation Style
 
-Aplica-se a README, `docs/`, ADRs, guias de uso, JSDoc/TSDoc e comentários longos. Não vale para texto acadêmico (TCC tem regras próprias).
+Applies to READMEs, `docs/`, ADRs, usage guides, JSDoc/TSDoc and long comments.
+Not to academic writing — the TCC has its own rules.
 
-## Estrutura
+## Structure
 
-Ordem típica de um doc:
-1. **Título** — uma linha, descreve o quê.
-2. **Intro** — 1-3 frases, contexto + para quem.
-3. **Uso / Quick start** — código antes de explicação.
-4. **Conceitos** — só o necessário pra entender o uso.
-5. **Referência** — API, opções, flags (se aplicável).
-6. **Exemplos** — cenários reais, copia-e-cola.
-7. **Troubleshooting** — erros comuns + fix.
+The usual order:
+1. **Title** — one line, says what this is.
+2. **Intro** — one to three sentences: context, and who it is for.
+3. **Usage / quick start** — code before explanation.
+4. **Concepts** — only what is needed to understand the usage.
+5. **Reference** — API, options, flags, where applicable.
+6. **Examples** — real scenarios, copy-and-paste.
+7. **Troubleshooting** — common errors and their fix.
 
-Não obrigar todas as seções. Cortar o que não agrega.
+None of these is mandatory. Cut what adds nothing.
 
-## Títulos e Cabeçalhos
+## Headings
 
-- **Sentence case**, não Title Case.
-  - ✅ `## Instalando dependências`
-  - ❌ `## Instalando Dependências`
-- **Um único H1** por arquivo (o título).
-- Hierarquia: H1 → H2 (seções) → H3 (subseções). Não pular níveis.
-- Sem pontuação no fim do cabeçalho.
-- Cabeçalhos descritivos, não genéricos (`## Configuração do Supabase` > `## Configuração`).
+- **Sentence case**, not Title Case.
+  - ✅ `## Installing dependencies`
+  - ❌ `## Installing Dependencies`
+- **One H1** per file: the title.
+- Hierarchy H1 → H2 (sections) → H3 (subsections). Do not skip levels.
+- No trailing punctuation.
+- Descriptive rather than generic: `## Supabase configuration` beats
+  `## Configuration`.
 
-## Voz
+## Voice
 
-- **Imperativa** para instruções:
-  - ✅ `Run npm install` / `Rode npm install`
-  - ❌ `You should run npm install` / `Você deve rodar npm install`
-- **Declarativa** para descrições:
-  - ✅ `O componente aceita uma prop opcional onClick`
-  - ❌ `Você pode passar uma prop opcional onClick`
-- Evitar "vamos", "podemos", "iremos". Vai direto ao ponto.
+- **Imperative** for instructions:
+  - ✅ `Run npm install`
+  - ❌ `You should run npm install`
+- **Declarative** for descriptions:
+  - ✅ `The component accepts an optional onClick prop`
+  - ❌ `You can pass an optional onClick prop`
+- Avoid "let's", "we can", "we will". Go straight to it.
 
-## Code Blocks
+## Code blocks
 
-- **Sempre** com language tag, mesmo trechos curtos:
+- **Always** tagged with a language, even short ones:
   - ✅ ` ```ts `
-  - ❌ ` ``` ` (sem tag)
-- Linguagens comuns: `ts`, `tsx`, `js`, `jsx`, `sh`, `bash`, `powershell`, `sql`, `json`, `yaml`, `md`, `diff`.
-- Para comandos shell, usar `bash` ou `powershell` conforme contexto. Não misturar.
-- Sem `$` no início de comandos (`npm install`, não `$ npm install`).
-- Comentários no código em PT-BR (escopo do projeto), código em inglês.
+  - ❌ ` ``` `
+- Common tags: `ts`, `tsx`, `js`, `jsx`, `sh`, `bash`, `powershell`, `sql`,
+  `json`, `yaml`, `md`, `diff`.
+- For shell commands use `bash` or `powershell` to match the context, and do not
+  mix them in one block.
+- No `$` prefix on commands (`npm install`, not `$ npm install`).
+- Comments in code are English, like the code itself.
 
-## Referências a Código
+## Referring to code
 
-- Sempre formato `caminho:linha` para apontar localização exata:
-  - ✅ `Veja src/hooks/useStudents.ts:42`
-  - ❌ `Veja o hook useStudents`
-- Para função/símbolo, usar backticks: `` `useStudents()` ``.
-- Caminhos relativos à raiz do repo, não absolutos.
+- Always `path:line` to point at an exact location:
+  - ✅ `See src/hooks/useStudents.ts:42`
+  - ❌ `See the useStudents hook`
+- For a function or symbol, use backticks: `` `useStudents()` ``.
+- Paths relative to the repo root, never absolute.
 
-## Listas vs Prosa
+## Lists vs prose
 
-- **Lista** quando há 3+ itens enumeráveis sem conexão lógica forte.
-- **Prosa** quando os itens têm conexão narrativa (causa-efeito, sequência).
-- Listas sem fim — sem ponto final no item, exceto se for frase completa.
-- Sem listas de 1 item — virar prosa.
+- A **list** when there are three or more enumerable items with no strong logical
+  connection.
+- **Prose** when the items connect narratively — cause and effect, a sequence.
+- No terminal punctuation on list items, unless the item is a full sentence.
+- Never a one-item list; make it prose.
 
-## Exemplos
+## Examples
 
-- **Antes da regra** para conceitos óbvios pelo exemplo.
-- **Depois da regra** para conceitos abstratos que precisam de motivação.
-- Exemplos sempre executáveis ou copia-e-cola. Sem `// ...` no meio sem contexto.
-- Mostrar o erro junto da solução quando for fix:
+- **Before the rule** for concepts the example makes obvious.
+- **After the rule** for abstract concepts that need motivation first.
+- Examples are always runnable or copy-and-paste. No bare `// ...` in the middle
+  without context.
+- Show the mistake next to the fix when the point is a fix:
   ```ts
   // ❌
   useEffect(() => fetchData(), []);
-  
+
   // ✅
   const { data } = useQuery({ queryKey: ['data'], queryFn: fetchData });
   ```
 
-## Line Wrapping
+## Line wrapping
 
-- Quebrar linhas em ~100 caracteres em prosa.
-- Não quebrar code blocks (deixar scroll horizontal se preciso).
-- Tabelas: sem wrap, mesmo que largas.
+- Wrap prose around 100 characters.
+- Never wrap code blocks; horizontal scroll is fine.
+- Tables do not wrap, however wide they get.
 
 ## Links
 
-- **Inline** para links curtos e contextuais: `[shadcn/ui](https://ui.shadcn.com)`.
-- **Reference** para links repetidos ou longos:
+- **Inline** for short, contextual links: `[shadcn/ui](https://ui.shadcn.com)`.
+- **Reference style** for repeated or long ones:
   ```md
-  Ver [docs do Supabase][supabase-docs].
+  See the [Supabase docs][supabase-docs].
 
   [supabase-docs]: https://supabase.com/docs
   ```
-- Link descritivo, não "clique aqui" / "veja link":
-  - ✅ `Ver [guia de migração](./MIGRATION.md)`
-  - ❌ `Veja [aqui](./MIGRATION.md)`
+- Descriptive link text, never "click here":
+  - ✅ `See the [migration guide](./MIGRATION.md)`
+  - ❌ `See [here](./MIGRATION.md)`
 
-## Tabelas
+## Tables
 
-Usar quando há comparação multi-coluna. Não para listas simples (2 colunas só faz sentido se a segunda agrega info, não repete).
+Use them for multi-column comparison, not for simple lists. Two columns only earn
+a table when the second adds information rather than restating the first.
 
 ```md
-| Componente | Quando usar | Exemplo |
-|------------|-------------|---------|
-| `Dialog`   | Forms       | `StudentDialog` |
-| `Sheet`    | Lateral     | `StudentDetailSheet` |
+| Component | When to use | Example |
+|-----------|-------------|---------|
+| `Dialog`  | Forms       | `StudentDialog` |
+| `Sheet`   | Side panel  | `StudentDetailSheet` |
 ```
 
-## Comentários no Código
+## Code comments
 
-- Apenas o **por quê**, não o **o quê**. Código bem nomeado explica o quê.
-  - ❌ `// incrementa o contador`
-  - ✅ `// Reset diário às 00:00 BRT, não UTC — política do RH`
-- Uma linha máximo. Se precisar mais, vira doc separado.
-- Sem comentários óbvios (`// imports`, `// helper functions`).
-- TODO/FIXME com contexto e responsável: `// TODO(joao): expirar token em 24h após validação de RFC`.
+- The **why**, never the **what**. Well-named code already says what.
+  - ❌ `// increment the counter`
+  - ✅ `// Daily reset at 00:00 BRT, not UTC — HR policy`
+- One line. If it needs more, it belongs in a document.
+- No obvious comments (`// imports`, `// helper functions`).
+- TODO/FIXME with context and an owner:
+  `// TODO(joao): expire the token after 24h, pending RFC validation`.
 
 ## JSDoc / TSDoc
 
-- Apenas em APIs públicas (lib expostas) ou funções com contrato não óbvio.
-- Não documentar tipos que TypeScript já infere.
-- Estrutura:
+- Only on public APIs, or functions whose contract is not obvious.
+- Never document types TypeScript already infers.
+- Shape:
   ```ts
   /**
-   * Calcula valor mensal devido por aluno.
-   * @param studentId UUID do aluno
+   * Calculates the monthly amount owed per student.
+   * @param studentId student UUID
    * @param month YYYY-MM
-   * @throws StudentNotFoundError se aluno não existe ou foi soft-deleted
+   * @throws StudentNotFoundError when the student does not exist or was soft-deleted
    */
   ```
 
 ## ADRs (Architecture Decision Records)
 
-Quando criar um ADR:
-- Decisão arquitetural não óbvia (escolha de lib, padrão, infra).
-- Trade-off explícito que pode ser questionado depois.
+Write one when:
+- The architectural decision is not obvious — a library, a pattern, infrastructure.
+- There is an explicit trade-off someone may question later.
 
-Template mínimo (`docs/adr/NNNN-titulo.md`):
+Minimum template (`docs/adr/NNNN-title.md`):
 ```md
-# NNNN. Título da decisão
+# NNNN. Decision title
 
-Status: aceita | substituída por XXXX | depreciada
-Data: YYYY-MM-DD
+Status: accepted | superseded by XXXX | deprecated
+Date: YYYY-MM-DD
 
-## Contexto
-Qual problema motivou a decisão.
+## Context
+The problem that motivated the decision.
 
-## Decisão
-O que foi decidido.
+## Decision
+What was decided.
 
-## Consequências
-Boas, ruins, riscos aceitos.
+## Consequences
+Good, bad, and the risks accepted.
 
-## Alternativas consideradas
-Por que foram descartadas.
+## Alternatives considered
+Why they were rejected.
 ```
 
-## Estrutura da pasta `docs/`
+## The `docs/` folder
 
-A árvore padrão por tier, o índice com status table e o formato de cada arquivo
-estão em [references/docs-tree.md](references/docs-tree.md). Tier 1 vale pra todo
-projeto; os outros entram quando o projeto justifica.
+The standard tree by tier, the index with its status table, and the shape of each
+file live in [references/docs-tree.md](references/docs-tree.md). Tier 1 applies to
+every project; the rest arrive when the project justifies them.
 
 ## Sprint documentation
 
-### Nomenclatura
+### Naming
 
 ```
-sprint-NN-tipo-descricao-kebab.md
+sprint-NN-type-description-kebab.md
 ```
 
-- `NN` — número com zero à esquerda: `01`, `12`
-- `tipo` — `mvp` | `refactor` | `fix`
-- Não implementadas: `sprint-NN-tipo-descricao-NAO-IMPLEMENTADA.md`
+- `NN` — zero-padded: `01`, `12`
+- `type` — `mvp` | `refactor` | `fix`
+- Unimplemented ones: `sprint-NN-type-description-NAO-IMPLEMENTADA.md`
 
-### Seções obrigatórias
+### Required sections
 
-| Seção | Conteúdo |
-|-------|----------|
-| **Problem Statement** | Estado atual, sintomas, impacto, quantificação |
-| **Requirements** | Requisitos funcionais, não-funcionais, critérios de aceitação, fora do escopo |
-| **Background** | Stack envolvido, arquitetura relevante, padrões do projeto, arquivos afetados |
-| **Proposed Solution** | Abordagem, estrutura de pastas, padrões, por que foi escolhida |
-| **Task Breakdown** | Tasks com objetivo, implementação, arquivos afetados, teste, demo |
-| **Implementation Details** | Tabelas por categoria (migrations, components, hooks) |
-| **Files Created** | Árvore de arquivos com descrição breve |
-| **Files Modified** | Lista `caminho` — o que mudou e por quê |
-| **Testing & Validation** | Checklist: build, type-check, lint, testes, teste manual |
-| **Results & Impact** | Métricas quantitativas + melhorias qualitativas |
-| **Technical Debt** | Itens identificados mas não resolvidos, com justificativa |
-| **Lessons Learned** | O que funcionou, o que melhorar, aplicações futuras |
-| **Next Steps** | Próximas ações + sprint sugerida |
-| **References** | Links para issues, PRs, ADRs, docs relacionados |
+| Section | Content |
+|---------|---------|
+| **Problem Statement** | Current state, symptoms, impact, quantified |
+| **Requirements** | Functional, non-functional, acceptance criteria, out of scope |
+| **Background** | Stack involved, relevant architecture, project patterns, affected files |
+| **Proposed Solution** | Approach, folder structure, patterns, why this one |
+| **Task Breakdown** | Tasks with goal, implementation, affected files, test, demo |
+| **Implementation Details** | Tables by category: migrations, components, hooks |
+| **Files Created** | File tree with a brief description |
+| **Files Modified** | `path` — what changed and why |
+| **Testing & Validation** | Checklist: build, type-check, lint, tests, manual test |
+| **Results & Impact** | Quantitative metrics plus qualitative improvements |
+| **Technical Debt** | Identified but unresolved, with the reason |
+| **Lessons Learned** | What worked, what to improve, where it applies next |
+| **Next Steps** | Following actions and the suggested next sprint |
+| **References** | Links to issues, PRs, ADRs, related docs |
 
 ### `sprints/README.md`
 
-Status table obrigatória:
+The status table is mandatory:
 
 ```md
-| Sprint | Período | Foco | Status | Arquivo |
-|--------|---------|------|--------|---------|
-| Sprint 1 | DD–DD mês YYYY | Descrição | ✅ Implementada | [sprint-01](./sprint-01-...) |
-| Sprint N | — | Descrição | ❌ Não implementada | [sprint-N](./sprint-N-...) |
+| Sprint | Period | Focus | Status | File |
+|--------|--------|-------|--------|------|
+| Sprint 1 | DD–DD month YYYY | Description | ✅ Implemented | [sprint-01](./sprint-01-...) |
+| Sprint N | — | Description | ❌ Not implemented | [sprint-N](./sprint-N-...) |
 ```
 
-Seções: Histórico por tipo (MVP / Refactor / Fix) + Não Implementadas + Referências.
+Sections: history by type (MVP / Refactor / Fix), then Not Implemented, then
+References.
 
 ## Anti-patterns
 
-- ❌ Doc desatualizado vs código. Se não mantém, deletar.
-- ❌ Doc que só repete o que o código diz. Documentar o **por quê**.
-- ❌ "TODO: documentar isso depois" em README publicado.
-- ❌ Screenshots para info que pode ser texto (texto é versionável, screenshot apodrece).
-- ❌ Cabeçalhos genéricos: `## Overview`, `## Introduction`, `## Notes`.
-- ❌ Listas aninhadas com 3+ níveis. Repensar estrutura.
-- ❌ Documentar bug como feature ("o componente às vezes renderiza duas vezes — basta ignorar").
+- ❌ A doc that no longer matches the code. If it is not maintained, delete it.
+- ❌ A doc that restates what the code says. Document the **why**.
+- ❌ "TODO: document this later" in a published README.
+- ❌ Screenshots for information that could be text — text is versioned, a screenshot rots.
+- ❌ Generic headings: `## Overview`, `## Introduction`, `## Notes`.
+- ❌ Nested lists three levels deep. Rethink the structure.
+- ❌ Documenting a bug as a feature ("the component sometimes renders twice — just ignore it").

@@ -3,92 +3,128 @@ name: dependency-audit
 description: Audits third-party dependencies for security and maintainability — lockfile discipline, upgrade cadence (automatic patch vs. manual minor/major), evaluating a new package before adding it, and automated vulnerability scanning in CI. Package-manager-agnostic. Use when user asks about lockfiles, dependency upgrades, adding a new dependency, npm audit, pip-audit, Dependabot, Snyk, or CVE scanning.
 ---
 
-# Auditoria de Dependências
+# Dependency Audit
 
-Toda dependência de terceiro é código que roda com a mesma confiança que o seu — vulnerabilidade, dependência abandonada ou licença incompatível viram problema seu, não do mantenedor upstream. O conceito é o mesmo em qualquer gerenciador (npm, pnpm, pip, Maven, Bundler, NuGet); muda só o comando.
+Every third-party dependency is code that runs with exactly the trust your own
+code has. A vulnerability, an abandoned package or an incompatible licence becomes
+your problem, not the upstream maintainer's. The reasoning is the same in any
+package manager — npm, pnpm, pip, Maven, Bundler, NuGet — only the command
+changes.
 
-## Lockfile: por que sempre commitar
+## Lockfiles: why they are always committed
 
-| Sem lockfile | Com lockfile commitado |
+| Without a lockfile | With the lockfile committed |
 |---|---|
-| Cada `install` pode resolver versões diferentes das transitivas | Toda instalação resolve exatamente a mesma árvore de dependências |
-| Bug/CVE novo em transitiva entra silenciosamente no próximo install | Só entra quando alguém atualiza o lockfile de propósito |
-| Build de hoje ≠ build de amanhã com o mesmo `package.json`/`requirements.txt` | Reprodutibilidade: mesmo manifesto + mesmo lockfile = mesma árvore, sempre |
-| Impossível auditar "o que realmente está rodando em produção" | Lockfile é a fonte de verdade do que está instalado, não o manifesto |
+| Each `install` can resolve transitive dependencies differently | Every install resolves the same tree |
+| A new bug or CVE in a transitive dependency arrives silently on the next install | It only arrives when someone updates the lockfile deliberately |
+| Today's build differs from tomorrow's, from the same manifest | Reproducible: same manifest plus same lockfile, same tree, always |
+| "What is actually running in production" cannot be audited | The lockfile is the source of truth for what is installed, not the manifest |
 
-- Lockfile é código, não artefato de build — vai pro Git (`package-lock.json`, `pnpm-lock.yaml`, `poetry.lock`/`Pipfile.lock`, `Gemfile.lock`, `packages.lock.json`). Nunca no `.gitignore`.
-- Instalação em CI/produção usa o comando que **respeita** o lockfile e falha se ele estiver desatualizado em relação ao manifesto (`npm ci`, não `npm install`) — nunca deixar o CI resolver versões novas por conta própria.
-- Manifesto (`package.json`, `pyproject.toml`, `pom.xml`, `Gemfile`, `.csproj`) declara faixas de versão aceitáveis; lockfile trava a versão exata resolvida. Os dois são commitados, os dois têm papel diferente.
-- Conflito de lockfile em merge não se resolve editando o arquivo à mão — resolve o manifesto e regenera o lockfile.
+- A lockfile is code, not a build artifact: it goes into git
+  (`package-lock.json`, `pnpm-lock.yaml`, `poetry.lock`/`Pipfile.lock`,
+  `Gemfile.lock`, `packages.lock.json`). Never in `.gitignore`.
+- CI and production install with the command that **respects** the lockfile and
+  fails when it has drifted from the manifest (`npm ci`, not `npm install`). Never
+  let CI resolve new versions on its own.
+- The manifest (`package.json`, `pyproject.toml`, `pom.xml`, `Gemfile`, `.csproj`)
+  declares acceptable ranges; the lockfile pins the exact resolution. Both are
+  committed, and they do different jobs.
+- A lockfile merge conflict is not resolved by editing the file. Resolve the
+  manifest and regenerate the lockfile.
 
-## Política de upgrade
+## Upgrade policy
 
-| Tipo de mudança | Automação | Cadência |
+| Change | Automation | Cadence |
 |---|---|---|
-| Patch (`x.y.Z`) — bugfix, sem API nova | Automática (bot ou job agendado), merge direto se CI verde | Contínua |
-| Minor (`x.Y.0`) — feature nova, retrocompatível | PR automático, revisão humana antes do merge | Semanal/quinzenal |
-| Major (`X.0.0`) — breaking change | Manual, dedicado, com changelog lido e testes de regressão | Planejado, com tempo reservado |
+| Patch (`x.y.Z`) — bugfix, no new API | Automatic (bot or scheduled job), merged on green CI | Continuous |
+| Minor (`x.Y.0`) — new feature, backwards compatible | Automatic PR, human review before merge | Weekly or fortnightly |
+| Major (`X.0.0`) — breaking change | Manual and dedicated, changelog read, regression tests | Planned, with time set aside |
 
-- Patch automático só é seguro com suíte de teste real cobrindo o caminho crítico — sem teste, todo upgrade é um salto no escuro, patch ou não.
-- Minor/major nunca em lote silencioso: um PR por dependência (ou por grupo relacionado) — upgrade em massa sem isolamento torna impossível saber qual pacote quebrou o quê.
-- Dependência presa numa versão antiga por "medo de quebrar" acumula dívida de segurança — CVE não corrigido em versão antiga não desaparece, só fica invisível até virar incidente.
-- Congelar upgrade é decisão explícita e documentada (ex: incompatibilidade conhecida com outra lib), não default por inércia.
+- Automatic patching is only safe with a real test suite covering the critical
+  path. Without tests, every upgrade is a leap in the dark, patch or not.
+- Never batch minors and majors silently: one PR per dependency, or per related
+  group. A mass upgrade with no isolation makes it impossible to tell which
+  package broke what.
+- A dependency pinned to an old version out of fear accumulates security debt. An
+  unpatched CVE in an old version does not go away; it stays invisible until it is
+  an incident.
+- Freezing an upgrade is an explicit, documented decision — a known incompatibility
+  with another library, say — not a default by inertia.
 
-## Avaliando pacote novo antes de adicionar
+## Evaluating a new package before adding it
 
-Antes de rodar o `install`, checar:
+Before running `install`, check:
 
-| Critério | O que olhar | Sinal de alerta |
+| Criterion | What to look at | Warning sign |
 |---|---|---|
-| Manutenção ativa | Data do último release, issues/PRs respondidos | Sem commit há anos, mantenedor sumiu |
-| Tamanho da árvore transitiva | Quantas dependências a mais o pacote arrasta | Um utilitário pequeno trazendo dezenas de transitivas |
-| Licença | Compatível com o uso comercial do projeto/cliente | GPL/AGPL em produto fechado, licença não declarada |
-| Histórico de CVE | Vulnerabilidade recorrente, tempo de resposta a report | CVEs abertos sem patch há meses |
-| Popularidade/adoção | Downloads, quem mais usa, alternativas mais estabelecidas | Pacote novo e obscuro fazendo o que uma lib madura já faz |
-| Necessidade real | Dá pra resolver com poucas linhas próprias? | Puxar dependência pesada pra uma função trivial |
+| Active maintenance | Last release date, issues and PRs answered | No commits in years, maintainer gone |
+| Transitive tree size | How many extra dependencies it drags in | A small utility pulling dozens of transitives |
+| Licence | Compatible with the project's or client's commercial use | GPL/AGPL inside a closed product, or no declared licence |
+| CVE history | Recurring vulnerabilities, response time to reports | Open CVEs unpatched for months |
+| Adoption | Downloads, who else uses it, more established alternatives | An obscure new package doing what a mature library already does |
+| Actual need | Could a few lines of your own do it? | Pulling a heavy dependency for a trivial function |
 
-- Preferir a dependência já usada em outro projeto próprio a introduzir uma nova pra fazer a mesma coisa.
-- Dependência transitiva importa tanto quanto a direta — ela também roda no seu processo. Auditar árvore completa, não só o top-level.
-- Pacote descontinuado (deprecated, "unmaintained" no README) é sinal de troca, mesmo funcionando hoje.
+- Prefer a dependency already used in another of your projects over introducing a
+  new one for the same job.
+- Transitive dependencies matter as much as direct ones — they run in your process
+  too. Audit the whole tree, not just the top level.
+- A deprecated or explicitly unmaintained package is a signal to replace it, even
+  while it still works.
 
-## Scan automatizado de vulnerabilidade no CI
+## Automated vulnerability scanning in CI
 
-- Scan roda em todo PR que toca manifesto/lockfile, e também agendado (diário/semanal) — CVE nova pode afetar dependência já instalada sem nenhuma mudança de código.
-- Severidade define o gate: crítica/alta bloqueia merge; média/baixa abre issue de acompanhamento sem travar a pipeline (senão o hábito vira ignorar o alerta).
-- Falso positivo (CVE que não afeta o caminho de código usado) se resolve com exceção documentada e datada de revisão — nunca desabilitando o scan inteiro.
-- Scan de dependência é adicional ao SAST de código próprio — cobre uma superfície diferente (código de terceiro vs. código escrito por você).
-- Resultado do scan vira artefato/relatório do pipeline, não só log perdido — facilita auditoria depois.
+- The scan runs on every PR that touches the manifest or lockfile, and on a
+  schedule (daily or weekly): a new CVE can affect an already-installed dependency
+  with no code change at all.
+- Severity sets the gate. Critical and high block the merge; medium and low open a
+  tracking issue without stopping the pipeline — otherwise the habit becomes
+  ignoring the alert.
+- A false positive (a CVE that does not affect the code path in use) is handled
+  with a documented exception carrying a review date, never by disabling the scan.
+- Dependency scanning complements SAST on your own code. They cover different
+  surfaces: third-party code versus code you wrote.
+- The scan result becomes a pipeline artifact or report rather than a lost log
+  line, which is what makes a later audit possible.
 
 ## Checklist
 
-- [ ] Lockfile commitado e atualizado junto com o manifesto em todo PR
-- [ ] CI instala com o comando que trava no lockfile (`ci`, não `install`/`update`)
-- [ ] Patch automático configurado, com CI verde como critério de merge
-- [ ] Minor/major upgrade revisado por PR isolado por pacote/grupo
-- [ ] Scan de vulnerabilidade rodando em PR e agendado, com gate por severidade
-- [ ] Critério de avaliação de pacote novo (manutenção, árvore, licença, CVE) checado antes de adicionar dependência
-- [ ] Dependência deprecated/sem manutenção identificada e com plano de substituição
-- [ ] Exceção de CVE aceita documentada com motivo e data de revisão
+- [ ] Lockfile committed and updated alongside the manifest in every PR
+- [ ] CI installs with the command that pins to the lockfile (`ci`, not `install`/`update`)
+- [ ] Automatic patching configured, with green CI as the merge criterion
+- [ ] Minor and major upgrades reviewed in isolated PRs, per package or group
+- [ ] Vulnerability scanning on PRs and on a schedule, gated by severity
+- [ ] New packages evaluated (maintenance, tree, licence, CVEs) before being added
+- [ ] Deprecated or unmaintained dependencies identified, with a replacement plan
+- [ ] Accepted CVE exceptions documented with a reason and a review date
 
 ## Anti-patterns
 
-- ❌ Lockfile no `.gitignore` ou desatualizado em relação ao manifesto
-- ❌ CI rodando `install`/`update` em vez do comando que respeita o lockfile
-- ❌ Upgrade de major em lote, sem isolar por pacote, "pra economizar tempo"
-- ❌ Dependência travada em versão antiga por medo, sem plano de atualização
-- ❌ Adicionar pacote novo sem checar manutenção, licença ou tamanho da árvore transitiva
-- ❌ Scan de vulnerabilidade sem gate — alerta gerado e nunca lido
-- ❌ Desabilitar o scan inteiro por causa de um falso positivo pontual
-- ❌ Dependência transitiva ignorada na auditoria por não aparecer no manifesto direto
+- ❌ A lockfile in `.gitignore`, or out of sync with the manifest
+- ❌ CI running `install`/`update` instead of the lockfile-respecting command
+- ❌ Batching major upgrades without isolating them, "to save time"
+- ❌ A dependency frozen on an old version out of fear, with no upgrade plan
+- ❌ Adding a package without checking maintenance, licence or transitive tree
+- ❌ Vulnerability scanning with no gate: an alert generated and never read
+- ❌ Disabling the whole scan because of one false positive
+- ❌ Ignoring transitive dependencies because they are not in the direct manifest
 
-## Exemplos por stack
+## By stack
 
-**npm/pnpm** — `npm ci` (ou `pnpm install --frozen-lockfile`) em CI; `npm audit --audit-level=high` ou `pnpm audit` para scan; `npm outdated` para ver o que está atrás.
+**npm/pnpm** — `npm ci` or `pnpm install --frozen-lockfile` in CI;
+`npm audit --audit-level=high` or `pnpm audit` for scanning; `npm outdated` to see
+what is behind.
 
-**pip** — `pip-compile`/`poetry.lock` como lockfile; `pip install -r requirements.txt --require-hashes` em CI; `pip-audit` ou `safety check` para CVE.
+**pip** — `pip-compile` or `poetry.lock` as the lockfile;
+`pip install -r requirements.txt --require-hashes` in CI; `pip-audit` or
+`safety check` for CVEs.
 
-**Maven** — `pom.xml` fixando versões (ou `dependencyManagement`), `mvn versions:display-dependency-updates` para ver upgrades disponíveis; `mvn org.owasp:dependency-check-maven:check` para scan de vulnerabilidade.
+**Maven** — versions pinned in `pom.xml` (or through `dependencyManagement`);
+`mvn versions:display-dependency-updates` to see what is available;
+`mvn org.owasp:dependency-check-maven:check` for scanning.
 
-**Bundler** — `Gemfile.lock` sempre commitado; `bundle install --deployment` em CI; `bundle audit` para CVE conhecido nas gems instaladas.
+**Bundler** — `Gemfile.lock` always committed; `bundle install --deployment` in
+CI; `bundle audit` for known CVEs in the installed gems.
 
-**NuGet** — `packages.lock.json` (via `RestorePackagesWithLockFile`); `dotnet list package --vulnerable` para CVE; `dotnet list package --outdated` para política de upgrade.
+**NuGet** — `packages.lock.json` (through `RestorePackagesWithLockFile`);
+`dotnet list package --vulnerable` for CVEs; `dotnet list package --outdated` for
+the upgrade policy.

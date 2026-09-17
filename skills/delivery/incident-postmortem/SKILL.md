@@ -5,185 +5,174 @@ description: Runs a blameless incident postmortem — timeline with timestamps, 
 
 # Incident Postmortem
 
-Documento de pós-incidente: entender a cadeia de causas do sistema (técnico ou
-de processo), não achar um culpado. Mesmo formato serve para queda de serviço,
-bug crítico em produção, erro operacional ou atraso de entrega — o incidente
-muda, a estrutura não.
+A post-incident document exists to explain the system's chain of causes —
+technical or procedural — not to find someone to blame. The same structure serves
+an outage, a critical production bug, an operational mistake or a late delivery:
+the incident changes, the structure does not.
 
-Quando o vault estiver disponível, o documento final vai em
-`wiki/Projetos/<projeto>/` (ou `wiki/Clientes/Diretos|Parceiros/<cliente>/` se
-o incidente for de um projeto de cliente). Durante o incidente em si, a skill
-é `rollback-runbook` — esta aqui entra depois de resolvido.
+Where the vault is available, the finished document goes under
+`wiki/Projetos/<project>/`, or `wiki/Clientes/Diretos|Parceiros/<client>/` when
+the incident belongs to a client project. During the incident itself the skill is
+`rollback-runbook`; this one starts once it is resolved.
 
-## Princípio blameless
+## Blameless, and why
 
-O objetivo é que o sistema fique mais resistente à próxima falha, não que
-alguém seja apontado. Duas consequências práticas:
+The goal is a system more resistant to the next failure, not a person identified.
+Two practical consequences:
 
-- O documento descreve **ações e decisões no contexto em que foram tomadas**,
-  não caráter ou competência de pessoa. Troca "esqueci de validar o input"
-  por "o fluxo de deploy não tinha etapa de validação de input antes do
-  merge".
-- Postmortem que vira autopunição ensina a esconder o erro da próxima vez ou
-  a suavizar o que realmente aconteceu — e o próximo incidente similar não é
-  evitado porque o anterior não foi contado direito.
-- Nomes só aparecem em "quem foi notificado" e "dono da ação corretiva" —
-  nunca em "quem causou" (mesmo em projeto solo, vale documentar como
-  decisão/processo, não como culpa pessoal).
+- The document describes **actions and decisions in the context where they were
+  made**, never a person's character or competence. "I forgot to validate the
+  input" becomes "the deploy flow had no input-validation step before merge".
+- A postmortem that turns into self-punishment teaches you to hide the next
+  mistake, or to soften what actually happened — and then the next similar
+  incident is not prevented, because the previous one was never told straight.
+- Names appear only under "who was notified" and "owner of the corrective action",
+  never under "who caused it". This holds even on a solo project: document it as a
+  process, not as personal fault.
 
-## Quando abrir um postmortem formal
+## When a formal postmortem is warranted
 
-Nem todo incidente pequeno precisa de documento. Critério por severidade:
+Not every small incident needs a document. By severity:
 
-| Severidade | Critério | Postmortem formal? |
+| Severity | Criterion | Formal postmortem? |
 |---|---|---|
-| Crítico | Cliente(s) impactado(s), perda de dado, SLA rompido, parada de operação | Sim, obrigatório |
-| Alto | Degradação visível, contornado sem impacto externo confirmado | Sim, versão curta |
-| Médio | Detectado e corrigido internamente antes de afetar alguém | Registro rápido, sem doc formal |
-| Baixo | Erro pontual sem recorrência, causa óbvia e já corrigida | Não — anotar e seguir |
+| Critical | Clients affected, data lost, SLA breached, operations halted | Yes, mandatory |
+| High | Visible degradation, worked around with no confirmed external impact | Yes, short version |
+| Medium | Caught and fixed internally before anyone was affected | A quick note, no formal document |
+| Low | One-off, obvious cause, already fixed | No — note it and move on |
 
-Regra prática: se a pergunta "isso pode acontecer de novo do mesmo jeito?" não
-tem resposta óbvia, abre postmortem — mesmo que o impacto tenha sido pequeno
-dessa vez.
+Rule of thumb: if "could this happen the same way again?" has no obvious answer,
+write the postmortem, even when this time the impact was small.
 
-## Estrutura do documento
+## Document structure
 
 ### 1. Timeline
 
-Cada evento relevante com timestamp (fuso fixo, ex. horário local do
-cliente), em ordem cronológica: quando o problema começou (nem sempre é
-quando foi detectado), quando foi detectado, quem foi acionado, cada ação de
-mitigação tomada, quando foi resolvido.
+Each relevant event with a timestamp in a fixed timezone — the client's local
+time, say — in chronological order: when the problem actually began (not always
+when it was noticed), when it was detected, who was paged, each mitigation taken,
+when it was resolved.
 
-### 2. Impacto
+### 2. Impact
 
-Quem foi afetado, por quanto tempo, e como se mede (usuários impactados,
-transações perdidas, SLA de horas de atraso, valor financeiro se aplicável).
-Sem número — mesmo estimado — o impacto vira opinião.
+Who was affected, for how long, and measured how: users affected, transactions
+lost, hours of SLA breached, financial value where it applies. Without a number —
+even an estimated one — impact is opinion.
 
-### 3. Causa raiz
+### 3. Root cause
 
-Separar **causa imediata** de **causa raiz sistêmica**:
+Separate the **immediate cause** from the **systemic root cause**:
 
-- Causa imediata: o que quebrou, tecnicamente ou operacionalmente ("o deploy
-  subiu sem a migration", "a proposta foi enviada com o valor errado").
-- Causa raiz: por que o sistema permitiu que isso quebrasse sem ser
-  interceptado antes. Quase sempre é "não tinha teste/alerta/revisão/checklist
-  pra isso" — não "errei".
+- Immediate cause: what broke, technically or operationally. "The deploy shipped
+  without the migration", "the proposal went out with the wrong figure".
+- Root cause: why the system let that break without being caught first. Almost
+  always "there was no test, alert, review or checklist for this" — not "I made a
+  mistake".
 
-Técnica dos 5 porquês para chegar lá:
+Five whys to get there:
 
 ```
-Por quê 1: Por que o cliente recebeu a proposta com valor errado?
-→ Porque a planilha de cálculo tinha uma fórmula desatualizada.
+Why 1: Why did the client receive a proposal with the wrong figure?
+→ Because the pricing spreadsheet had an out-of-date formula.
 
-Por quê 2: Por que a fórmula desatualizada não foi pega antes do envio?
-→ Porque não existe revisão por um segundo par de olhos antes do envio.
+Why 2: Why was the out-of-date formula not caught before sending?
+→ Because nothing requires a second pair of eyes before an external send.
 
-Por quê 3: Por que não existe essa revisão?
-→ Porque o processo assume que quem monta a proposta também confere.
+Why 3: Why is there no such review?
+→ Because the process assumes whoever builds the proposal also checks it.
 
-Por quê 4: Por que esse processo nunca foi questionado?
-→ Porque nunca tinha dado errado antes visivelmente.
+Why 4: Why was that assumption never questioned?
+→ Because it had never visibly gone wrong before.
 
-Por quê 5 (causa raiz): Por que o processo não tem um segundo checkpoint
-estrutural, dado que erro de cálculo tem custo alto e é fácil de não notar
-sozinho?
-→ Falta uma etapa formal de revisão cruzada antes de qualquer envio externo
-  com valor monetário.
+Why 5 (root cause): Why is there no structural second checkpoint, given that a
+pricing error is expensive and hard to notice alone?
+→ There is no formal cross-review step before any external send involving money.
 ```
 
-Parar quando o "porquê" seguinte responder algo fora do controle (ex:
-decisão de negócio externa) — nesse ponto vira causa raiz, não sintoma.
+Stop when the next "why" lands outside your control — an external business
+decision, say. That is the root cause rather than another symptom.
 
-### 4. O que funcionou bem
+### 4. What went well
 
-Toda resposta a incidente tem algo que funcionou — detecção rápida, runbook
-seguido, comunicação clara com o cliente. Registrar isso reforça o
-comportamento certo e evita que o postmortem pareça só uma lista de falhas.
+Every incident response has something that worked: fast detection, a runbook that
+was followed, clear communication with the client. Recording it reinforces the
+right behaviour and stops the postmortem reading as a list of failures.
 
-### 5. Ações corretivas
+### 5. Corrective actions
 
-Cada ação precisa de **dono** (uma pessoa, não uma equipe) e **prazo**
-(data, não "em breve"). Ação sem dono não acontece; ação sem prazo vira
-backlog eterno.
+Each action needs an **owner** — a person, not a team — and a **deadline**, a date
+rather than "soon". An action with no owner does not happen; an action with no date
+becomes permanent backlog.
 
-| Ação | Dono | Prazo | Status |
+| Action | Owner | Due | Status |
 |---|---|---|---|
 | | | | |
 
 ## Template
 
 ```markdown
-# Postmortem — <título curto do incidente>
+# Postmortem — <short incident title>
 
-**Severidade:** <crítico/alto/médio> · **Status:** <em andamento/resolvido>
-**Data do incidente:** <data> · **Duração:** <hh:mm início → hh:mm fim>
+**Severity:** <critical/high/medium> · **Status:** <ongoing/resolved>
+**Date:** <date> · **Duration:** <hh:mm start → hh:mm end>
 
-## Resumo
-<2-3 frases: o que aconteceu, impacto, se já está resolvido.>
+## Summary
+<2-3 sentences: what happened, the impact, whether it is resolved.>
 
-## Impacto
-- Quem foi afetado: <cliente(s)/usuários/eu mesmo>
-- Duração do impacto: <tempo>
-- Medida de impacto: <número — usuários, transações, valor, SLA>
+## Impact
+- Who was affected: <clients/users/just me>
+- How long: <duration>
+- Measured by: <number — users, transactions, value, SLA>
 
 ## Timeline
-| Horário | Evento |
+| Time | Event |
 |---|---|
-| hh:mm | Início real do problema (se souber) |
-| hh:mm | Detecção |
-| hh:mm | Ação de mitigação tomada |
-| hh:mm | Incidente considerado resolvido |
+| hh:mm | Real start of the problem, if known |
+| hh:mm | Detection |
+| hh:mm | Mitigation taken |
+| hh:mm | Considered resolved |
 
-## Causa raiz
+## Root cause
 
-**Causa imediata:** <o que quebrou>
+**Immediate cause:** <what broke>
 
-**5 porquês:**
+**Five whys:**
 1. ...
 2. ...
 3. ...
 4. ...
-5. (causa raiz) ...
+5. (root cause) ...
 
-## O que funcionou bem
+## What went well
 - <item>
 
-## Ações corretivas
-| Ação | Dono | Prazo | Status |
+## Corrective actions
+| Action | Owner | Due | Status |
 |---|---|---|---|
 | | | | |
 
-## Lições
-<1-2 frases: o que muda no processo/sistema a partir de agora.>
+## Lessons
+<1-2 sentences: what changes in the process or the system from now on.>
 ```
 
 ## Checklist
 
-- [ ] Severidade avaliada antes de decidir se abre postmortem formal
-- [ ] Timeline com timestamps reais, não aproximados de memória
-- [ ] Impacto quantificado (número, não "afetou alguns clientes")
-- [ ] Causa imediata e causa raiz sistêmica registradas separadamente
-- [ ] 5 porquês aplicado até chegar em algo estrutural, não em "eu errei"
-- [ ] Ao menos um item de "o que funcionou bem" registrado
-- [ ] Toda ação corretiva tem dono único e prazo com data
-- [ ] Documento revisado com uma segunda leitura fria, pra checar se ficou
-      factual e sem tom de culpa
-- [ ] Documento compartilhado com quem foi afetado, quando aplicável (cliente
-      externo tem direito a saber o que houve e o que muda)
+- [ ] Severity assessed before deciding whether to write a formal postmortem
+- [ ] Timeline built from real timestamps, not reconstructed from memory
+- [ ] Impact quantified — a number, not "some clients were affected"
+- [ ] Immediate cause and systemic root cause recorded separately
+- [ ] Five whys followed until it reaches something structural, not "I made a mistake"
+- [ ] At least one entry under "what went well"
+- [ ] Every corrective action has a single owner and a dated deadline
+- [ ] The document re-read cold, to check it stayed factual and free of blame
+- [ ] Shared with whoever was affected where applicable — an external client is entitled to know what happened and what changes
 
 ## Anti-patterns
 
-- ❌ Causa raiz que termina em "erro humano" sem perguntar por que o sistema
-  permitiu esse erro sem detecção
-- ❌ Ação corretiva sem dono ("revisar o processo depois")
-- ❌ Ação corretiva sem prazo ("em breve", "assim que possível")
-- ❌ Postmortem formal aberto pra todo incidente médio/baixo, virando
-  burocracia que ninguém lê
-- ❌ Timeline reconstruída de memória dias depois, sem checar logs/mensagens
-- ❌ Documento escrito só pra arquivar — sem as ações corretivas serem
-  cobradas depois
-- ❌ Aplicar o formato só a incidente técnico e improvisar quando o erro é
-  operacional (proposta errada, atraso de entrega, comunicação falha com
-  cliente) — a estrutura é a mesma nos dois casos
+- ❌ A root cause that ends at "human error" without asking why the system allowed it undetected
+- ❌ A corrective action with no owner ("review the process later")
+- ❌ A corrective action with no date ("soon", "as soon as possible")
+- ❌ Formal postmortems for every medium and low incident, until it is bureaucracy nobody reads
+- ❌ A timeline reconstructed days later without checking logs or messages
+- ❌ A document written only to be filed, with nobody chasing the corrective actions
+- ❌ Applying the format only to technical incidents and improvising when the failure is operational — a wrong proposal, a late delivery, a miscommunication with a client. The structure is the same

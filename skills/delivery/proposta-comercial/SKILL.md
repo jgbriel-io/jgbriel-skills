@@ -1,41 +1,44 @@
 ---
 name: proposta-comercial
-description: Transforma um briefing de cliente em proposta comercial de freela — escopo fechado (incluído/excluído), entregáveis, cronograma, investimento e condições. Entrevista o que faltar, uma pergunta por vez, e salva a proposta no vault do cliente. Use quando o usuário disser "faz a proposta pro cliente X", "monta o orçamento", "escopo pro freela", "proposta comercial", ou colar um briefing pedindo precificação. Não gera contrato jurídico — só a proposta.
+description: Turns a client briefing into a freelance commercial proposal — closed scope (included and excluded), deliverables, schedule, price and conditions. Interviews for whatever is missing, one question at a time, and saves the proposal in the client's vault folder. Use when the user says "faz a proposta pro cliente X", "monta o orçamento", "escopo pro freela", "proposta comercial", or pastes a briefing asking for pricing. It does not produce a legal contract, only the proposal.
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
-# Freela — Proposta
+# Freelance Proposal
 
-Briefing → proposta fechada. O objetivo é escopo sem ambiguidade: proposta
-vaga vira retrabalho não pago.
+Briefing in, closed proposal out. The goal is scope without ambiguity: a vague
+proposal becomes unpaid rework.
 
-## Processo
+The proposal is written in Portuguese, because the client reads it. The
+instructions here are not.
 
-### 1. Extrair do briefing
+## Process
 
-Do que o usuário colou/contou, extrair: cliente, objetivo do projeto,
-entregáveis implícitos, prazo mencionado, orçamento sinalizado. O que não
-estiver claro entra na entrevista.
+### 1. Extract from the briefing
 
-### 2. Entrevistar o que falta (uma pergunta por vez)
+From whatever the user pasted or described, pull out: the client, the project's
+goal, the implied deliverables, any deadline mentioned, any budget signalled.
+Whatever is not clear goes into the interview.
 
-Na ordem do que mais trava a proposta:
+### 2. Interview for what is missing, one question at a time
 
-1. **Entregáveis** — o que exatamente o cliente recebe? (site de N páginas,
-   painel, integração X). Sugerir lista e confirmar.
-2. **Fora do escopo** — o que o cliente pode achar que está incluído mas não
-   está (conteúdo/copy, fotos, SEO contínuo, hospedagem, manutenção). A seção
-   mais importante da proposta.
-3. **Prazo** — em semanas, contado a partir do quê (aprovação? recebimento do
-   material do cliente?).
-4. **Investimento** — o preço vem sempre do usuário: perguntar o valor
-   fechado ou a taxa/hora. Se pedirem sugestão, estimar horas por entregável
-   e multiplicar pela taxa que o usuário informar — a estimativa é de horas,
-   a precificação é dele.
-5. **Condições** — forma de pagamento (sinal + entrega é o padrão), quantas
-   rodadas de revisão inclusas, o que é cobrado à parte, validade da proposta.
+In the order of what blocks the proposal most:
 
-### 3. Montar a proposta
+1. **Deliverables** — what exactly does the client receive? An N-page site, a
+   dashboard, integration X. Propose a list and confirm it.
+2. **Out of scope** — what the client may assume is included and is not: copy,
+   photography, ongoing SEO, hosting, maintenance. The most important section of
+   the proposal.
+3. **Timeline** — in weeks, counted from what? Approval, or receipt of the
+   client's material?
+4. **Price** — always comes from the user. Ask for the closed figure or the hourly
+   rate. If they ask for a suggestion, estimate hours per deliverable and multiply
+   by the rate they give: the estimate is hours, the pricing is theirs.
+5. **Conditions** — payment terms (a deposit plus delivery is the norm), how many
+   revision rounds are included, what is billed separately, how long the proposal
+   stands.
+
+### 3. Build the proposal
 
 ```markdown
 # Proposta — <Projeto> · <Cliente>
@@ -67,15 +70,17 @@ Na ordem do que mais trava a proposta:
 - Conteúdo (textos, imagens) fornecido pelo cliente até <marco>
 ```
 
-### 4. Salvar e revisar
+### 4. Save and review
 
-- Salvar em `wiki/Clientes/<cliente>/Proposta - <Projeto>.md` (perguntar o
-  destino se o cliente não tiver pasta; nunca na raiz do vault).
-- Ler de volta com olho de cliente: alguma linha que ele possa interpretar
-  como "isso está incluído" quando não está? Fechar a brecha.
-- Oferecer versão enxuta pra WhatsApp/e-mail (5-8 linhas) se o usuário quiser.
+- Save to `wiki/Clientes/<client>/Proposta - <Project>.md`. Ask where it goes when
+  the client has no folder yet, and never write to the vault root.
+- Read it back with the client's eyes: is there a line they could read as "this is
+  included" when it is not? Close that gap.
+- Offer a short version for WhatsApp or email, five to eight lines, if the user
+  wants one.
 
-## Limites
+## Limits
 
-- Não é contrato — cláusulas jurídicas, multa, rescisão ficam fora.
-- Preço é decisão do usuário; a skill estrutura, não precifica sozinha.
+- This is not a contract. Legal clauses, penalties and termination stay out.
+- Pricing is the user's decision. The skill structures the proposal; it does not
+  price it on its own.

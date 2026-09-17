@@ -3,149 +3,146 @@ name: estimation
 description: Applies effort-estimation technique to any deliverable, technical or not — task decomposition, three-point estimation (optimistic/likely/pessimistic via PERT), and project-level risk buffering. Use when user asks to estimate effort, size a task, "quanto tempo leva", three-point estimate, PERT, risk buffer, or when committing to a deadline for a client.
 ---
 
-# Estimativa de Esforço
+# Effort Estimation
 
-Estimar é probabilidade, não adivinhação. Vale para código, mas também para
-design, migração de dados, redação de conteúdo, configuração de infra —
-qualquer entrega com incerteza. O erro mais comum não é a conta errada, é
-estimar a tarefa grande inteira de uma vez.
+Estimating is probability, not guessing. It applies to code, but equally to
+design, a data migration, writing content, configuring infrastructure — anything
+delivered under uncertainty. The common mistake is not bad arithmetic; it is
+estimating the whole large task in one go.
 
-Output: a estimativa alimenta `proposta-comercial` (quando o destino é um
-cliente) ou `project-planner` (quando é projeto pessoal documentado no wiki).
+The output feeds `proposta-comercial` when a client is on the other end, or
+`project-planner` when it is a personal project recorded in the vault.
 
-## 1. Decompor antes de estimar
+## 1. Decompose before estimating
 
-Estimar direto uma tarefa grande ("integrar com o ERP do cliente", "migrar o
-banco") é sempre errado — não porque a pessoa é ruim em estimar, mas porque
-incerteza cresce com o tamanho do que ainda não foi pensado em detalhe.
-Quebrar até cada parte ser pequena o bastante pra estimar com confiança
-(regra prática: nada que não caiba estimar em poucas horas até 1-2 dias).
-
-```
-❌ "Integração com o ERP" → 3 semanas (chute)
-
-✅ Integração com o ERP:
-   - Mapear endpoints e autenticação do ERP        → confiança alta
-   - Implementar client + retry/erro                → confiança alta
-   - Transformar payload pro formato interno         → confiança média
-   - Testar com dados reais do cliente                → confiança baixa (depende do cliente)
-   - Homologação e ajustes pós-feedback                → confiança baixa
-```
-
-Se uma parte ainda parece "grande e vaga" depois de quebrada, quebra de novo.
-Parte que ninguém consegue estimar com confiança é sinal de que falta
-investigação (spike), não de que falta coragem pra chutar um número.
-
-## 2. Três pontos por parte
-
-Pra cada parte decomposta, levantar três números — não um:
-
-- **Otimista (O)**: tudo dá certo, sem interrupção, sem imprevisto.
-- **Mais provável (M)**: o cenário normal, com os atritos de sempre.
-- **Pessimista (P)**: o que der errado plausivelmente der errado (dependência
-  atrasa, requisito muda, ambiente do cliente tem uma particularidade).
-
-Combinar os três com a fórmula PERT, que pondera o cenário mais provável e
-embute margem sem virar chute:
+Estimating a large task directly — "integrate with the client's ERP", "migrate the
+database" — is always wrong. Not because the estimator is bad at it, but because
+uncertainty grows with the size of what has not been thought through in detail.
+Break it down until each part is small enough to estimate with confidence: as a
+rule, nothing bigger than a few hours to a day or two.
 
 ```
-Estimativa = (O + 4M + P) / 6
+❌ "ERP integration" → 3 weeks (a guess)
+
+✅ ERP integration:
+   - Map the ERP's endpoints and authentication   → high confidence
+   - Implement the client, with retry and errors  → high confidence
+   - Transform the payload to the internal format → medium confidence
+   - Test against the client's real data          → low confidence (depends on the client)
+   - Acceptance and post-feedback adjustments     → low confidence
 ```
 
-**Exemplo — "transformar payload pro formato interno":**
+If a part still looks large and vague after being broken down, break it again. A
+part nobody can estimate with confidence is a sign that investigation is missing —
+a spike — not that courage to name a number is missing.
+
+## 2. Three points per part
+
+For each part, produce three numbers rather than one:
+
+- **Optimistic (O)**: everything goes right, no interruptions, no surprises.
+- **Most likely (M)**: the normal case, with the usual friction.
+- **Pessimistic (P)**: what plausibly goes wrong does — a dependency slips, a
+  requirement changes, the client's environment has a quirk.
+
+Combine them with the PERT formula, which weights the likely case and carries
+margin without becoming a guess:
 
 ```
-O = 4h   (formato já é bem parecido)
-M = 8h   (cenário normal, com um ou outro campo divergente)
-P = 20h  (schema do ERP é inconsistente por cliente, precisa normalizar caso a caso)
-
-Estimativa = (4 + 4×8 + 20) / 6 = (4 + 32 + 20) / 6 = 56 / 6 ≈ 9,3h
+Estimate = (O + 4M + P) / 6
 ```
 
-Note que a estimativa final (9,3h) fica mais perto de M (8h) do que da média
-simples de O/M/P (10,7h) — é isso que a ponderação por 4 faz: acomoda o
-risco de cauda longa do pessimista sem deixar ele dominar o número.
-
-Somar as estimativas PERT de todas as partes dá o esforço total da entrega —
-mas essa soma ainda não é o prazo que vai pro cliente (ver seção 4).
-
-## 3. Buffer de risco: no nível do projeto, não da tarefa
-
-Buffer colocado dentro de cada tarefa individual desaparece — por dois
-efeitos bem documentados:
-
-- **Lei de Parkinson**: trabalho se expande até preencher o tempo disponível.
-  Se a tarefa tem folga embutida, a folga é gasta, não economizada.
-- **Síndrome do estudante**: com prazo confortável, o início é adiado até a
-  folga já ter sumido — daí qualquer imprevisto real estoura o prazo mesmo
-  assim.
-
-A alternativa é não dar buffer tarefa por tarefa: somar as estimativas "sem
-gordura" (a PERT de cada parte já carrega alguma margem, mas não é o buffer
-de projeto) e aplicar um único buffer agregado no fim, dimensionado pelo
-número de partes e pela incerteza geral:
+**Example — "transform the payload to the internal format":**
 
 ```
-Esforço total (soma das PERT)         = 42h
-Buffer de projeto (20-35% típico,
-  maior quanto mais partes de baixa
-  confiança/dependência externa)      = 12h  (≈ 28%)
-Estimativa final pro cliente           = 54h
+O = 4h   (the formats are already close)
+M = 8h   (normal case, a divergent field here and there)
+P = 20h  (the ERP's schema differs per client and has to be normalised case by case)
+
+Estimate = (4 + 4×8 + 20) / 6 = (4 + 32 + 20) / 6 = 56 / 6 ≈ 9.3h
 ```
 
-O buffer de projeto absorve o imprevisto que não estava em nenhuma tarefa
-específica — porque normalmente não está: é o e-mail que demora a ser
-respondido, o ambiente de homologação que cai, o requisito que muda depois
-de aprovado.
+Note that 9.3h sits closer to M (8h) than the plain average of O/M/P (10.7h) would.
+That is what the weight of 4 does: it accommodates the pessimist's long tail
+without letting it dominate the number.
 
-## 4. Viés comum
+Summing the PERT estimates of every part gives the delivery's total effort — but
+that sum is not yet the deadline the client hears (see section 4).
 
-- **Otimismo sistemático**: quem estima tende a lembrar do caminho feliz e
-  esquecer o atrito de projetos passados. Contra-medida: antes de fechar o
-  número, perguntar "da última vez que fiz algo parecido, quanto tempo
-  realmente levou?".
-- **Ignorar o que não é a parte "principal"**: revisão de código, ajuste
-  pós-review, deploy, escrever changelog/documentação, reunião de
-  alinhamento com o cliente, tempo de handoff pro QA — tudo isso é trabalho
-  real e raramente entra na conta de quem só pensa em "implementar a
-  feature".
-- **Ancoragem no número que o cliente quer ouvir**: se o cliente já mencionou
-  um prazo, a estimativa tende a ser puxada pra caber nele. Estimar primeiro,
-  comparar com a expectativa depois — nunca o contrário.
+## 3. Risk buffer: at project level, not per task
 
-## 5. Estimativa não é compromisso
+A buffer placed inside each individual task disappears, through two
+well-documented effects:
 
-São duas coisas diferentes e a confusão entre elas é a origem de boa parte
-do atrito com cliente:
+- **Parkinson's law**: work expands to fill the time available. Slack inside a task
+  is spent, not saved.
+- **Student syndrome**: with a comfortable deadline, the start is postponed until
+  the slack is already gone — so any real surprise blows the deadline anyway.
 
-| | Estimativa | Compromisso/prazo |
+The alternative is not to buffer task by task: sum the lean estimates (each PERT
+already carries some margin, but that is not the project buffer) and apply a single
+aggregate buffer at the end, sized by the number of parts and the overall
+uncertainty:
+
+```
+Total effort (sum of the PERTs)        = 42h
+Project buffer (typically 20-35%,
+  larger the more low-confidence or
+  externally dependent parts there are) = 12h  (≈ 28%)
+Final estimate for the client           = 54h
+```
+
+The project buffer absorbs the surprise that belonged to no specific task — which
+is where surprises usually come from: the email that takes days to be answered,
+the staging environment that goes down, the requirement that changes after it was
+approved.
+
+## 4. Common biases
+
+- **Systematic optimism**: estimators remember the happy path and forget the
+  friction of past projects. Counter it by asking, before fixing the number, "last
+  time I did something like this, how long did it actually take?".
+- **Ignoring everything that is not the "main" part**: code review, post-review
+  fixes, deployment, writing the changelog or documentation, alignment calls with
+  the client, handoff time to QA. All of it is real work, and it rarely appears in
+  an estimate made by someone thinking only about "building the feature".
+- **Anchoring on the number the client wants to hear**: if a deadline has already
+  been mentioned, the estimate drifts to fit it. Estimate first, compare against
+  the expectation afterwards — never the other way round.
+
+## 5. An estimate is not a commitment
+
+They are different things, and confusing them causes much of the friction with
+clients:
+
+| | Estimate | Commitment / deadline |
 |---|---|---|
-| Natureza | probabilística — uma faixa com confiança | decisão de negócio — uma data única |
-| Quem decide | quem vai executar | quem responde pelo projeto (pode considerar margem comercial, prioridade do cliente, dependências externas) |
-| Muda com | nova informação sobre o trabalho | raramente, depois de comunicado |
+| Nature | Probabilistic — a range with a confidence | A business decision — a single date |
+| Who decides | Whoever will do the work | Whoever answers for the project, weighing commercial margin, client priority, external dependencies |
+| Changes with | New information about the work | Rarely, once communicated |
 
-O compromisso é construído *em cima* da estimativa (estimativa + buffer de
-projeto + margem de negócio), mas não é a mesma coisa. Prometer a estimativa
-otimista como prazo é assumir o risco pessoalmente; prometer a pessimista
-como prazo é perder o cliente pra concorrência. O prazo comunicado vem da
-estimativa combinada com buffer — nunca do número otimista isolado.
+The commitment is built *on top of* the estimate — estimate plus project buffer
+plus business margin — but it is not the same thing. Promising the optimistic
+estimate as a deadline is taking the risk personally; promising the pessimistic one
+is losing the client to a competitor. The communicated deadline comes from the
+estimate plus the buffer, never from the optimistic number alone.
 
 ## Checklist
 
-- [ ] Entrega grande foi quebrada em partes estimáveis com confiança
-- [ ] Cada parte tem O/M/P levantados, não só um número
-- [ ] Estimativa da parte usa PERT — (O + 4M + P) / 6 — não média simples
-- [ ] Trabalho "invisível" (review, deploy, comunicação, documentação) entrou na conta
-- [ ] Buffer aplicado uma vez, agregado, no nível da entrega — não espalhado tarefa por tarefa
-- [ ] Prazo comunicado ao cliente = estimativa + buffer, decisão explícita — não o número otimista
-- [ ] Parte que ninguém consegue estimar virou investigação (spike), não virou chute
+- [ ] The large delivery was broken into parts that can be estimated with confidence
+- [ ] Each part has O/M/P, not a single number
+- [ ] Each part uses PERT — (O + 4M + P) / 6 — not a plain average
+- [ ] Invisible work (review, deploy, communication, documentation) is in the total
+- [ ] The buffer is applied once, aggregated, at delivery level — not spread across tasks
+- [ ] The deadline given to the client is estimate plus buffer, as an explicit decision — not the optimistic number
+- [ ] Any part nobody could estimate became a spike rather than a guess
 
 ## Anti-patterns
 
-- ❌ Estimar a entrega inteira num número só, sem decompor
-- ❌ Estimar só o "mais provável", ignorando otimista e pessimista
-- ❌ Dar buffer dentro de cada tarefa em vez de um buffer agregado no fim
-- ❌ Prometer ao cliente a estimativa otimista como se fosse o prazo
-- ❌ Esquecer revisão, deploy, homologação e comunicação na conta do esforço
-- ❌ Ancorar a estimativa no prazo que o cliente queria ouvir
-- ❌ Tratar estimativa e compromisso como a mesma decisão
+- ❌ Estimating the whole delivery as one number, with no decomposition
+- ❌ Estimating only the likely case, ignoring optimistic and pessimistic
+- ❌ Buffering inside each task instead of once at the end
+- ❌ Promising the client the optimistic estimate as if it were the deadline
+- ❌ Forgetting review, deploy, acceptance and communication in the effort
+- ❌ Anchoring the estimate on the deadline the client wanted to hear
+- ❌ Treating the estimate and the commitment as the same decision

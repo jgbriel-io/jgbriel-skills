@@ -3,102 +3,121 @@ name: auth-patterns
 description: Authentication and authorization patterns — OTP/password/OAuth/OIDC flows, session vs JWT, RBAC/ABAC, MFA, token refresh/revocation — provider-agnostic (Auth0, Cognito, Keycloak, Supabase Auth, custom). Use when user asks about login flows, access tokens, permissions, roles, or "who can do what".
 ---
 
-# Auth Patterns — Autenticação & Autorização
+# Auth Patterns
 
-Autenticação (quem é o usuário) e autorização (o que ele pode fazer) são camadas distintas — não misturar. Conceitos aqui valem para qualquer provedor ou stack; exemplos de código no final.
+Authentication (who the user is) and authorization (what they may do) are separate
+layers, and conflating them is where most access bugs come from. The concepts hold
+for any provider or stack; the code examples are at the end.
 
-## Autenticação: escolha de fluxo
+## Authentication: choosing a flow
 
-| Fluxo | Quando usar | Cuidado principal |
+| Flow | When | Main hazard |
 |---|---|---|
-| Senha + hash | Padrão, controle total | Nunca armazenar em texto puro; usar bcrypt/argon2 |
-| Magic link / OTP | Reduz fricção, sem senha pra vazar | Expiração curta (5-15 min), single-use, rate limit |
-| OAuth (login social) | Delega identidade a terceiro | Validar `state` (CSRF) e `redirect_uri` exato |
-| OIDC | OAuth + identidade padronizada (`id_token` JWT) | Validar `iss`, `aud`, `exp`, assinatura — nunca decodificar sem verificar |
-| MFA (TOTP/SMS/WebAuthn) | Contas sensíveis, admin | WebAuthn > TOTP > SMS (SMS é vulnerável a SIM swap) |
+| Password + hash | The default, full control | Never store it in plain text; use bcrypt or argon2 |
+| Magic link / OTP | Less friction, no password to leak | Short expiry (5-15 min), single use, rate limited |
+| OAuth (social login) | Delegates identity to a third party | Validate `state` (CSRF) and an exact `redirect_uri` |
+| OIDC | OAuth plus a standard identity (`id_token` JWT) | Validate `iss`, `aud`, `exp` and the signature — never decode without verifying |
+| MFA (TOTP/SMS/WebAuthn) | Sensitive accounts, admins | WebAuthn > TOTP > SMS; SMS is vulnerable to SIM swap |
 
 ```
-// ❌ Comparar senha em texto puro ou hash fraco (MD5/SHA1 sem salt)
+// ❌ Comparing plain text, or a weak unsalted hash (MD5/SHA1)
 if (user.password === input) { ... }
 
-// ✅ Hash com custo configurável, comparação em tempo constante
+// ✅ A hash with a configurable cost, compared in constant time
 const ok = await argon2.verify(user.passwordHash, input);
 ```
 
-## Sessão vs. JWT
+## Session vs. JWT
 
-| | Sessão (server-side) | JWT (stateless) |
+| | Session (server-side) | JWT (stateless) |
 |---|---|---|
-| Revogação | Imediata (deletar no store) | Difícil — exige blocklist ou TTL curto |
-| Escala | Precisa de store compartilhado (Redis) | Nenhum estado no servidor |
-| Tamanho no request | Só o ID (cookie) | Payload inteiro a cada request |
-| Uso típico | Apps monolíticas, sessão web | APIs, mobile, microsserviços |
+| Revocation | Immediate — delete it from the store | Hard: needs a blocklist or a short TTL |
+| Scaling | Needs a shared store (Redis) | No server state |
+| Size per request | Just the id, in a cookie | The whole payload, every request |
+| Typical use | Monolithic apps, web sessions | APIs, mobile, microservices |
 
-Regras que valem para os dois:
+Rules that apply to both:
 
-- Cookie de sessão/refresh: `HttpOnly`, `Secure`, `SameSite=Lax` ou `Strict` — nunca acessível via JS
-- Access token de vida curta (5-15 min) + refresh token de vida longa, rotacionado a cada uso
-- Refresh token reuso detectado = revogar toda a família de tokens (sinal de roubo)
-- JWT: sempre validar assinatura, `exp`, `iss`, `aud` no servidor — nunca confiar em payload decodificado sem checar assinatura
+- Session and refresh cookies: `HttpOnly`, `Secure`, `SameSite=Lax` or `Strict` —
+  never reachable from JavaScript
+- A short-lived access token (5-15 min) plus a long-lived refresh token, rotated on
+  every use
+- Refresh-token reuse detected means revoking the whole token family: it is the
+  signal of a stolen token
+- JWTs: always validate the signature, `exp`, `iss` and `aud` server-side. Never
+  trust a decoded payload whose signature was not checked
 
 ```
-// ❌ Confiar no JWT só porque conseguiu decodificar
-const payload = jwt.decode(token); // não verifica assinatura
+// ❌ Trusting a JWT because it decoded
+const payload = jwt.decode(token); // does not verify the signature
 if (payload.role === 'admin') { ... }
 
-// ✅ Verificar assinatura e claims antes de usar qualquer campo
+// ✅ Verify signature and claims before reading any field
 const payload = jwt.verify(token, publicKey, { issuer, audience });
 ```
 
-## Autorização: RBAC vs. ABAC
+## Authorization: RBAC vs. ABAC
 
-- **RBAC** (role-based): usuário tem papel (`admin`, `editor`, `viewer`); papel define permissões fixas. Simples, bom pra 80% dos casos.
-- **ABAC** (attribute-based): decisão depende de atributos do usuário/recurso/contexto (`owner_id == resource.owner_id`, `dept == resource.dept`, horário, IP). Necessário quando RBAC vira uma explosão de papéis (`admin-sp`, `admin-rj`, `editor-proprio-time`...).
-- Multi-tenant: RBAC/ABAC sempre escopados por tenant — papel "admin" nunca é global, é "admin do tenant X".
+- **RBAC** (role-based): the user holds a role — `admin`, `editor`, `viewer` — and
+  the role carries fixed permissions. Simple, and right for most cases.
+- **ABAC** (attribute-based): the decision depends on attributes of the user, the
+  resource or the context (`owner_id == resource.owner_id`, `dept == resource.dept`,
+  time of day, IP). Necessary once RBAC turns into an explosion of roles
+  (`admin-sp`, `admin-rj`, `editor-own-team`…).
+- Multi-tenant: RBAC and ABAC are always scoped by tenant. An "admin" role is never
+  global; it is admin *of tenant X*.
 
 ```
-// ❌ Checar só o papel, ignorar o dono do recurso
+// ❌ Checking the role and ignoring who owns the resource
 if (user.role === 'editor') return updateDoc(docId, data);
 
-// ✅ Checar papel E relação com o recurso (ABAC sobre RBAC)
+// ✅ Role AND relationship to the resource (ABAC on top of RBAC)
 if (user.role === 'editor' && doc.ownerId === user.id) {
   return updateDoc(docId, data);
 }
 ```
 
-Autorização é decidida no servidor, sempre. UI escondendo botão não é controle de acesso — é UX.
+Authorization is decided on the server, always. A hidden button is UX, not access
+control.
 
-## Onde a checagem vive
+## Where the check lives
 
-- Nunca só no client (esconder botão/rota não impede chamada direta à API)
-- Nunca só em middleware de rota (deep-link ou chamada direta a outro endpoint escapa)
-- Camada correta: no boundary que executa a ação (service/use case) ou na policy do banco (RLS) — idealmente nos dois, com o banco como última linha de defesa
-- Toda ação sensível (delete, mudança de papel, exportar dados) reautentica ou exige confirmação adicional
+- Never only in the client: hiding a button or a route does not stop a direct API
+  call
+- Never only in route middleware: a deep link or a call to a different endpoint
+  walks around it
+- The right layer is the boundary that performs the action — the service or use
+  case — or the database policy (RLS). Ideally both, with the database as the last
+  line of defence
+- Every sensitive action (delete, role change, data export) re-authenticates or
+  demands an extra confirmation
 
-## MFA e recuperação de conta
+## MFA and account recovery
 
-- MFA opcional para usuário comum, obrigatório para admin/papéis privilegiados
-- Fluxo de "esqueci a senha" usa o mesmo rigor do login: token de único uso, expiração curta, invalida sessões antigas ao trocar a senha
-- Nunca revelar se um e-mail/usuário existe na resposta de erro (`"email não encontrado"` vs. `"credenciais inválidas"`)
+- MFA optional for ordinary users, mandatory for admins and privileged roles
+- "Forgot password" holds the same bar as login: single-use token, short expiry,
+  and old sessions invalidated when the password changes
+- Never reveal whether an email or username exists: "credenciais inválidas", not
+  "email não encontrado"
 
 ## Checklist
 
-- [ ] Senha nunca armazenada em texto puro (argon2/bcrypt, nunca MD5/SHA1)
-- [ ] Access token de vida curta; refresh token rotacionado e revogável
-- [ ] Cookies de sessão/refresh com `HttpOnly` + `Secure` + `SameSite`
-- [ ] JWT validado (assinatura, `exp`, `iss`, `aud`) antes de usar qualquer claim
-- [ ] Autorização checada no servidor, não só escondida na UI
-- [ ] Multi-tenant: papel/permissão sempre escopado por tenant, nunca global implícito
-- [ ] Rate limit em login, OTP e reset de senha
-- [ ] Erros de auth não vazam se o usuário/e-mail existe
-- [ ] MFA disponível para contas sensíveis; obrigatório para admin
-- [ ] Logout invalida sessão/refresh no servidor, não só limpa o client
+- [ ] Passwords never stored in plain text (argon2 or bcrypt, never MD5/SHA1)
+- [ ] Short-lived access token; refresh token rotated and revocable
+- [ ] Session and refresh cookies with `HttpOnly`, `Secure` and `SameSite`
+- [ ] JWTs validated (signature, `exp`, `iss`, `aud`) before any claim is read
+- [ ] Authorization checked on the server, not merely hidden in the UI
+- [ ] Multi-tenant: every role and permission scoped by tenant, never implicitly global
+- [ ] Rate limiting on login, OTP and password reset
+- [ ] Auth errors do not reveal whether the user or email exists
+- [ ] MFA available for sensitive accounts, mandatory for admins
+- [ ] Logout invalidates the session and refresh token server-side, not just the client
 
-## Exemplos por stack
+## By stack
 
-**Postgres + RLS (autorização no banco, Supabase ou custom):**
+**Postgres + RLS (authorization in the database, Supabase or custom):**
 ```sql
--- RBAC checado na policy; o app seta o contexto por transação:
+-- RBAC checked in the policy; the app sets the context per transaction:
 -- SET LOCAL app.current_user_id = '<uuid>';
 CREATE POLICY "editor_own_docs" ON documents
   FOR UPDATE TO app_user
@@ -108,7 +127,7 @@ CREATE POLICY "editor_own_docs" ON documents
   );
 ```
 
-**NestJS + Passport (JWT + Guard):**
+**NestJS + Passport (JWT plus a guard):**
 ```ts
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('admin', 'editor')
@@ -121,9 +140,9 @@ update(@Param('id') id: string, @CurrentUser() user: User) {
 }
 ```
 
-**Keycloak/Auth0 (OIDC, validação de token em API Python/Flask):**
+**Keycloak/Auth0 (OIDC, token validation in a Python/Flask API):**
 ```python
-# Nunca decodificar sem verificar — sempre validar contra o JWKS do provedor
+# Never decode without verifying — always validate against the provider's JWKS
 payload = jwt.decode(
     token, key=jwks_client.get_signing_key_from_jwt(token).key,
     algorithms=["RS256"], audience=API_AUDIENCE, issuer=ISSUER,
@@ -134,12 +153,12 @@ if "admin" not in payload.get("realm_access", {}).get("roles", []):
 
 ## Anti-patterns
 
-- ❌ Autorização decidida só no frontend (esconder botão)
-- ❌ JWT decodificado sem verificar assinatura
-- ❌ Access token de vida longa sem refresh/revogação
-- ❌ Papel global ("admin") em sistema multi-tenant
-- ❌ Senha ou token em log, texto puro no banco, ou querystring
-- ❌ Mensagem de erro que revela se e-mail/usuário existe
-- ❌ Refresh token reutilizável sem rotação nem detecção de reuso
-- ❌ MFA via SMS como única opção para contas privilegiadas
-- ❌ Sessão/refresh não invalidado no servidor após logout ou troca de senha
+- ❌ Authorization decided in the frontend alone, by hiding a button
+- ❌ A JWT decoded without verifying its signature
+- ❌ A long-lived access token with no refresh or revocation
+- ❌ A global "admin" role in a multi-tenant system
+- ❌ A password or token in a log, in plain text in the database, or in a query string
+- ❌ An error message that reveals whether an email or user exists
+- ❌ A reusable refresh token, with no rotation and no reuse detection
+- ❌ SMS MFA as the only option for privileged accounts
+- ❌ A session or refresh token left valid server-side after logout or a password change

