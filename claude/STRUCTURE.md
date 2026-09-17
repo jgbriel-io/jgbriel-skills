@@ -1,43 +1,39 @@
 # Claude Code — Estrutura e Configuração
 
-> Referência de comandos: `COMMANDS.md` · Receitas: `WORKFLOWS.md` · Regras: `CLAUDE.md`
-> Este arquivo documenta **onde tudo mora** e **como se conecta** — não repete o que já está nos outros 3.
+> Regras de comportamento: [CLAUDE.md](CLAUDE.md) · Receitas: [WORKFLOWS.md](WORKFLOWS.md) · Cheat sheet: [GUIDE.md](GUIDE.md)
+> Este arquivo documenta **onde tudo mora** e **como se conecta**.
 
 ---
 
-## 1. Layout físico — duas localizações, uma fonte de verdade
+## 1. Duas máquinas, um plugin
 
-Tudo que é versionável vive neste repo (`D:\Projetos\projetos-pessoais\jgabriel-skills\claude\`).
-`C:\Users\jgabriel\.claude\` é o diretório real lido pelo Claude Code — partes dele são **symlinks** apontando pra cá.
+O repo **é** o plugin. Nada dele é copiado à mão para `~/.claude/`: instalar pelo
+marketplace resolve skills, commands, agents e hooks de uma vez, e a instalação é
+uma cópia versionada em `~/.claude/plugins/cache/jgbriel/jgbriel-skills/<versão>/`.
 
-| Em `~/.claude/` | Tipo | Aponta pra |
-|---|---|---|
-| `CLAUDE.md` | symlink | `claude/CLAUDE.md` (regras globais) |
-| `GUIDE.md` | symlink | `claude/GUIDE.md` (cheatsheet) |
-| `settings.template.json` | symlink | `claude/settings.template.json` |
-| `skills/` | — | **Não é mais symlink.** As skills vêm no plugin, em `skills/<categoria>/<nome>/`, instalado por marketplace |
-| `agents/` | — | **Não é mais symlink.** Os 3 agents vêm no plugin, em `agents/` na raiz do repo |
-| `commands/` | — | **Não é mais symlink.** Os 11 commands vêm no plugin, em `commands/` na raiz do repo |
-| `hooks/` | — | **Não é mais symlink.** Os dois hooks viraram componentes do plugin, declarados no `plugin.json` e conectados na instalação |
+Isso vale igual nas duas máquinas — Windows (principal) e Ubuntu (trabalho). O que
+muda entre elas são só os caminhos absolutos.
 
-**Não versionados** (ficam só em `~/.claude/`, nunca neste repo — contêm estado de máquina/segredos):
+**O que fica em `~/.claude/` e nunca neste repo** — estado de máquina e segredo:
 
 | Item | O que é |
 |---|---|
-| `settings.json` | Config real ativa (permissions, hooks wiring, plugins habilitados, model, statusLine) |
+| `settings.json` | Config ativa: permissions, model, statusLine, plugins habilitados |
 | `settings.local.json` | Overrides pessoais de permissão |
-| `.credentials.json` | Tokens — **nunca ler/exibir** |
-| `history.jsonl`, `sessions/`, `projects/`, `shell-snapshots/`, `paste-cache/`, `plans/`, `tasks/`, `ide/`, `daemon/`, `session-env/` | Estado runtime/sessão |
-| `plugins/` | Plugins instalados (cache + dados, gerenciados pelo CLI — ver seção 4) |
-| `.agents/` | Estado interno de subagents (não confundir com as definições `.md`, que hoje vivem nos plugins) |
+| `.credentials.json` | Tokens — **nunca ler nem exibir** |
+| `history.jsonl`, `sessions/`, `projects/`, `shell-snapshots/`, `plans/`, `tasks/` | Estado de runtime e de sessão |
+| `plugins/` | Cache dos plugins instalados, gerenciado pelo CLI |
 
-Symlink vale hoje só para `CLAUDE.md`, `GUIDE.md` e `settings.template.json` — aí sim editar de um lado edita o outro. Skills, agents e commands saíram desse esquema: viraram plugins (seção 2) e chegam pelo marketplace, numa cópia versionada que **não** é o mesmo inode. Para esses, editar é sempre no repo.
+**Layout antigo.** Antes do plugin, `~/.claude/{skills,agents,commands,hooks}`
+eram symlinks para dentro de um clone deste repo. Esses caminhos não existem mais:
+um `git pull` deixa os links pendurados e a sessão abre sem nada, inclusive sem o
+`guard-dangerous-bash`. No Windows, `scripts/migrate-windows.ps1` desfaz isso.
 
 ---
 
 ## 2. Skills
 
-Geradas a partir da árvore por `scripts/gen-inventory.py` — não editar à mão.
+Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mão.
 
 <!-- inventory:skills:start -->
 **86 skills**, em 13 pastas de categoria:
@@ -208,6 +204,11 @@ Geradas a partir da árvore por `scripts/gen-inventory.py` — não editar à m�
 </details>
 <!-- inventory:skills:end -->
 
+Uma skill nova só existe depois que o caminho dela entra na lista `skills` do
+`.claude-plugin/plugin.json`. Pasta solta em `skills/` não é descoberta sozinha, e
+`claude plugin validate` passa mesmo assim — quem mostra a verdade é
+`claude plugin details`.
+
 ---
 
 ## 3. Agents e commands
@@ -242,78 +243,92 @@ Geradas a partir da árvore por `scripts/gen-inventory.py` — não editar à m�
 
 ---
 
-## 4. Plugins instalados (fora deste repo — gerenciados pelo Claude Code CLI)
+## 4. Hooks — componentes do plugin
 
-Vêm de marketplaces externas, **não** do `jgabriel-skills`. Ficam em `~/.claude/plugins/` (cache + data), habilitados em `settings.json` → `enabledPlugins`.
+Sem fiação manual em `settings.json`: o `plugin.json` declara os três e instalar
+o plugin conecta. O caminho usa `${CLAUDE_PLUGIN_ROOT}` normalizado (o `/c/...` do
+Git Bash vira `c:/...`), então roda nas duas plataformas.
 
-| Plugin | Marketplace (repo) | O que adiciona |
+| Hook | Dispara em | Função |
 |---|---|---|
-| `caveman` | `juliusbrussee/caveman` | Modo de resposta comprimido (lite/full/ultra) + skills `caveman:*` (caveman-commit, caveman-review, cavecrew-*) |
-| `context-mode` | `mksglu/context-mode` | Tools `ctx_*` (batch_execute, execute, search, fetch_and_index) — processa output fora da conversa |
-| `socraticode` | `giancarloerra/socraticode` | Indexação semântica de codebase, dependency graph, tools `codebase_*` + agent `codebase-explorer` |
-| `claude-obsidian` | `AgriciDaniel/claude-obsidian` | Skills `claude-obsidian:*` (wiki-ingest, wiki-lint, save, canvas, autoresearch) — gestão do vault como wiki |
-
-Namespace nos nomes (`caveman:cavecrew-builder`, `claude-obsidian:wiki-lint`) indica que vem de plugin, não deste repo.
+| `guard-dangerous-bash.mjs` | `PreToolUse` (matcher `Bash`) | Bloqueia comando catastrófico que escaparia do allowlist — `exit 2` + stderr barra a tool call |
+| `context-mode-cache-heal.mjs` | `SessionStart` | Cura o cache do plugin context-mode, que quebra caminho em auto-update |
+| `printf '\a'` | `Stop` | Beep ao terminar. Era um `.ps1` cravado numa máquina só; virou uma linha |
 
 ---
 
-## 5. Hooks — componentes do plugin
+## 5. Plugins de terceiros
 
-Não há mais fiação manual em `settings.json`: o `.claude-plugin/plugin.json` declara os dois, e instalar o plugin os conecta. O caminho usa `${CLAUDE_PLUGIN_ROOT}` normalizado (`/c/...` do Git Bash vira `c:/...`), então funciona nas duas plataformas — antes o template trazia o caminho do node cravado em `C:/Program Files/nodejs/node.exe`.
+Vêm de marketplaces externas, não deste repo. Ficam em `~/.claude/plugins/`.
 
-| Hook | Dispara em | Função |
-|------|-----------|--------|
-| `context-mode-cache-heal.mjs` | `SessionStart` | Self-heal do cache do plugin context-mode (corrige paths quebrados por auto-update — issues #46915, #727, #577) |
-| `guard-dangerous-bash.mjs` | `PreToolUse` (matcher `Bash`) | Bloqueia comandos catastróficos que escapariam do allowlist de permissions (ex.: `bash -c 'rm -rf /'`) — exit 2 + stderr bloqueia a tool call |
+| Plugin | Marketplace | O que adiciona |
+|---|---|---|
+| `caveman` | `juliusbrussee/caveman` | Modo de resposta comprimido + skills `caveman:*` |
+| `ponytail` | `ponytail` | Modo YAGNI: a solução mais preguiçosa que funciona |
+| `context-mode` | `mksglu/context-mode` | Tools `ctx_*` — processa output grande fora da conversa |
 
-O `settings.template.json` ainda declara um hook `Stop` apontando para `stop-beep.ps1`, **arquivo que nunca foi versionado** — é local da máquina Windows. Ou versiona no `core`, ou remove a entrada do template.
+O namespace no nome (`caveman:cavecrew-builder`) indica que veio de plugin. Os
+comandos de cada um estão em [GUIDE.md](GUIDE.md).
 
 ---
 
 ## 6. MCP servers
 
-**`.mcp.json` só é lido da raiz de um projeto.** Não existe `~/.claude/.mcp.json` — o
-arquivo era symlinkado para lá até 2026-08-17 e nunca carregou nada. Servidor de escopo de
-usuário mora em `~/.claude.json`, registrado por `claude mcp add -s user <nome> -- <cmd>`.
+**`.mcp.json` só é lido da raiz de um projeto.** Não existe `~/.claude/.mcp.json`;
+servidor de escopo de usuário mora em `~/.claude.json`, registrado por
+`claude mcp add -s user <nome> -- <cmd>`.
 
-`claude/.mcp.json` neste repo é template de escopo de projeto: copiar para a raiz do projeto
-que precisar dos servidores.
+`claude/.mcp.json` aqui é template de escopo de projeto, com placeholders `${VAR}`
+— copiar para a raiz do projeto que precisar.
 
 | Server | Comando | Uso |
 |---|---|---|
 | `github` | `npx @modelcontextprotocol/server-github` | Requer `GITHUB_PERSONAL_ACCESS_TOKEN` no ambiente |
-| `supabase` | `npx @supabase/mcp-server-supabase@latest --read-only` | Requer `SUPABASE_ACCESS_TOKEN`. **Read-only** por flag explícita |
-
-Servidores de usuário ativos hoje (em `~/.claude.json`, fora deste repo):
-`codebase-memory-mcp`, `playwright`, `nanobanana-mcp`.
+| `supabase` | `npx @supabase/mcp-server-supabase@latest --read-only` | Requer `SUPABASE_ACCESS_TOKEN`; read-only por flag explícita |
 
 ---
 
-## 7. `settings.json` — pontos que não estão em CLAUDE.md
+## 7. `settings.json` — o que não está em CLAUDE.md
 
-- `permissions.deny`: bloqueio hard de `rm -rf`/variantes, `sudo`, `mkfs`/`dd`/`shred`/`format`/`diskpart`, pipe curl|sh, leitura de `.env`/`secrets/**`/`*.pem`/`*.key`/`id_rsa`/`/etc/shadow`/`/etc/passwd`
-- `permissions.ask`: `rm`/`rmdir`/`del`/`Remove-Item`, `sed`/`awk`, `git reset`/`push --force`/`clean`, publish (`npm`/`pnpm`/`yarn`), `docker rm`/`rmi`/`system prune`
-- `statusLine`: comando `ccstatusline`, refresh 10s
-- `skillListingBudgetFraction: 0.03` — limita % do context budget gasto listando skills disponíveis
+- `permissions.deny`: `rm -rf` e variantes, `sudo`, `mkfs`/`dd`/`shred`, `curl | sh`, leitura de `.env`/`secrets/**`/`*.pem`/`*.key`/`id_rsa`
+- `permissions.ask`: `rm`/`Remove-Item`, `sed`/`awk`, `git reset`/`push --force`/`clean`, publish de pacote, `docker rm`/`system prune`
+- `skillListingBudgetFraction: 0.06` — fração da janela reservada para listar skills. O default é `0.01`, que dá 8.000 chars: a frota sozinha passa de 30.000, e acima do teto o Claude Code **corta as descrições**, deixando só o nome. Skill sem descrição visível não é escolhida sozinha
+- `statusLine`: `ccstatusline`, refresh 10s
 - `autoUpdatesChannel: "latest"`
 
 ---
 
-## 8. Setup prático
+## 8. Scripts
 
-**MCP servers** — `.mcp.json` usa `${VAR}` placeholders, setar via env var de usuário:
-```powershell
-[System.Environment]::SetEnvironmentVariable('GITHUB_PERSONAL_ACCESS_TOKEN', 'ghp_xxx', 'User')
-[System.Environment]::SetEnvironmentVariable('SUPABASE_ACCESS_TOKEN', 'sbp_xxx', 'User')
-```
+| Script | O que faz |
+|---|---|
+| `gen-inventory.py` | Regenera as tabelas deste arquivo e do README. `--check` falha se estiverem defasadas |
+| `check-doc-refs.py` | Falha quando a prosa cita comando ou skill que não existe mais |
+| `check-project-skills.sh` | Acha skill de projeto sombreada por skill pessoal de mesmo nome |
+| `migrate-windows.ps1` | Tira a máquina do layout antigo de symlink e instala o plugin |
+| `audit-labels.sh` | Confere os labels dos issues |
 
-**Settings** — copiar `settings.template.json` → `settings.json` e ajustar paths.
-
-**Paths:**
-- Global settings: `%USERPROFILE%\.claude\settings.json`
-- Global skills: `%USERPROFILE%\.claude\skills\`
-- Project-local: `<project>\.claude\`
+Os dois primeiros rodam no CI, em push na `main` e em todo PR.
 
 ---
 
-_Última atualização: 2026-06-22._
+## 9. Setup
+
+```bash
+claude plugin marketplace add jgbriel-io/jgbriel-skills
+claude plugin install jgbriel-skills@jgbriel
+```
+
+Para desenvolver, aponte o marketplace para o working copy. O runtime continua
+sendo cópia versionada: **sem subir o `version` no `plugin.json`, o `update` não
+tem o que instalar e a alteração não chega, sem erro nenhum.**
+
+Secrets dos MCP servers, via env var de usuário:
+
+```powershell
+[System.Environment]::SetEnvironmentVariable('GITHUB_PERSONAL_ACCESS_TOKEN', 'ghp_xxx', 'User')
+```
+
+```bash
+export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxx   # no ~/.bashrc
+```

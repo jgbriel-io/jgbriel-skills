@@ -1,10 +1,10 @@
-# jgabriel-skills
+# jgbriel-skills
 
-Skills, regras e configurações reutilizáveis para **Claude Code**.
-Replica meu setup completo em qualquer máquina — regras de código, steering global,
-hooks, MCP config e skills customizadas (engineering, TCC, productivity, etc).
+O meu setup de **Claude Code** inteiro, como um plugin instalável: skills por
+categoria, slash commands, agents, hooks e as regras globais de comportamento.
+Uma máquina nova fica igual à antiga com dois comandos.
 
-**Repo público.** Fork, clone, ou copie arquivos seletivamente para seu projeto.
+**Repo público.** Fork, clone, ou pegue só o que servir.
 
 ---
 
@@ -16,17 +16,19 @@ pasta que o Claude Code espera.
 ```
 jgbriel-skills/
 ├── .claude-plugin/
-│   ├── plugin.json           # manifesto: hooks + os 87 caminhos de skill declarados
+│   ├── plugin.json           # manifesto: hooks + cada caminho de skill, declarado um a um
 │   └── marketplace.json      # 1 plugin, source "./"
 │
-├── skills/<categoria>/<nome>/SKILL.md    # 87 skills em 13 categorias
-├── agents/*.md                           # 3 subagents
-├── commands/*.md                         # 11 slash commands
-├── hooks/*.mjs                           # 2 hooks, conectados pelo manifesto
+├── skills/<categoria>/<nome>/SKILL.md    # uma pasta por categoria
+├── agents/*.md                           # subagents
+├── commands/*.md                         # slash commands
+├── hooks/*.mjs                           # conectados pelo manifesto, não por settings.json
 │
 ├── scripts/
 │   ├── gen-inventory.py          # regenera os inventários deste README e do STRUCTURE
-│   ├── check-project-skills.sh   # acha skill de projeto sombreada pelo fleet
+│   ├── check-doc-refs.py         # falha se a doc citar comando ou skill que não existe
+│   ├── check-project-skills.sh   # acha skill de projeto sombreada por skill pessoal
+│   ├── migrate-windows.ps1       # tira a máquina do layout antigo de symlink
 │   └── audit-labels.sh
 │
 ├── templates/                    # templates de projeto, pra copiar em qualquer repo
@@ -257,8 +259,9 @@ solta em `skills/` não é descoberta sozinha.
 **Config:**
 
 - `CLAUDE.md` — regras globais (PT-BR conversa, English code/commits, git rules, security, response style)
-- `STRUCTURE.md` — onde tudo mora (symlinks, settings.json, MCP, hooks, plugins), setup prático
-- `GUIDE.md` — onboarding rápido
+- `STRUCTURE.md` — onde tudo mora: plugin, hooks, MCP, `settings.json`, scripts, setup
+- `WORKFLOWS.md` — receitas: qual skill encadear com qual
+- `GUIDE.md` — cheat sheet de plugin de terceiro e de onde a config mora
 - `.mcp.json` — template de MCP servers de **escopo de projeto** (GitHub, Supabase) com placeholders `${VAR}`. Copiar para a raiz do projeto; `~/.claude/.mcp.json` não é lido
 - `settings.template.json` — settings sanitizado (sem caminhos absolutos meus)
 
@@ -318,6 +321,11 @@ Defina as vars antes de usar MCP:
 [System.Environment]::SetEnvironmentVariable('SUPABASE_ACCESS_TOKEN', 'sbp_xxx', 'User')
 ```
 
+```bash
+export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxx   # no ~/.bashrc
+export SUPABASE_ACCESS_TOKEN=sbp_xxx
+```
+
 ---
 
 ## O que NÃO tá aqui
@@ -335,9 +343,13 @@ Defina as vars antes de usar MCP:
 Instale via marketplace do Claude Code:
 
 ```
-/plugin install caveman          # modo compressão (~75% menos tokens)
-/plugin install context-mode     # reduz consumo de context window
+/plugin install caveman          # modo de resposta comprimido
+/plugin install ponytail         # YAGNI: a solução mais preguiçosa que funciona
+/plugin install context-mode     # processa output grande fora da conversa
 ```
+
+`claude plugin install a b c` instala só o `a` e ignora o resto sem avisar — um
+comando por plugin.
 
 ---
 
