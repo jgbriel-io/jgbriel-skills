@@ -1,6 +1,6 @@
 ---
 name: resolving-merge-conflicts
-description: Resolve os conflitos de um merge ou rebase já em andamento — lê a intenção original de cada lado antes de escolher, preserva as duas onde dá, roda os checks do projeto e fecha o merge. Use quando o usuário disser "resolve os conflitos", "deu conflito no merge", "conflito no rebase", ou quando um comando git parar em estado de conflito. Nunca aborta o merge por conta própria.
+description: Resolves the conflicts of a merge or rebase already in progress — reads the original intent of each side before choosing, preserves both where possible, runs the project checks and closes the merge. Use when the user says "resolve os conflitos", "deu conflito no merge", "conflito no rebase", or when a git command stops in a conflicted state. Never aborts the merge on its own.
 ---
 
 1. **See the current state** of the merge/rebase. Check git history, and the conflicting files.
