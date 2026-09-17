@@ -125,41 +125,12 @@ Incorporate job description keywords while staying truthful.
 **Your Bullet Says:** "Worked with various teams"
 **Tailored Version:** "Managed stakeholder relationships across 5 departments, ensuring alignment on project priorities"
 
-## Tailoring Templates
+## Tailoring plan
 
-### For Each Job Application, Create:
+Fill the plan in [references/templates.md](references/templates.md) before editing
+anything: target, keywords to weave in, what changes per section, what stays
+untouched. Without it the resume drifts toward whatever the posting flattered.
 
-```markdown
-## RESUME TAILORING PLAN
-
-**Target Position:** [Job Title]
-**Company:** [Company Name]
-**Match Score:** [From JD Analyzer]
-
-### Summary Customization
-**Current:** [Your current summary]
-**Tailored:** [Rewritten for this role]
-
-### Skills Reordering
-**Current Order:** [List]
-**New Order:** [Reordered list with added keywords]
-**Keywords Added:** [New skills from JD]
-
-### Experience Adjustments
-
-**Job 1: [Title]**
-- Bullet to emphasize: [Which bullet to lead with]
-- Keyword to add: [What phrase to incorporate]
-- Bullet to de-emphasize: [Move down or remove if space needed]
-
-**Job 2: [Title]**
-[Same structure]
-
-### Other Adjustments
-- Education: [Any relevant coursework to add]
-- Certifications: [Any to highlight]
-- Projects: [Relevant projects to include]
-```
 
 ## Common Tailoring Scenarios
 
@@ -268,40 +239,13 @@ Before submitting any resume:
 9. ✅ ATS formatting maintained
 10. ✅ Saved for interview prep reference
 
-## Output Format
+## Output format
 
-When tailoring a resume, provide:
+Deliver the change set in the shape from
+[references/output-format.md](references/output-format.md): before, after and the
+keywords each edit introduced, section by section. A diff in that shape is what
+makes the tailoring reviewable instead of trusted.
 
-```markdown
-# TAILORED RESUME CHANGES
-
-## Target: [Job Title] at [Company]
-
-### Professional Summary
-**Before:** [Original]
-**After:** [Tailored version]
-**Keywords Added:** [List]
-
-### Skills Section
-**New Order:** [Reordered list]
-**Added:** [New keywords]
-**Removed:** [If any, for space]
-
-### Experience Changes
-
-**[Company Name] - [Title]**
-- Move bullet X to position 1
-- Modify bullet Y: [Before → After]
-- Add keyword "[phrase]" to bullet Z
-
-[Repeat for each relevant job]
-
-### Overall Changes Summary
-- Keywords added: X
-- Bullets modified: Y
-- Sections reordered: Yes/No
-- Estimated new match score: Z%
-```
 
 ## Implementation Notes
 
