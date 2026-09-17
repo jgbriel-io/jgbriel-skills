@@ -3,28 +3,41 @@ name: client-state-management
 description: Defines the boundary between server state, local UI state, and URL state as an architecture decision independent of state-management library. Use when user asks about global state, where state should live, useState vs store, Redux/Zustand/Context/Pinia/NgRx, or why filters/pagination/tabs reset on page refresh.
 ---
 
-# Gerenciamento de Estado no Client
+# Client State Management
 
-Conceito agnóstico de framework/biblioteca: a pergunta certa nunca é "Redux ou Zustand?", "Context ou Pinia?" — é "que tipo de estado é esse, e onde ele deveria morar?". Confundir os três tipos abaixo é a causa mais comum de dado obsoleto na tela, filtro que some no refresh, e store global viradas em lixeira de tudo que "parecia precisar ser compartilhado".
+A framework-agnostic decision: the right question is never "Redux or Zustand?",
+"Context or Pinia?" — it is "what kind of state is this, and where should it
+live?". Confusing the three kinds below is the common cause of stale data on
+screen, filters that vanish on refresh, and a global store that became a dumping
+ground for everything that "seemed like it needed sharing".
 
-## Os três tipos de estado
+## The three kinds of state
 
-| Tipo | Exemplo | Onde mora | Sintoma de erro comum |
+| Kind | Example | Where it lives | Usual symptom when it is wrong |
 |---|---|---|---|
-| **Server state** | lista de pedidos, perfil do usuário, saldo | cache do client, sincronizado com o backend | `useState` + `useEffect` reimplementando cache, loading e refetch manualmente |
-| **UI state local** | modal aberto, hover, tab de um wizard, valor de input não submetido | componente (ou pai imediato) | vira global sem motivo, ou store guarda estado que só um componente usa |
-| **Estado em URL** | filtro, página, busca, ordenação, aba principal da tela | query string / rota | fica em store/`useState` e some ao dar F5 ou compartilhar o link |
+| **Server state** | An order list, a user profile, a balance | A client cache, synchronised with the backend | `useState` plus `useEffect` reimplementing cache, loading and refetch by hand |
+| **Local UI state** | An open modal, hover, a wizard step, an unsubmitted input | The component, or its immediate parent | Made global for no reason, or a store holding state one component uses |
+| **URL state** | Filter, page, search, sort order, the screen's main tab | The query string or the route | Kept in a store or `useState`, and lost on refresh or when the link is shared |
 
-> A aplicação React-específica desta regra (useState vs server state, invalidação de cache) mora em `frontend-conventions`, `react-best-practices`, `supabase-hooks` e `tanstack-query-patterns`; esta skill é a camada de decisão agnóstica — incluindo estado em URL, que as outras não cobrem.
+> The React-specific application of this rule — `useState` vs server state, cache
+> invalidation — lives in `frontend-conventions`, `react-best-practices`,
+> `supabase-hooks` and `tanstack-query-patterns`. This skill is the
+> library-agnostic decision layer, including URL state, which the others do not
+> cover.
 
-Nenhum dos três é "estado da aplicação" genérico — cada um tem dono e ferramenta certa. Store global (Redux/Zustand/Pinia/NgRx/Context) serve para o que sobra depois de tirar os três: estado que é de fato transversal a telas não relacionadas (tema, sessão, carrinho, feature flags client-side).
+None of the three is generic "application state". Each has an owner and a right
+tool. A global store (Redux, Zustand, Pinia, NgRx, Context) is for what remains
+after the three are taken out: state genuinely shared across unrelated screens —
+theme, session, cart, client-side feature flags.
 
-## Server state: dado que não é seu
+## Server state: data that is not yours
 
-Teste de decisão: **"esse dado existe no backend independente desta tela? Se eu abrir em outra aba ou outro usuário mudar, minha cópia fica desatualizada?"** Se sim, é server state — nunca é dono, é cache.
+The test: **"does this data exist in the backend independently of this screen? If
+I open another tab, or another user changes it, does my copy go stale?"** If yes,
+it is server state, and you hold a cache rather than the original.
 
 ```
-// ❌ Reimplementando cache, loading, erro e refetch na mão
+// ❌ Reimplementing cache, loading, error and refetch by hand
 const [orders, setOrders] = useState(null);
 const [loading, setLoading] = useState(true);
 useEffect(() => {
@@ -33,127 +46,145 @@ useEffect(() => {
     setLoading(false);
   });
 }, []);
-// e agora: quem invalida isso quando um pedido é criado em outra tela?
-// quem faz retry se a rede cair? quem evita 3 fetches simultâneos da mesma rota?
+// and now: who invalidates this when an order is created on another screen?
+// who retries when the network drops? who stops three simultaneous fetches of the same route?
 
-// ✅ Lib de server state resolve cache, loading, erro, retry, invalidação
+// ✅ A server-state library already solves cache, loading, error, retry and invalidation
 const { data: orders, isLoading } = useQuery('orders', fetchOrders);
 ```
 
-- Loading, error e stale-while-revalidate são problema resolvido — TanStack Query, SWR, RTK Query (React), vue-query (Vue), Angular Query fazem isso. Reimplementar isso com `useState`/`ref`/`signal` cru é reinventar cache sem invalidação.
-- Mutação (criar/editar/deletar) invalida a chave de cache correspondente — a tela não faz `setOrders([...orders, novo])` manualmente esperando que isso reflita o que o server realmente persistiu.
-- Duas telas que pedem o mesmo dado (`orders`) devem compartilhar o mesmo cache por chave, não duas cópias divergentes em duas stores locais.
-- Estado derivado do fetch (`isLoading`, `isError`) não é estado "seu" para guardar em `useState` paralelo — a lib de query já expõe isso.
+- Loading, error and stale-while-revalidate are a solved problem — TanStack Query,
+  SWR, RTK Query, vue-query, Angular Query. Rebuilding it on raw `useState`, `ref`
+  or `signal` is reinventing a cache without invalidation.
+- A mutation invalidates the matching cache key. The screen does not do
+  `setOrders([...orders, created])` and hope it matches what the server persisted.
+- Two screens asking for the same data share one cache by key, rather than keeping
+  two diverging copies in two local stores.
+- State derived from the fetch (`isLoading`, `isError`) is not yours to hold in a
+  parallel `useState`; the query library already exposes it.
 
 ```
-// ❌ Guardar resultado de fetch numa store global "porque é usado em vários lugares"
-store.orders = await fetchOrders(); // agora ninguém sabe se está stale
+// ❌ Parking a fetch result in a global store "because several places use it"
+store.orders = await fetchOrders(); // now nobody knows whether it is stale
 
-// ✅ Cache com chave, qualquer componente que pedir a mesma chave reusa o cache
+// ✅ A keyed cache: any component asking for the same key reuses it
 useQuery(['orders', filters], () => fetchOrders(filters));
 ```
 
-## UI state local: o componente é dono
+## Local UI state: the component owns it
 
-Teste de decisão: **"esse estado sobrevive a um remount do componente? Alguém fora da árvore dele precisa ler ou mudar esse valor?"** Se a resposta pras duas é não, é local — fica no componente mais próximo de quem usa, ponto.
+The test: **"does this state need to survive a remount? Does anything outside this
+component's tree need to read or change it?"** If both answers are no, it is
+local, and it lives in the component closest to whoever uses it.
 
 ```
-// ❌ Modal de um componente filho controlado por store global
-store.isDeleteModalOpen = true; // qualquer parte do app pode ler/escrever isso
+// ❌ A child component's modal controlled from a global store
+store.isDeleteModalOpen = true; // any part of the app can read or write this
 
-// ✅ Estado do modal vive no componente que o renderiza
+// ✅ The modal's state lives in the component that renders it
 const [isOpen, setIsOpen] = useState(false);
 ```
 
-- Valor de input antes do submit, hover, accordion expandido, passo atual de um wizard **local** (não compartilhado por link) — tudo isso é UI state, resolvido com o primitivo local do framework (`useState`, `ref`, `signal`, `$state`).
-- Se dois componentes distantes (não pai/filho direto) precisam do mesmo UI state, primeiro tente subir o estado (lifting) pro ancestral comum — só recorra a Context/store se a árvore for grande demais pra prop drilling fazer sentido.
-- UI state não precisa de biblioteca de estado global. Se o time está criando uma `store` de state manager só para "modal aberto" ou "campo em foco", é sinal de sobre-engenharia.
+- An input's value before submit, hover, an expanded accordion, the current step of
+  a **local** wizard (one nobody shares by link) — all UI state, solved with the
+  framework's local primitive (`useState`, `ref`, `signal`, `$state`).
+- If two distant components need the same UI state, first try lifting it to their
+  common ancestor. Reach for Context or a store only when the tree is too deep for
+  prop drilling to make sense.
+- UI state needs no global state library. A `store` created for "modal open" or
+  "field focused" is over-engineering.
 
-## Estado em URL: o que o usuário espera que sobreviva a um refresh
+## URL state: what the user expects to survive a refresh
 
-Teste de decisão: **"se o usuário der F5, voltar pelo botão do browser, ou copiar o link e mandar pra outra pessoa, ele esperaria ver a mesma coisa?"** Se sim, é URL state — nunca deveria morar só em `useState`/store.
+The test: **"if the user refreshes, hits the browser's back button, or copies the
+link and sends it to someone, would they expect to see the same thing?"** If yes,
+it is URL state, and it must not live only in `useState` or a store.
 
 ```
-// ❌ Filtro e página em useState — refresh ou compartilhar o link perde tudo
+// ❌ Filter and page in useState — a refresh, or sharing the link, loses both
 const [status, setStatus] = useState('pending');
 const [page, setPage] = useState(1);
 
-// ✅ Filtro e página na URL — refresh, back/forward e link compartilhado preservam o estado
+// ✅ Filter and page in the URL — refresh, back/forward and a shared link all keep it
 // URL: /orders?status=pending&page=2
 const [params, setParams] = useSearchParams();
 const status = params.get('status') ?? 'pending';
 ```
 
-- Filtro de listagem, página, termo de busca, ordenação, aba principal de uma tela (não passo interno de um wizard), item selecionado num mapa/lista mestre-detalhe — tudo isso vai pra query string ou pro path.
-- Botão voltar do browser deve funcionar como "desfazer" da última mudança de filtro/página — só acontece se o estado estiver na URL, não em store.
-- Estado em URL não some ao trocar de aba do browser e voltar, nem ao dar refresh acidental — isso é o que diferencia "detalhe de UI" de "estado que o usuário considera parte do que ele estava fazendo".
+- List filters, page, search term, sort order, a screen's main tab (not an internal
+  wizard step), the selected item in a master-detail view — all of it belongs in
+  the query string or the path.
+- The browser's back button should act as "undo" for the last filter or page
+  change, which only works when the state is in the URL.
+- URL state survives switching browser tabs and an accidental refresh. That is what
+  separates a UI detail from state the user considers part of what they were doing.
 
-## Fronteiras que geram confusão
+## Boundaries that cause arguments
 
-| Situação | É o quê? | Por quê |
+| Situation | Which kind? | Why |
 |---|---|---|
-| Aba ativa de um wizard de 3 passos dentro de um único fluxo de criação | UI state local | Ninguém espera compartilhar link "no passo 2 do wizard"; refresh reiniciar o wizard é aceitável |
-| Aba ativa de uma tela com seções principais (Detalhes / Histórico / Documentos) | URL state | Usuário espera linkar direto pra aba "Histórico", e refresh não deveria voltar pra "Detalhes" |
-| `isLoading`/`error` de uma requisição | Server state (derivado) | Não é estado próprio pra guardar em `useState` paralelo — vem de quem já busca o dado |
-| Formulário de edição pré-populado com dado do server | Começa como server state (fetch), depois vira UI state local (rascunho editável até o submit) | O valor no input diverge do servidor até confirmar — não sincroniza a cada tecla |
-| Carrinho de compras, tema, sessão do usuário | Estado global de aplicação (fora dos três) | Transversal a telas não relacionadas — aí sim cabe Context/store/signal global |
+| The active step of a three-step creation wizard | Local UI state | Nobody expects to share a link "at step 2", and restarting the wizard on refresh is acceptable |
+| The active tab of a screen with main sections (Details / History / Documents) | URL state | The user expects to link straight to "History", and a refresh should not drop back to "Details" |
+| `isLoading`/`error` for a request | Server state, derived | Not yours to hold in a parallel `useState`; it comes from whatever fetches the data |
+| An edit form pre-filled from the server | Starts as server state, becomes local UI state — an editable draft until submit | The input diverges from the server until it is confirmed; it does not sync on every keystroke |
+| Cart, theme, user session | Global application state, outside the three | Genuinely shared across unrelated screens, which is where Context, a store or a global signal belongs |
 
 ## Checklist
 
-- [ ] Nenhum dado vindo do backend é guardado em `useState`/`ref` cru sem lib de cache (TanStack Query, SWR, RTK Query ou equivalente)
-- [ ] Loading/error de fetch vem da lib de server state, não duplicado em estado próprio
-- [ ] Filtro, paginação, busca, ordenação e aba principal de tela estão na URL, não em store/`useState`
-- [ ] Refresh da página e "copiar link e abrir em outra aba" preservam o que o usuário esperaria preservar
-- [ ] Modal, hover, accordion, passo de wizard local resolvidos com estado do próprio componente, sem store global
-- [ ] Store/Context global só guarda estado realmente transversal (sessão, tema, carrinho, feature flag), não virou dumping ground
-- [ ] Mutação (criar/editar/deletar) invalida o cache de server state correspondente, não edita a cópia local na mão
-- [ ] Nenhum componente distante lê/escreve UI state de outro componente via prop drilling forçado onde uma store faria mais sentido — nem o contrário
+- [ ] No backend data sits in raw `useState`/`ref` without a cache library (TanStack Query, SWR, RTK Query or equivalent)
+- [ ] Fetch loading and error come from the server-state library, not duplicated in your own state
+- [ ] Filter, pagination, search, sort order and the screen's main tab live in the URL, not in a store
+- [ ] A refresh, and "copy the link and open it in another tab", preserve what the user would expect
+- [ ] Modals, hover, accordions and local wizard steps use the component's own state, with no global store
+- [ ] The global store or context holds only genuinely cross-cutting state (session, theme, cart, feature flags), and has not become a dumping ground
+- [ ] Mutations invalidate the matching server-state cache rather than hand-editing the local copy
+- [ ] No distant component reads or writes another's UI state through forced prop drilling where a store fits better — nor the reverse
 
-## Exemplos por stack
+## By stack
 
-**React** — TanStack Query (server) + `useState` (UI local) + `useSearchParams`/`nuqs` (URL):
+**React** — TanStack Query (server), `useState` (local UI), `useSearchParams`/`nuqs` (URL):
 ```tsx
 const { data: orders } = useQuery(['orders', status, page], () => fetchOrders({ status, page }));
-const [isModalOpen, setIsModalOpen] = useState(false); // UI local
+const [isModalOpen, setIsModalOpen] = useState(false); // local UI
 const [params, setParams] = useSearchParams(); // URL
 ```
 
-**Vue** — vue-query (server) + `ref` (UI local) + Vue Router `query` (URL):
+**Vue** — vue-query (server), `ref` (local UI), Vue Router `query` (URL):
 ```vue
 <script setup>
 const { data: orders } = useQuery(['orders', route.query.status], () => fetchOrders(route.query));
-const isModalOpen = ref(false); // UI local
+const isModalOpen = ref(false); // local UI
 const router = useRouter();
 function setStatus(status) { router.push({ query: { ...route.query, status } }); } // URL
 </script>
 ```
 
-**Angular** — Angular Query ou `HttpClient`+RxJS com cache (server) + component field/`signal` (UI local) + `ActivatedRoute.queryParams` (URL):
+**Angular** — Angular Query, or `HttpClient` plus RxJS with a cache (server), a component field or `signal` (local UI), `ActivatedRoute.queryParams` (URL):
 ```ts
 orders$ = this.route.queryParams.pipe(switchMap(qp => this.ordersService.getOrders(qp)));
-isModalOpen = signal(false); // UI local
+isModalOpen = signal(false); // local UI
 setStatus(status: string) {
   this.router.navigate([], { queryParams: { status }, queryParamsHandling: 'merge' }); // URL
 }
 ```
 
-**Svelte/SvelteKit** — TanStack Query svelte (server) + `let`/`$state` (UI local) + `$page.url.searchParams` (URL):
+**Svelte/SvelteKit** — TanStack Query svelte (server), `$state` (local UI), `$page.url.searchParams` (URL):
 ```svelte
 <script>
   const orders = createQuery({ queryKey: ['orders', $page.url.searchParams.get('status')], queryFn: fetchOrders });
-  let isModalOpen = $state(false); // UI local
+  let isModalOpen = $state(false); // local UI
   function setStatus(status) { goto(`?status=${status}`); } // URL
 </script>
 ```
 
 ## Anti-patterns
 
-- ❌ `useState`/`ref` cru guardando resposta de fetch, com `isLoading`/`isError` reimplementados na mão
-- ❌ Filtro, página ou busca de listagem em store/estado local em vez de query string
-- ❌ Store global guardando "modal aberto", "hover", "campo em foco" — estado que só um componente usa
-- ❌ Mutação editando a cópia local do cache diretamente em vez de invalidar/refetch a chave correta
-- ❌ Duas telas pedindo o mesmo dado de servidor e mantendo duas cópias divergentes em stores separadas
-- ❌ Refresh da página perder filtro/página/aba que o usuário esperava encontrar do mesmo jeito
-- ❌ Context/Provider criado só para evitar prop drilling de dois níveis quando lifting resolveria
-- ❌ Sincronizar valor de input com o servidor a cada tecla em vez de tratar como rascunho local até o submit
-- ❌ Store de estado de aplicação virando dumping ground de tudo que "parecia global" sem revisar se é server/UI/URL
+- ❌ Raw `useState`/`ref` holding a fetch response, with `isLoading`/`isError` rebuilt by hand
+- ❌ A list's filter, page or search in local state rather than the query string
+- ❌ A global store holding "modal open", "hover" or "field focused" — state one component uses
+- ❌ A mutation editing the local cache copy instead of invalidating or refetching the right key
+- ❌ Two screens requesting the same server data and keeping diverging copies in separate stores
+- ❌ A refresh losing the filter, page or tab the user expected to find unchanged
+- ❌ A Context or Provider created only to avoid two levels of prop drilling, where lifting would do
+- ❌ Syncing an input to the server on every keystroke instead of treating it as a local draft until submit
+- ❌ An application store that became a dumping ground for anything that "seemed global", without asking whether it is server, UI or URL state

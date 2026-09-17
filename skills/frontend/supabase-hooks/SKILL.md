@@ -5,13 +5,14 @@ description: Client data layer for Supabase + TanStack Query — custom hooks, m
 
 # Supabase & Hooks
 
-Para projetos com Supabase (PostgreSQL + Auth + Storage + Real-time). Toda comunicação passa por hooks customizados em `src/hooks/`.
+For projects on Supabase (PostgreSQL, Auth, Storage, Real-time). Every call goes
+through a custom hook in `src/hooks/`.
 
-Isto é a camada de dados do client: **estado de servidor**, na fronteira que
-`client-state-management` define. Estado de UI e estado de URL não entram em
-hook de query. Schema, RLS e índice são `supabase-postgres`.
+This is the client's data layer: **server state**, on the boundary
+`client-state-management` defines. UI state and URL state do not belong in a query
+hook. Schema, RLS and indexes are `supabase-postgres`.
 
-## Hook com Query
+## A query hook
 
 ```ts
 export const useResource = (ownerId?: string) => {
@@ -32,7 +33,7 @@ export const useResource = (ownerId?: string) => {
 };
 ```
 
-## Mutation
+## A mutation
 
 ```ts
 export const useCreateResource = () => {
@@ -53,12 +54,15 @@ export const useCreateResource = () => {
 };
 ```
 
+The toast strings stay in Portuguese: they are interface text, and the product's
+users read them.
+
 ## Queries
 
-- Selecionar apenas colunas necessárias: `.select('id, name, email')`
-- `.single()` quando espera exatamente um registro
-- `.maybeSingle()` quando pode ser null
-- Paginação: `.range(from, to)` para listas grandes
+- Select only the columns you need: `.select('id, name, email')`
+- `.single()` when exactly one row is expected
+- `.maybeSingle()` when it may be null
+- Pagination: `.range(from, to)` for long lists
 - RPCs: `supabase.rpc('fn_name', { ... })`
 
 ## Real-time
@@ -72,23 +76,23 @@ const channel = supabase
   }, handleUpdate)
   .subscribe();
 
-return () => supabase.removeChannel(channel); // sempre limpar
+return () => supabase.removeChannel(channel); // always clean up
 ```
 
-## Tratamento de erros
+## Error handling
 
 ```ts
 const { data, error } = await supabase.from('resource').select('*').single();
 if (error) throw error;
-if (!data) throw new Error('Não encontrado');
+if (!data) throw new Error('Not found');
 return data;
 ```
 
 ## Anti-patterns
 
-- ❌ Supabase chamado direto em componentes
-- ❌ Ignorar o objeto `error`
-- ❌ Queries N+1
-- ❌ `useState` para server state
-- ❌ `useEffect` para data fetching
-- ❌ Cliente Supabase importado fora de `src/integrations/`
+- ❌ Calling Supabase directly from a component
+- ❌ Ignoring the `error` object
+- ❌ N+1 queries
+- ❌ `useState` holding server state
+- ❌ `useEffect` for data fetching
+- ❌ Importing the Supabase client outside `src/integrations/`

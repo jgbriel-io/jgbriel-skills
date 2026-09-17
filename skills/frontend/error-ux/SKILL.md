@@ -3,24 +3,30 @@ name: error-ux
 description: Defines client-side error handling — render error boundaries that isolate failure without crashing the whole tree, the four required states of any data-fetching screen (empty/loading/error/success), manual vs. automatic retry, and actionable error messages instead of raw exception text. Use when user asks about error boundary, loading/empty/error states, retry logic, or handling API failures in the UI.
 ---
 
-# Tratamento de Erro no Client
+# Client-Side Error Handling
 
-Conceito agnóstico de framework de UI: erro de render (boundary), erro de dado (estados de tela) e erro de rede (retry) são três problemas diferentes, com solução diferente. Estado de erro é um caso particular de estado de UI — convenções gerais de estado (loading global, cache, otimista) ficam em `client-state-management`; aqui o foco é como o erro é isolado, exibido e recuperado.
+A UI-framework-agnostic concept: a render error (boundaries), a data error (screen
+states) and a network error (retry) are three different problems with three
+different solutions. Error state is a special case of UI state — general state
+conventions live in `client-state-management`; the focus here is how an error is
+isolated, shown and recovered from.
 
-## 1. Error boundary — isola falha de render
+## 1. Error boundaries isolate a render failure
 
-Um componente que quebra durante o render não pode derrubar a árvore inteira. Todo framework de UI tem um mecanismo equivalente a "boundary": um limite que captura o erro de um subtree e renderiza um fallback local, sem propagar para os componentes irmãos/pais.
+A component that throws during render must not take the whole tree with it. Every
+UI framework has an equivalent of a boundary: a limit that catches a subtree's
+error and renders a local fallback, without propagating to siblings or parents.
 
 ```
-// ❌ Um card de produto com dado malformado quebra a página inteira
+// ❌ One product card with malformed data breaks the entire page
 <Page>
   <Header />
-  <ProductList products={data} />  // um item com preço null lança exceção no render
+  <ProductList products={data} />  // one item with a null price throws during render
   <Footer />
 </Page>
-// resultado: tela branca, Header e Footer também somem
+// result: a blank screen, Header and Footer gone too
 
-// ✅ Boundary por seção — falha isolada, resto da tela continua funcional
+// ✅ A boundary per section — the failure is isolated, the rest still works
 <Page>
   <Header />
   <ErrorBoundary fallback={<ProductListError />}>
@@ -30,23 +36,26 @@ Um componente que quebra durante o render não pode derrubar a árvore inteira. 
 </Page>
 ```
 
-Onde colocar boundary:
+Where boundaries go:
 
-| Nível | Cobre | Quando usar |
+| Level | Covers | When |
 |---|---|---|
-| Boundary de topo (app/rota) | Qualquer erro não capturado por boundary interno | Sempre — é a rede de segurança final, mostra "algo deu errado" genérico |
-| Boundary por seção/widget | Erro isolado em um card, tabela, gráfico | Sempre que a seção depende de dado que pode vir malformado/incompleto |
-| Boundary por item de lista | Um item específico de uma lista renderiza mal | Lista com dados heterogêneos (ex: feed, catálogo com fontes diferentes) |
+| Top-level (app or route) | Anything no inner boundary caught | Always — the final safety net, showing a generic "something went wrong" |
+| Per section or widget | An error confined to a card, table or chart | Whenever the section depends on data that may arrive malformed or incomplete |
+| Per list item | One item in a list rendering badly | Lists with heterogeneous data — a feed, a catalogue drawing on several sources |
 
-Boundary captura erro de **render**, não erro assíncrono (`fetch` rejeitado, `setTimeout`, event handler). Erro assíncrono precisa ser tratado explicitamente no código que faz a chamada (try/catch, `.catch`, callback de erro da lib de state) e transformado em estado, que aí sim o componente renderiza — ver seção 2.
+A boundary catches **render** errors, not asynchronous ones: a rejected `fetch`, a
+`setTimeout`, an event handler. Asynchronous errors have to be handled explicitly
+where the call is made (try/catch, `.catch`, the state library's error callback)
+and turned into state, which the component then renders — see section 2.
 
 ```
-// ❌ Boundary não captura isso — a exceção acontece fora do render
+// ❌ The boundary never sees this: the exception happens outside render
 useEffect(() => {
-  fetchData(); // se rejeitar, boundary não vê nada, erro morre no console
+  fetchData(); // on rejection the boundary sees nothing, and the error dies in the console
 }, []);
 
-// ✅ Erro assíncrono vira estado, que o componente renderiza condicionalmente
+// ✅ The async error becomes state, which the component renders conditionally
 useEffect(() => {
   fetchData()
     .then(setData)
@@ -54,29 +63,35 @@ useEffect(() => {
 }, []);
 ```
 
-Boundary também precisa reportar o erro capturado ao error tracker (ver skill `error-tracking`) — um fallback silencioso sem instrumentação esconde o problema em vez de só suavizar a UX.
+A boundary also reports what it caught to the error tracker (see `error-tracking`).
+A silent fallback with no instrumentation hides the problem rather than softening
+the experience.
 
-## 2. Os quatro estados de toda tela que busca dado
+## 2. The four states of any data-fetching screen
 
-Toda tela/componente que depende de dado assíncrono tem quatro estados possíveis. Tratar só o caminho feliz (sucesso) deixa os outros três indefinidos — na prática viram tela branca, spinner infinito ou crash.
+Every screen or component depending on asynchronous data has four possible states.
+Handling only the happy path leaves the other three undefined — in practice, a
+blank screen, an endless spinner, or a crash.
 
-> `frontend-conventions` cita três estados (loading/error/empty) como convenção de escrita de componente; esta skill adiciona **success** como quarto estado explícito e é a fonte de verdade dos estados de tela.
+> `frontend-conventions` names three states (loading, error, empty) as a
+> component-writing convention. This skill adds **success** as an explicit fourth
+> and is the source of truth for screen states.
 
-| Estado | Condição | O que renderizar |
+| State | Condition | What to render |
 |---|---|---|
-| Loading | Requisição em voo, sem dado anterior | Skeleton/spinner — nunca tela em branco sem indicação |
-| Empty | Requisição concluiu, dado existe mas é vazio (`[]`, `null` esperado) | Mensagem específica de vazio + ação (ex: "Nenhum pedido ainda — criar o primeiro") |
-| Error | Requisição falhou | Mensagem acionável + retry (ver seção 3) — nunca o mesmo layout de "empty" |
-| Success | Dado chegou e tem conteúdo | Conteúdo normal |
+| Loading | A request in flight with no previous data | A skeleton or spinner, never a blank screen |
+| Empty | The request finished, and the data is legitimately empty (`[]`, an expected `null`) | A specific empty message plus an action: "Nenhum pedido ainda — criar o primeiro" |
+| Error | The request failed | An actionable message plus retry (section 3), never the same layout as empty |
+| Success | Data arrived and has content | The normal content |
 
 ```
-// ❌ Só cobre o caminho feliz — loading/error/empty ficam indefinidos
+// ❌ Only the happy path — loading, error and empty are undefined
 function OrderList({ orders }) {
   return <ul>{orders.map(o => <li key={o.id}>{o.name}</li>)}</ul>;
-  // orders undefined → crash; orders [] → lista vazia sem explicação; erro anterior → nunca chega aqui
+  // orders undefined → crash; orders [] → an unexplained empty list; an earlier error → never reaches here
 }
 
-// ✅ Os quatro estados explícitos
+// ✅ All four states, explicit
 function OrderList({ state }) {
   if (state.status === 'loading') return <OrderListSkeleton />;
   if (state.status === 'error') return <ErrorState message={state.message} onRetry={state.retry} />;
@@ -85,68 +100,74 @@ function OrderList({ state }) {
 }
 ```
 
-Erro **não é** o mesmo estado visual que vazio — vazio é "funcionou e não tem nada", erro é "não funcionou". Misturar os dois esconde falha real atrás de uma mensagem de "nada encontrado".
+An error is **not** the same visual state as empty. Empty means "it worked and
+there is nothing"; error means "it did not work". Merging them hides a real failure
+behind a "nothing found" message.
 
 ```
-// ❌ Trata falha de rede como se fosse lista vazia
-if (!data || data.length === 0) return <EmptyState />; // esconde timeout, 500, etc.
+// ❌ Treating a network failure as an empty list
+if (!data || data.length === 0) return <EmptyState />; // hides timeouts, 500s and the rest
 
-// ✅ Erro e vazio são estados distintos, com causas e ações diferentes
+// ✅ Error and empty are distinct states, with different causes and actions
 if (error) return <ErrorState />;
 if (data.length === 0) return <EmptyState />;
 ```
 
-## 3. Retry manual vs. automático
+## 3. Manual vs. automatic retry
 
-Nem todo erro merece a mesma estratégia de retry — depende da causa.
+Not every error deserves the same retry strategy; it depends on the cause.
 
-| Tipo de erro | Causa típica | Retry automático | Retry manual |
+| Error | Typical cause | Automatic retry | Manual retry |
 |---|---|---|---|
-| Rede/timeout | Conexão instável, timeout | Sim — backoff exponencial, 2-3 tentativas | Botão "Tentar novamente" se automático esgotar |
-| 5xx (erro do servidor) | Falha transiente no backend | Sim — mesma lógica de backoff | Idem |
-| 429 (rate limit) | Limite de requisições | Sim — respeitar `Retry-After` se vier no header | Evitar deixar só manual, usuário vai bater de novo imediatamente |
-| 4xx (exceto 429) — validação, permissão, não encontrado | Requisição malformada ou não autorizada | **Não** — repetir a mesma requisição dá o mesmo erro | Não é "retry", é ação corretiva do usuário (corrigir campo, pedir acesso) |
-| Erro de render (capturado por boundary) | Dado malformado, bug de componente | Não automático (risco de loop) | Botão que força remontagem do subtree, só se plausível que o dado mudou |
+| Network / timeout | Unstable connection | Yes — exponential backoff, two or three attempts | A "try again" button once automatic retries are exhausted |
+| 5xx | A transient backend failure | Yes, same backoff | Likewise |
+| 429 | Rate limited | Yes, honouring `Retry-After` when the header is present | Do not leave it manual only, or the user immediately hits it again |
+| 4xx other than 429 — validation, permission, not found | A malformed or unauthorised request | **No** — repeating the same request gives the same error | Not a retry: the user takes corrective action, fixing a field or requesting access |
+| Render error caught by a boundary | Malformed data, a component bug | Not automatically; it risks a loop | A button that remounts the subtree, only where the data plausibly changed |
 
 ```
-// ❌ Retry automático em erro 4xx — vai repetir o mesmo erro indefinidamente
+// ❌ Automatic retry on a 4xx — it repeats the same error indefinitely
 async function fetchWithRetry(url) {
   for (let i = 0; i < 3; i++) {
     const res = await fetch(url);
     if (res.ok) return res.json();
-    await delay(1000 * i); // reenvia a mesma request inválida 3x
+    await delay(1000 * i); // resends the same invalid request three times
   }
 }
 
-// ✅ Retry automático só para classe de erro recuperável (rede/5xx/429)
+// ✅ Automatic retry only for recoverable classes (network, 5xx, 429)
 async function fetchWithRetry(url) {
   for (let i = 0; i < 3; i++) {
     const res = await fetch(url);
     if (res.ok) return res.json();
-    if (!isRetryable(res.status)) throw new HttpError(res); // 4xx: falha já, sem retry
+    if (!isRetryable(res.status)) throw new HttpError(res); // 4xx: fail now, no retry
     await delay(backoff(i, res.headers.get('Retry-After')));
   }
   throw new HttpError(lastResponse);
 }
 
 function isRetryable(status) {
-  return status >= 500 || status === 429 || status === 0; // 0 = falha de rede/timeout
+  return status >= 500 || status === 429 || status === 0; // 0 = network failure or timeout
 }
 ```
 
-Regra prática: retry automático resolve problema **transiente** (a mesma ação, tentada de novo, pode funcionar). Se o erro é sobre o conteúdo da requisição (validação, permissão, recurso inexistente), repetir não muda o resultado — a UI precisa pedir ação do usuário, não insistir sozinha.
+Rule of thumb: an automatic retry solves a **transient** problem — the same action,
+tried again, might work. When the error is about the request's content (validation,
+permission, a resource that does not exist), repeating changes nothing, and the UI
+has to ask the user to act rather than insisting on its own.
 
-## 4. Mensagem de erro acionável
+## 4. Actionable error messages
 
-`error.message` de uma exception técnica não é uma mensagem de UX — é um detalhe de implementação vazando para quem não pode fazer nada com ele.
+An exception's `error.message` is not a UX message. It is an implementation detail
+leaking to someone who can do nothing with it.
 
 ```
-// ❌ Exception técnica direto na tela
+// ❌ A technical exception straight onto the screen
 <ErrorState message={error.message} />
 // "TypeError: Cannot read properties of undefined (reading 'map')"
 // "Request failed with status code 403"
 
-// ✅ Mapear erro técnico para mensagem acionável, log técnico vai pro tracker
+// ✅ Map the technical error to an actionable message; the technical detail goes to the tracker
 function toUserMessage(error) {
   if (error.status === 403) return { text: 'Você não tem permissão para ver isso.', action: 'Solicitar acesso' };
   if (error.status === 404) return { text: 'Este item não existe mais.', action: 'Voltar' };
@@ -154,45 +175,46 @@ function toUserMessage(error) {
   return { text: 'Não foi possível completar a ação.', action: 'Tentar novamente' };
 }
 
-reportToTracker(error); // stack trace técnico fica só na observabilidade
+reportToTracker(error); // the stack trace stays in observability
 <ErrorState {...toUserMessage(error)} />
 ```
 
-Toda mensagem de erro de UI tem três partes:
+The user-facing strings stay in Portuguese, because the product's users read them.
 
-- **O que aconteceu** — em linguagem de usuário, não de exception (evitar "erro 500", "undefined", nome de função interna)
-- **Por que, se for útil** — só quando ajuda a decidir a próxima ação ("sua sessão expirou" vs. genérico "erro")
-- **O que fazer agora** — botão/link de ação (retry, voltar, contatar suporte), nunca deixar o usuário só olhando o texto
+Every UI error message has three parts:
 
-Erro de validação por campo, dentro de um formulário, não é estado de tela: é
-`forms-validation` — a mesma requisição 422 vira mensagem ao lado do campo, não
-tela de erro. Esta skill cobre o que falha em volta do formulário.
+- **What happened**, in the user's language rather than the exception's. Avoid
+  "error 500", "undefined", or the name of an internal function
+- **Why, when it helps** — only where it informs the next action: "your session
+  expired" rather than a generic "error"
+- **What to do now** — a button or link (retry, go back, contact support). Never
+  leave the user with text and no way out
+
+A per-field validation error inside a form is not a screen state: it is
+`forms-validation`. The same 422 becomes a message beside the field, not an error
+screen. This skill covers what fails around the form.
 
 ## Checklist
 
-- [ ] Toda seção que renderiza dado externo/de terceiro tem boundary próprio (não só o boundary de topo da app)
-- [ ] Boundary reporta o erro capturado ao error tracker antes de mostrar o fallback
-- [ ] Toda tela com fetch trata explicitamente loading, empty, error e success — nenhum implícito
-- [ ] Estado de erro e estado vazio têm componente/mensagem visualmente distintos
-- [ ] Retry automático só cobre erro de rede/5xx/429 com backoff, nunca 4xx de validação/permissão
-- [ ] Erro 4xx mostra ação corretiva ("corrigir campo", "solicitar acesso"), não um botão de retry que repete o mesmo erro
-- [ ] Nenhuma tela expõe `error.message`/stack trace cru — sempre passa por um mapeador de mensagem
-- [ ] Toda mensagem de erro tem uma ação associada (retry, voltar, suporte) — nunca texto sem saída
-- [ ] Erro assíncrono (fetch, timer, callback) é convertido em estado antes de chegar ao render — boundary não substitui isso
+- [ ] Every section rendering external or third-party data has its own boundary, not just the app's top-level one
+- [ ] Boundaries report the caught error to the error tracker before showing the fallback
+- [ ] Every fetching screen handles loading, empty, error and success explicitly — none implicit
+- [ ] Error state and empty state use visually distinct components and messages
+- [ ] Automatic retry covers only network, 5xx and 429 errors, with backoff; never a 4xx
+- [ ] A 4xx shows corrective action ("fix the field", "request access"), not a retry button that repeats the same error
+- [ ] No screen exposes a raw `error.message` or stack trace; everything passes through a message mapper
+- [ ] Every error message carries an action — retry, back, support — and never leaves the user stranded
+- [ ] Async errors (fetch, timers, callbacks) are converted into state before reaching render; a boundary does not replace that
 
-## Exemplos por stack
+## By stack
 
-Boundary, os quatro estados e o mapeador de mensagem implementados em React, Vue e
+Boundaries, the four states and the message mapper implemented in React, Vue and
 Svelte: [references/stacks.md](references/stacks.md).
 
 ## Anti-patterns
 
-- ❌ Um erro de render em um card derruba a página inteira por falta de boundary
-- ❌ Boundary sem reportar ao error tracker — fallback silencioso esconde o bug
-- ❌ Tela só cobre o caminho de sucesso, loading/empty/error ficam indefinidos ou geram crash
-- ❌ Estado vazio e estado de erro usando o mesmo componente/mensagem genérica
-- ❌ Retry automático em erro 4xx de validação/permissão, repetindo a mesma falha
-- ❌ Retry manual sem backoff em erro 429, gerando nova rajada imediata contra o rate limit
-- ❌ Exibir `error.message`/stack trace técnico direto na tela do usuário
-- ❌ Mensagem de erro sem nenhuma ação associada — usuário travado sem próximo passo
-- ❌ Tratar erro assíncrono (fetch/timer) como se boundary de render fosse capturá-lo
+- ❌ A render error in one card taking down the whole page for want of a boundary
+- ❌ A boundary that does not report to the error tracker, so a silent fallback hides the bug
+- ❌ A screen covering only the success path, leaving loading, empty and error undefined or crashing
+- ❌ Empty state and error state sharing one generic component and message
+- ❌ Automatic retry on a 4xx validation or permission error, repeating the same failure

@@ -3,23 +3,23 @@ name: react-best-practices
 description: React 18 + Vite performance rules — bundle size, re-renders, waterfalls, subscriptions. Use when the user asks about React performance, slow pages, bundle size, imports, useEffect misuse, or re-render debugging. This one reads the code; measuring a running page is web-perf. Not a general review checklist — that is code-reviewer; writing conventions are frontend-conventions.
 ---
 
-# React — Performance e Boas Práticas
+# React — Performance
 
-Para projetos React 18 + Vite (SPA). Regras de RSC/Server Components não se aplicam.
+For React 18 + Vite SPAs. RSC and Server Component rules do not apply here.
 
-## Bundle Size (CRÍTICO)
+## Bundle size
 
-**Evitar barrel imports:**
+**Avoid barrel imports:**
 ```tsx
-// ❌ Carrega biblioteca inteira
+// ❌ Pulls in the whole library
 import { Button, Card } from '@/components/ui'
 
-// ✅ Import direto
+// ✅ Import directly
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 ```
 
-**Lazy loading de páginas pesadas:**
+**Lazy-load heavy pages:**
 ```tsx
 const HeavyPage = lazy(() => import('./pages/HeavyPage'));
 
@@ -28,64 +28,68 @@ const HeavyPage = lazy(() => import('./pages/HeavyPage'));
 </Suspense>
 ```
 
-## Waterfalls (CRÍTICO)
+## Waterfalls
 
-**Paralelizar queries independentes:**
+**Parallelise independent queries:**
 ```ts
-// ❌ Sequencial
+// ❌ Sequential — the second request waits for the first with no reason to
 const user = await fetchUser(id);
 const orders = await fetchOrders(id);
 
-// ✅ Paralelo
+// ✅ Parallel
 const [user, orders] = await Promise.all([fetchUser(id), fetchOrders(id)]);
 ```
 
-TanStack Query paraleliza automaticamente múltiplos `useQuery` no mesmo componente.
+TanStack Query parallelises several `useQuery` calls in the same component
+automatically.
 
 ## Re-renders
 
 ```tsx
-// ❌ Novo objeto a cada render
+// ❌ A new object on every render, so the child re-renders every time
 <UserList filters={{ status: 'active' }} />
 
-// ✅ Memoizar
+// ✅ Memoise it
 const filters = useMemo(() => ({ status: 'active' }), []);
 <UserList filters={filters} />
 ```
 
-Não usar `useMemo`/`useCallback` preventivamente — só com evidência de problema.
+Do not reach for `useMemo`/`useCallback` pre-emptively — only with evidence of a
+real problem. Each one costs a comparison and a dependency array to keep correct.
 
 ## Rendering
 
 ```tsx
-// ❌ Pode renderizar "0"
+// ❌ Renders a literal "0" when the list is empty
 {items.length && <List />}
 
-// ✅ Explícito
+// ✅ Explicit
 {items.length > 0 && <List />}
 ```
 
 ```tsx
-// ❌ Recriado a cada render
+// ❌ Recreated on every render
 const EmptyState = () => <p>Nenhum item</p>;
 
-// ✅ Fora do componente
+// ✅ Outside the component
 const EMPTY_STATE = <p className="text-muted-foreground">Nenhum item</p>;
 ```
+
+Interface strings stay in Portuguese: the product's users read them.
 
 ## Subscriptions
 
 ```ts
 useEffect(() => {
   const sub = client.subscribe(channel, handler);
-  return () => sub.unsubscribe(); // sempre limpar
+  return () => sub.unsubscribe(); // always clean up
 }, []);
 ```
 
 ## Anti-patterns
 
-- ❌ `useEffect` para data fetching (usar TanStack Query/SWR)
-- ❌ `useState` para server state
+- ❌ `useEffect` for data fetching — use TanStack Query or SWR
+- ❌ `useState` holding server state
 - ❌ Barrel imports
-- ❌ Objects/arrays inline em props
-- ❌ `useMemo`/`useCallback` sem evidência
+- ❌ Inline objects and arrays as props
+- ❌ `useMemo`/`useCallback` with no evidence behind them

@@ -1,4 +1,4 @@
-# Exemplos por stack
+# By stack
 
 **React**
 ```tsx
