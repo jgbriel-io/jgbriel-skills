@@ -28,9 +28,16 @@ the burden is on it. Past 750, splitting is not optional.
 ## 0. Mechanical sweep — before reading anything
 
 ```bash
-python3 scripts/audit-sweep.py <category>    # or no argument for the whole fleet
+python3 scripts/audit-sweep.py <category>    # or no argument for skills + agents + commands
+python3 scripts/audit-sweep.py agents        # the 3 agent definitions
+python3 scripts/audit-sweep.py commands      # the 11 slash commands
 python3 scripts/audit-sweep.py --sizes       # the distribution against the reference
 ```
+
+`agents` and `commands` are swept by their own rules: a body that delegates to an
+agent the frontmatter never granted `Task` for, an agent name that points at no
+file in `agents/`, a hardcoded machine path. `scripts/test_audit_sweep.py` is the
+check that those rules still fire.
 
 It settles what needs no judgement: size, frontmatter, a `name` that disagrees
 with its folder, a link to a file that does not exist, another tool's name, rules

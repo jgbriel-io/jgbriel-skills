@@ -102,26 +102,95 @@ def audit(path):
     if len(re.findall(r"^```", text, re.M)) % 2:
         out.append(("BLOCKER", "unbalanced code fence — a split cut through a block"))
 
-    skill_dir = os.path.dirname(path)
+    out += shared(text, os.path.dirname(path))
+    return lines, out
+
+
+def shared(text, base):
+    """Checks that read the same on a skill, an agent and a command."""
+    out = []
+    if len(re.findall(r"^```", text, re.M)) % 2:
+        out.append(("BLOCKER", "unbalanced code fence — a split cut through a block"))
     for link in re.findall(r"\[[^\]]+\]\(([^)]+\.md)\)", prose(text)):
         if link.startswith(("http", "#")):
             continue
-        if not os.path.exists(os.path.join(skill_dir, link)):
+        if not os.path.exists(os.path.join(base, link)):
             out.append(("BLOCKER", f"link to `{link}`, which does not exist"))
+    # Machine paths are read from the raw text on purpose: the one that bit here
+    # was inside a fenced block, which is where a command's steps live.
+    for machine in sorted(set(re.findall(r"/home/\w+|/Users/\w+|[A-Z]:\\[\w\\]+", text))):
+        out.append(("BLOCKER", f"hardcoded machine path `{machine}` — it does not exist on the other machine"))
+    if re.search(r"(?<![\w/])/tmp/", text):
+        out.append(("WARN", "writes under /tmp/ — absent on Windows, and rarely what the step actually needs"))
+    return out
 
+
+# An agent or a command is one file with frontmatter, not a folder, and the two
+# defects that bit here are structural: a body that delegates to an agent the
+# frontmatter never allowed the Task tool for, and a name that points nowhere.
+DELEGATES = re.compile(r"`([a-z0-9-]+)` agent|\bagent `([a-z0-9-]+)`")
+
+
+def audit_flat(path, kind):
+    """Returns (line count, [(severity, message)]) for one agents/ or commands/ file."""
+    text = open(path, encoding="utf-8").read()
+    head = frontmatter(text)
+    lines = text.count("\n") + 1
+    stem = os.path.basename(path)[:-3]
+    out = []
+
+    if not head:
+        out.append(("BLOCKER", "no frontmatter"))
+    desc = re.search(r"^description:\s*(.+)$", head, re.M)
+    if not desc:
+        out.append(("BLOCKER", "no `description` — nothing says what this is for"))
+
+    # An agent is addressed by its `name`; a command is addressed by its filename.
+    if kind == "agents":
+        name = re.search(r"^name:\s*(.+)$", head, re.M)
+        if not name:
+            out.append(("BLOCKER", "no `name` in the frontmatter"))
+        elif name.group(1).strip() != stem:
+            out.append(("BLOCKER", f"`name: {name.group(1).strip()}` does not match file `{stem}.md`"))
+
+    tools = re.search(r"^(?:allowed-tools|tools):\s*(.+)$", head, re.M)
+    granted = tools.group(1) if tools else ""
+    # Not prose(): the agent's name is always in backticks, and prose() drops
+    # exactly that. Fences come out, because a briefing block names it too.
+    delegated = sorted({(a or b) for a, b in DELEGATES.findall(re.sub(r"```.*?```", "", text, flags=re.S))})
+    for agent in delegated:
+        if not os.path.exists(os.path.join(ROOT, "agents", agent + ".md")):
+            out.append(("BLOCKER", f"delegates to agent `{agent}`, which is not in agents/"))
+    if delegated and tools and "Task" not in granted:
+        out.append(("BLOCKER", "delegates to " + ", ".join(f"`{a}`" for a in delegated) +
+                    " but the frontmatter never grants `Task` — the delegation cannot run"))
+
+    if lines > BENCHMARK_MAX:
+        out.append(("WARN", f"{lines} lines, past the {BENCHMARK_MAX} of the largest reference skill"))
+
+    out += shared(text, os.path.dirname(path))
     return lines, out
+
+
+def collect(arg):
+    """(paths, kind) for a category name, `agents`, `commands`, or everything."""
+    if arg in ("agents", "commands"):
+        return sorted(glob.glob(os.path.join(ROOT, arg, "*.md"))), arg
+    return sorted(glob.glob(os.path.join(ROOT, "skills", arg or "*", "*", "SKILL.md"))), "skills"
 
 
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("-")]
-    pattern = os.path.join(ROOT, "skills", args[0] if args else "*", "*", "SKILL.md")
-    paths = sorted(glob.glob(pattern))
+    arg = args[0] if args else None
+    targets = [collect(arg)] if arg else [collect(None), collect("agents"), collect("commands")]
+    paths = [p for group, _ in targets for p in group]
     if not paths:
-        print("no skills matched")
+        print("nothing matched")
         return 1
 
     if "--sizes" in sys.argv:
-        sizes = sorted((audit(p)[0], os.path.basename(os.path.dirname(p))) for p in paths)
+        sizes = sorted((audit(p)[0], os.path.basename(os.path.dirname(p)))
+                       for group, kind in targets if kind == "skills" for p in group)
         mid = sizes[len(sizes) // 2][0]
         print(f"{len(sizes)} skills · smallest {sizes[0][0]} ({sizes[0][1]}) · median {mid} · largest {sizes[-1][0]} ({sizes[-1][1]})")
         print(f"reference: utevo-lux 64-185 (median 76) · core-loop 28-257 (median 95)")
@@ -130,24 +199,29 @@ def main():
         return 0
 
     blocked = 0
-    for path in paths:
-        _, findings = audit(path)
-        for ref in sorted(glob.glob(os.path.join(os.path.dirname(path), "references", "*.md"))):
-            if len(re.findall(r"^```", open(ref, encoding="utf-8").read(), re.M)) % 2:
-                findings.append(("BLOCKER", f"unbalanced fence in references/{os.path.basename(ref)}"))
-        if not findings:
-            continue
-        rel = os.path.relpath(path, ROOT)
-        vendor = rel.split(os.sep)[1] in VENDOR
-        print(f"\n{os.path.dirname(rel)}" + ("  [vendor]" if vendor else ""))
-        for sev, msg in findings:
-            if vendor and sev == "BLOCKER":
-                sev = "VENDOR"
-            print(f"  {sev:9} {msg}")
-            blocked += sev == "BLOCKER"
+    for group, kind in targets:
+        for path in group:
+            if kind == "skills":
+                _, findings = audit(path)
+                for ref in sorted(glob.glob(os.path.join(os.path.dirname(path), "references", "*.md"))):
+                    if len(re.findall(r"^```", open(ref, encoding="utf-8").read(), re.M)) % 2:
+                        findings.append(("BLOCKER", f"unbalanced fence in references/{os.path.basename(ref)}"))
+            else:
+                _, findings = audit_flat(path, kind)
+            if not findings:
+                continue
+            rel = os.path.relpath(path, ROOT)
+            vendor = kind == "skills" and rel.split(os.sep)[1] in VENDOR
+            label = os.path.dirname(rel) if kind == "skills" else rel
+            print(f"\n{label}" + ("  [vendor]" if vendor else ""))
+            for sev, msg in findings:
+                if vendor and sev == "BLOCKER":
+                    sev = "VENDOR"
+                print(f"  {sev:9} {msg}")
+                blocked += sev == "BLOCKER"
 
     total = len(paths)
-    print(f"\n{total} skills swept, {blocked} blocker(s).")
+    print(f"\n{total} file(s) swept, {blocked} blocker(s).")
     print("Passing here is not the same as being read: judgement is the second pass.")
     return 1 if blocked else 0
 
