@@ -1,6 +1,6 @@
 ---
 name: job-description-analyzer
-description: Analisa uma vaga contra o perfil do usuário — requisito obrigatório separado do desejável, nota de aderência, lacunas, red flags do mercado brasileiro (PJ sem benefício convertido, salário a combinar, senioridade incoerente) e decisão de aplicar ou não. Use quando o usuário colar uma vaga, disser "vale a pena aplicar", "analisa essa vaga", "tô qualificado pra isso", "quantos por cento eu bato". Vem antes de resume-tailor, que só compensa se a nota justificar.
+description: Analyzes a job posting against the user's profile — mandatory requirements separated from nice-to-have, a fit score, gaps, Brazilian-market red flags (PJ with no benefits converted, "salário a combinar", incoherent seniority) and a decision on whether to apply. Use when the user pastes a posting or says "vale a pena aplicar", "analisa essa vaga", "tô qualificado pra isso", "quantos por cento eu bato". Comes before resume-tailor, which only pays off if the score justifies it.
 ---
 
 # Job Description Analyzer

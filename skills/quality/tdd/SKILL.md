@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: O loop red-green-refactor e o que faz um teste sobreviver a refactor — comportamento por interface pública, seam acordado antes de escrever, slice vertical em vez de escrever todos os testes primeiro, e os anti-padrões que passam sem verificar nada. Use quando o usuário quiser construir ou corrigir algo test-first, disser "red-green-refactor", "TDD", "escreve o teste antes". Qual camada testar é e2e-testing e integration-testing; esta é a disciplina do ciclo, em qualquer camada.
+description: The red-green-refactor loop and what makes a test survive a refactor — behavior through the public interface, the seam agreed before writing, a vertical slice instead of writing every test first, and the anti-patterns that pass without verifying anything. Use when the user wants to build or fix something test-first, or says "red-green-refactor", "TDD", "escreve o teste antes". Which layer to test is e2e-testing and integration-testing; this one is the discipline of the cycle, at any layer.
 ---
 
 # Test-Driven Development

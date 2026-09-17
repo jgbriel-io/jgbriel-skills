@@ -1,6 +1,6 @@
 ---
 name: resume-tailor
-description: Adapta o currículo para uma vaga específica sem inventar nada — reordena habilidades, reescreve bullets para a linguagem do anúncio, encaixa palavra-chave que o ATS procura e marca a linha entre adaptar e mentir. Use quando o usuário disser "adapta meu currículo pra essa vaga", "customiza o CV", "deixa alinhado com o anúncio". Analisar se vale aplicar é job-description-analyzer; compilar e publicar é cv-sync. Use after job-description-analyzer.
+description: Adapts the resume to a specific posting without inventing anything — reorders skills, rewrites bullets into the language of the ad, fits the keywords the ATS looks for, and marks the line between tailoring and lying. Use when the user says "adapta meu currículo pra essa vaga", "customiza o CV", "deixa alinhado com o anúncio". Deciding whether the posting is worth applying to is job-description-analyzer; compiling and publishing is cv-sync. Use after job-description-analyzer.
 ---
 
 # Resume Tailor
