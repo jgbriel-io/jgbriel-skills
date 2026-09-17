@@ -1,78 +1,75 @@
-# Claude Code — Guia Rápido
-## Modos de resposta (Caveman)
+# Claude Code — Cheat Sheet
 
-| Comando | Efeito |
-|---|---|
-| `/caveman lite` | Fragmentos leves, sem artigos |
-| `/caveman full` | Modo padrão ativo — máxima compressão |
-| `/caveman ultra` | Ultra comprimido |
-| `stop caveman` | Volta ao modo normal |
+Consulta no meio de uma sessão. Só o que **não** está gerado em outro lugar: os
+comandos dos plugins de terceiros e o mapa dos arquivos de configuração.
+
+As skills, os commands e os agents deste repo estão na tabela gerada em
+[STRUCTURE.md](STRUCTURE.md) — não são repetidos aqui, porque lista copiada à mão
+é lista que mente depois.
 
 ---
 
-## Context-mode
+## Plugins de terceiros
+
+### caveman — modo de resposta comprimido
+
+| Comando | Efeito |
+|---|---|
+| `/caveman lite` | Fragmentos leves, sem artigo |
+| `/caveman full` | Compressão padrão |
+| `/caveman ultra` | Compressão máxima |
+| `stop caveman` | Volta ao normal |
+
+Código, commit, PR e aviso de segurança saem em prosa normal mesmo com o modo
+ativo.
+
+### ponytail — a solução mais preguiçosa que funciona
+
+| Comando | Efeito |
+|---|---|
+| `/ponytail lite\|full\|ultra` | Intensidade do YAGNI |
+| `/ponytail-review` | Revisão caçando só over-engineering |
+| `/ponytail-audit` | Mesma varredura no repo inteiro |
+| `/ponytail-debt` | Coleta os comentários `ponytail:` num balanço |
+
+### context-mode — processa output fora da conversa
 
 | Comando | Efeito |
 |---|---|
 | `/ctx-stats` | Tokens economizados na sessão |
 | `/ctx-doctor` | Diagnóstico do plugin |
-| `/ctx-upgrade` | Atualizar para versão mais nova |
-| `/ctx-purge` | Limpar knowledge base (irreversível) |
-| `/ctx-insight` | Dashboard de analytics no browser |
+| `/ctx-search` | Busca na base indexada |
+| `/ctx-purge` | Limpa a base — irreversível |
 
-> **Bloqueado pelo context-mode:** WebFetch, Bash >20 linhas, Read para análise.
-> Usar `ctx_batch_execute` no lugar.
-
----
-
-## Skills — Git / Código
-
-| Comando | Efeito |
-|---|---|
-| `/branch` | Nova branch a partir de main |
-| `/commit` | Gera mensagem Conventional Commits |
-| `/diff` | Diff resumido contra ref |
-| `/sync` | Fetch + pull rebase |
-| `/undo` | Desfaz último commit (soft reset) |
-| `/wip` | Commit rápido de progresso |
-| `/code-review` | Code review do diff atual (nativo do Claude Code) |
-| `/plan` | Quebra tarefa em plano ordenado, com provas por passo |
-| `/where <símbolo>` | Localiza definição/uso no código |
-| `/why` | Contexto histórico de linha (git blame) |
-| `/map` | Mapa do diretório com responsabilidades |
+Quando os tools `ctx_*` não conectam, os hooks continuam injetando orientação
+apontando pra eles. Nesse caso, ignore a orientação e use `Bash`/`Read` direto;
+reiniciar resolve.
 
 ---
 
-## Skills — TCC (SyncClass)
+## Comandos nativos que valem lembrar
 
 | Comando | Efeito |
 |---|---|
-| `/tcc-status` | Progresso dos capítulos (1-10) |
-| `/tcc-revisar` | Revisão acadêmica como orientador severo |
-| `/tcc-fragmentos` | Captura fragmentos brutos via entrevista |
-| `/tcc-rascunho` | Escreve rascunho de seção |
-| `/tcc-revisao-impessoal` | Revisa impessoalidade/linguagem ABNT |
-
----
-
-## Skills — Outros
-
-| Comando | Efeito |
-|---|---|
-| `/skill-creator` | Cria ou melhora uma skill |
-| `/update-config` | Edita settings.json / hooks |
-| `/fewer-permission-prompts` | Reduz prompts de permissão |
-| `/simplify` | Revisa código alterado por qualidade |
+| `/code-review` | Revisão do diff atual — o eixo de defeito |
+| `/simplify` | Aplica limpeza de reuso e simplificação no que mudou |
 | `/security-review` | Auditoria de segurança do branch |
-| `/init` | Gera CLAUDE.md para projeto novo |
+| `/init` | Gera `CLAUDE.md` para um projeto |
+| `/update-config` | Edita `settings.json` e hooks |
+| `/skills` | Liga e desliga skill por nome |
 
 ---
 
-## Configuração global
+## Onde a configuração mora
 
 | Arquivo | O que faz |
 |---|---|
-| `~/.claude/CLAUDE.md` | Regras globais (idioma, git, segurança) |
-| `~/.claude/settings.json` | Modelo, plugins, permissões, hooks |
-| `~/.claude/settings.local.json` | Permissões pessoais (ctx tools) |
-| `~/.claude/projects/<project>/memory/` | Memória persistente entre sessões |
+| `~/.claude/CLAUDE.md` | Regras globais de comportamento |
+| `~/.claude/settings.json` | Modelo, permissões, hooks, plugins habilitados |
+| `~/.claude/settings.local.json` | Overrides pessoais de permissão |
+| `~/.claude/projects/<projeto>/memory/` | Memória persistente entre sessões |
+| `<projeto>/.claude/` | Escopo de projeto: skills, commands e settings próprios |
+
+Skill de projeto **não** colide com skill de plugin: a do plugin aparece sob o
+namespace dele (`jgbriel-skills:tdd`) e a do projeto sem prefixo (`tdd`). Quem
+disputa nome é o escopo pessoal, e `scripts/check-project-skills.sh` detecta.
