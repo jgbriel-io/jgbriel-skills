@@ -230,7 +230,7 @@ Before submitting any resume:
 6. ✅ Company/industry terminology is used correctly
 7. ✅ All claims are truthful
 8. ✅ File is named appropriately
-9. ✅ Formatação legível por ATS mantida (Gupy, Solides e Kenoby são os comuns aqui)
+9. ✅ ATS-readable formatting preserved (Gupy, Solides and Kenoby are the common ones here)
 10. ✅ Saved for interview prep reference
 
 ## Output format
@@ -246,9 +246,9 @@ makes the tailoring reviewable instead of trusted.
 - Always start with the job description analyzer
 - Keep tailoring changes documented for interview prep
 - Maintain master resume as source of truth
-- Nunca sacrificar compatibilidade com ATS pela customização: no Brasil a
-  triagem inicial passa por Gupy, Solides ou Kenoby na maioria das vagas de
-  porte, e o que elas não leem não chega a um humano
-- O currículo publicado pelo `cv-sync` é o genérico. A versão adaptada para uma
-  vaga é entregue àquela vaga, não vai para o site
+- Never trade ATS compatibility for tailoring: in Brazil the first screen runs
+  through Gupy, Solides or Kenoby on most sizeable openings, and what they
+  cannot read never reaches a human
+- The resume `cv-sync` publishes is the generic one. A version tailored to an
+  opening is delivered to that opening; it does not go to the site
 - Test keyword match after tailoring

@@ -1,8 +1,13 @@
-# ADR — template e critério
+# ADR — template and criterion
 
-Uma por decisão relevante capturada na entrevista (arquitetura, monorepo vs polyrepo, escolha de hosting, etc). Não criar ADR pra escolha trivial ou já coberta na tabela `## Decisões` simples.
+One per relevant decision captured in the interview (architecture, monorepo vs
+polyrepo, hosting choice, and so on). Do not create an ADR for a trivial choice
+or one already covered by the plain `## Decisões` table.
 
-Caminho: `wiki/Projetos/<nome>/architecture/<Nome> - ADR-NNN-slug-da-decisao.md`
+Path: `wiki/Projetos/<nome>/architecture/<Nome> - ADR-NNN-slug-da-decisao.md`
+
+The templates below are written into the user's vault and stay in Portuguese —
+a Brazilian reader consumes them.
 
 ```yaml
 ---
@@ -49,6 +54,7 @@ Alternativa escolhida + justificativa + "por que não X" para cada rejeitada.
 Gatilhos concretos que justificariam revisitar (escala, requisito novo, etc).
 ```
 
-Preencher só o que a entrevista deu; seção sem info vira `> [!gap]`.
+Fill in only what the interview produced; a section with no information becomes
+`> [!gap]`.
 
 ---

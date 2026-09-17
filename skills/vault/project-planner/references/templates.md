@@ -1,8 +1,11 @@
-# Templates — index.md e subpáginas
+# Templates — index.md and subpages
 
-Caminho: `wiki/Projetos/<nome>/index.md`
+Path: `wiki/Projetos/<nome>/index.md`
 
-### Frontmatter obrigatório
+The templates below are written into the user's vault and stay in Portuguese —
+a Brazilian reader consumes them.
+
+### Required frontmatter
 
 ```yaml
 ---
@@ -25,11 +28,11 @@ sources: []
 ```
 
 Status mapping:
-- `seed` → só ideia, sem código ainda
-- `developing` → em desenvolvimento ativo
-- `evergreen` → em produção / estável
+- `seed` → idea only, no code yet
+- `developing` → under active development
+- `evergreen` → in production / stable
 
-### Corpo do index.md (nível mínimo)
+### Body of index.md (minimum level)
 
 ```markdown
 # <Nome do Projeto>
@@ -76,9 +79,9 @@ Status mapping:
 - [[<tech-relacionada>]] — conceito relacionado
 ```
 
-### Seções adicionais (nível completo)
+### Extra sections (full level)
 
-Inserir entre `## Stack` e `## Subpáginas`:
+Insert between `## Stack` and `## Subpáginas`:
 
 ```markdown
 ## Domínios
@@ -94,7 +97,7 @@ Inserir entre `## Stack` e `## Subpáginas`:
 | <role> | <o que pode fazer> |
 ```
 
-E trocar a tabela `## Decisões` por wikilinks pros ADRs, se algum foi criado (Passo 3b):
+Replace the `## Decisões` table with wikilinks to the ADRs when any was created (Step 3b):
 
 ```markdown
 ## Decisões
@@ -104,11 +107,11 @@ E trocar a tabela `## Decisões` por wikilinks pros ADRs, se algum foi criado (P
 
 ---
 
-## Passo 3 — Criar subpáginas stub
+## Step 3 — Create stub subpages
 
-Criar apenas as subpáginas que o usuário marcou como relevantes. Caminho: `wiki/Projetos/<nome>/<secao>/<Nome> - <Seção>.md`
+Create only the subpages the user marked as relevant. Path: `wiki/Projetos/<nome>/<secao>/<Nome> - <Seção>.md`
 
-### Template de subpágina
+### Subpage template
 
 ```yaml
 ---
@@ -135,7 +138,7 @@ related:
 - [[<Nome do Projeto>]] — projeto pai
 ```
 
-Seções disponíveis e pastas:
+Available sections and folders:
 | Seção | Pasta | Filename |
 |-------|-------|----------|
 | Arquitetura | `architecture/` | `<Nome> - Arquitetura.md` |
@@ -147,8 +150,7 @@ Seções disponíveis e pastas:
 
 ---
 
-## Passo 3b — ADR (nível completo, só decisão não-óbvia)
+## Step 3b — ADR (full level, only a non-obvious decision)
 
-Template e critério de quando um ADR se justifica:
-[references/adr.md](references/adr.md). Decisão óbvia não vira ADR — vira linha na
-página do projeto.
+Template and criterion for when an ADR is justified: [adr.md](adr.md). An obvious
+decision does not become an ADR — it becomes a line on the project page.
