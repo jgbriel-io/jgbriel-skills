@@ -1,6 +1,6 @@
 ---
 name: wish
-description: Capture, enrich and organise future ideas in a project's wishlist file, before they become tracked work. Use when the user drops an idea ("would be nice if…", "one day I want…", "note this down"), asks to see or edit the wishlist, or wants an idea promoted into real work.
+description: Capture, enrich and organise future ideas in a project's wishlist file, before they become tracked work. Use when the user drops an idea about the project at hand ("would be nice if…", "one day I want…", "anota essa ideia"), asks to see or edit the wishlist, or wants an idea promoted into real work. A note that is not about this project's future goes to the personal vault via obsidian-vault; work that is already decided goes to to-issues.
 argument-hint: <free-form idea> | list | <W-ID> [edit] | done <W-ID> | drop <W-ID> | promote <W-ID>
 ---
 

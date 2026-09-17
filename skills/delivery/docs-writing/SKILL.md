@@ -1,6 +1,6 @@
 ---
 name: docs-writing
-description: Technical documentation style guide for README, docs/, ADRs, JSDoc/TSDoc, and inline code comments. Use when writing or reviewing technical documentation, READMEs, API docs, architecture decision records, or any non-academic prose in the codebase. Does NOT apply to TCC academic writing (separate skill).
+description: Technical documentation style guide for README, docs/, ADRs, JSDoc/TSDoc, and inline code comments. Use when writing or reviewing technical documentation, READMEs, API docs, architecture decision records, or any non-academic prose in the codebase. Does NOT apply to the TCC's academic prose, which has its own voice and norms — that is tcc-rascunho for drafting and tcc-revisao-impessoal for the final pass.
 ---
 
 # Estilo de Documentação Técnica
