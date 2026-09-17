@@ -46,7 +46,7 @@ Sem brief, colete o que falta você mesmo: o usuário trouxe a info → aceita; 
 4. **Status** — sem código (`seed`), em desenvolvimento (`developing`), em produção (`evergreen`).
 5. **Subpáginas** — propor as que fazem sentido pro projeto e confirmar.
 6. **Docs/repo em disco?** — perguntar só se parecer projeto já iniciado. Se
-   existir (ou estiver planejada) pasta em `D:/Projetos/...`, registrar o
+   existir (ou estiver planejada) pasta em na pasta de projetos do disco, registrar o
    caminho em `sources:` do frontmatter — é o que o project-sync usa depois.
 7. **Fora do escopo (v1)** — o que o projeto NÃO vai fazer na primeira versão.
    Sugerir 2–3 candidatos com base no objetivo (integrações, mobile, admin,
@@ -101,7 +101,7 @@ Criado:
 
 Próximos passos:
 - Preencher seções marcadas com > [!gap]
-- Se tiver docs em D:/Projetos/..., rodar project-sync pra enriquecer
+- Se tiver docs no disco, rodar project-sync pra enriquecer
 - [se não veio de um brief] Fechar a direção: /discuss · ou pressionar o que já existe: /grill-me
 - Fluxo completo (spec → design → implementação): project-kickoff — esta skill foi a Fase 1
 ```

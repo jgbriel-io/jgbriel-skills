@@ -4,7 +4,7 @@ description: Cria, busca e conecta notas no vault pessoal do Obsidian seguindo a
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
-# Obsidian Vault (jgabriel)
+# Obsidian Vault
 
 Personal knowledge base. All operations follow the conventions below — they
 exist because this vault resolves wikilinks by **file path only**, and breaking
@@ -12,18 +12,14 @@ them creates ghost pages.
 
 ## Location and structure
 
-`C:\Users\jgabriel\Documents\Obsidian Vault\`
+The vault lives on the Windows machine, under the user's `Documents`. Resolve the
+real path from the environment rather than hardcoding one — a path written here
+is wrong on every other machine, and this skill does nothing useful without the
+vault mounted. Say so and stop, instead of writing notes somewhere else.
 
-```
-wiki/
-├── Aprendizado/
-├── Clientes/
-├── College/TCC/                ← academic context (flattened 2026-07-17)
-├── Tools/Claude Code/
-├── Pessoal/
-└── Projetos/                   ← SyncClass, jgabriel.dev, site-cliente-a, Templates
-WIKI.md                         ← real root, do not touch
-```
+Inside it, `WIKI.md` is the real root and is never touched. Everything else lives
+under `wiki/<domain>/`, one folder per domain (learning, clients, college,
+personal, projects, tools).
 
 **Never create `.md` files at the vault root.** Every new page goes inside
 `wiki/<domain>/`. If no domain fits, ask the user which one to use.
@@ -39,16 +35,16 @@ clicked. Therefore:
 - Inside markdown tables, escape the display pipe: `[[path\|Text]]` — a raw `|`
   splits the cell and breaks both link and table
 
-### Established aliases (use as display text, link by path)
+### Resolving a path before linking
 
-| Alias | Path |
-|---|---|
-| SyncClass (academic) | `wiki/Faculdade/TCC/index` |
-| SyncClass Projeto (technical) | `wiki/Projetos/SyncClass/index` |
-| TCC | `wiki/Faculdade/TCC/index` |
-| Projetos | `wiki/Projetos/index` |
-| jgabriel.dev | `wiki/Projetos/jgabriel.dev/index` |
-| site-cliente-a | `wiki/Projetos/site-cliente-a/index` |
+**Never write a wikilink from memory.** A table of paths in this file goes stale
+the first time a folder is renamed, and a link to a path that no longer exists is
+exactly the ghost page this skill exists to prevent — it fails silently, looking
+like a link until someone clicks it.
+
+Glob the vault for the target's `index.md` and link the path that comes back. If
+two candidates come back, the page has a duplicate and that is the bug to fix
+first, not to route around.
 
 ### Anti-ghost rule
 
