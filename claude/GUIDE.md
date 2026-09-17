@@ -29,16 +29,14 @@
 
 | Comando | Efeito |
 |---|---|
-| `/status` | Branch, staged, unstaged, último commit |
 | `/branch` | Nova branch a partir de main |
 | `/commit` | Gera mensagem Conventional Commits |
 | `/diff` | Diff resumido contra ref |
 | `/sync` | Fetch + pull rebase |
 | `/undo` | Desfaz último commit (soft reset) |
 | `/wip` | Commit rápido de progresso |
-| `/review` | Code review do diff atual |
-| `/plan` | Quebra tarefa em plano implementável |
-| `/scope` | Quebra em vertical slices independentes |
+| `/code-review` | Code review do diff atual (nativo do Claude Code) |
+| `/plan` | Quebra tarefa em plano ordenado, com provas por passo |
 | `/where <símbolo>` | Localiza definição/uso no código |
 | `/why` | Contexto histórico de linha (git blame) |
 | `/map` | Mapa do diretório com responsabilidades |

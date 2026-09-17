@@ -1,6 +1,6 @@
 ---
 name: tcc-rascunho
-description: Transforma arquivo de fragmentos brutos em seção formal de TCC parágrafo a parágrafo, aplicando normas ABNT/FEPI, voz impessoal acadêmica, vocabulário formal em português, citações ABNT. Use quando o usuário tem matéria-prima acumulada (de tcc-fragmentos ou notas próprias) e quer moldar em texto de capítulo, ou diz "vamos escrever a seção X do capítulo Y", "transformar esses fragmentos em texto", "rascunhar capítulo do TCC". Trabalha em loop conversacional — propõe aberturas candidatas, escreve um bloco por vez, argumenta sobre formato (prosa/lista/tabela/figura). Não substitui revisão final (use tcc-revisao-impessoal).
+description: Transforma fragmentos brutos em seção formal de TCC, parágrafo a parágrafo, aplicando normas ABNT/FEPI, voz impessoal e citações. Use quando o usuário já tem matéria-prima acumulada e diz "vamos escrever a seção X do capítulo Y", "transformar esses fragmentos em texto", "rascunhar capítulo do TCC". A varredura final é tcc-revisao-impessoal.
 allowed-tools: Read, Write, Edit, Glob
 ---
 
