@@ -164,7 +164,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 | `code-reviewer` | Stack-specific review checklist for React + TanStack Query + Supabase multi-tenant apps — hook architecture, RLS/tenant… |
 | `e2e-testing` | Guides writing reliable end-to-end tests — programmatic auth fixtures instead of UI login, per-run data isolation, acce… |
 | `integration-testing` | Guides writing integration tests against real dependencies — disposable containers for database/services instead of moc… |
-| `tdd` | Test-driven development. |
+| `tdd` | O loop red-green-refactor e o que faz um teste sobreviver a refactor — comportamento por interface pública, seam acorda… |
 
 </details>
 <details><summary><code>security</code> — 6 skills</summary>
@@ -176,7 +176,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 | `lgpd-checklist` | LGPD compliance checklist for projects handling personal data — data inventory, legal basis, retention/anonymization, d… |
 | `multi-tenant-isolation-audit` | Audits multi-tenant systems for cross-tenant data leakage — missing isolation filters, privileged-role bypass (service_… |
 | `secrets-management` | Manage secrets and sensitive config across environments and CI — classify sensitive vs. |
-| `security-review-checklist` | Broad OWASP-style security sweep of a PR or release — injection, XSS, SSRF, IDOR/broken access control, CSRF, insecure … |
+| `security-review-checklist` | Varredura OWASP de um PR ou release — injection, XSS, SSRF, IDOR, CSRF, desserialização insegura — como checklist explí… |
 
 </details>
 <details><summary><code>tcc</code> — 6 skills</summary>

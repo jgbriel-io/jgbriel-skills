@@ -1,6 +1,6 @@
 ---
 name: security-review-checklist
-description: Broad OWASP-style security sweep of a PR or release — injection, XSS, SSRF, IDOR/broken access control, CSRF, insecure deserialization. Stack-agnostic checklist with exploit/mitigation pairs; per-area deep dives are delegated to the dedicated skills (auth-patterns, dependency-audit, secrets-management, input-validation, multi-tenant-isolation-audit). Use when user asks for a security review, OWASP checklist, vulnerability audit of a PR/diff, or mentions injection, XSS, SSRF, IDOR, CSRF.
+description: Varredura OWASP de um PR ou release — injection, XSS, SSRF, IDOR, CSRF, desserialização insegura — como checklist explícito, com par exploit/mitigação por item e delegação das áreas fundas para as skills dedicadas (auth-patterns, dependency-audit, secrets-management, input-validation, multi-tenant-isolation-audit). Use quando o usuário pedir revisão de segurança, checklist OWASP, auditoria de vulnerabilidade, ou citar injection, XSS, SSRF, IDOR, CSRF. O `/security-review` nativo varre o branch e acha o que acha; este é o roteiro que garante que nenhuma classe ficou sem ser olhada.
 ---
 
 # Security Review Checklist
