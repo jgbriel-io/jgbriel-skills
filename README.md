@@ -284,6 +284,16 @@ claude plugin install jgbriel-skills@jgbriel
 Skills, commands, agents e hooks chegam juntos, e os hooks se conectam sozinhos —
 não há nada para copiar para `~/.claude/` nem `settings.json` para editar à mão.
 
+### Vindo do layout antigo de symlinks
+
+Antes do plugin, `~/.claude/{skills,agents,commands,hooks}` eram symlinks para
+dentro de um clone deste repo. Esses caminhos não existem mais na `main`: depois
+de um `git pull` os links ficam pendurados e o Claude Code abre sem skill, sem
+agent e sem o `guard-dangerous-bash`. No Windows,
+`scripts/migrate-windows.ps1` desfaz os links e instala o plugin — e para quando
+encontra um diretório de verdade em vez de um link, porque ali existe algo que
+nunca esteve no repo.
+
 Para desenvolver as skills, aponte o marketplace para o próprio working copy:
 
 ```bash
