@@ -291,7 +291,7 @@ servidor de escopo de usuário mora em `~/.claude.json`, registrado por
 | Server | Comando | Uso |
 |---|---|---|
 | `codebase-memory-mcp` | `~/.local/bin/codebase-memory-mcp` | Grafo de conhecimento do código: `search_graph`, `trace_path`, `query_graph`. Escopo de usuário, já instalado no Linux |
-| `serena` | `uv tool install -p 3.13 serena-agent` | Recuperação e edição **no nível do símbolo** via language server — o que grep não dá. [oraios/serena](https://github.com/oraios/serena) |
+| `serena` | `serena start-mcp-server --context=claude-code --project-from-cwd` | Recuperação e edição **no nível do símbolo** via language server — o que grep não dá. [oraios/serena](https://github.com/oraios/serena) |
 | `github` | `npx @modelcontextprotocol/server-github` | Requer `GITHUB_PERSONAL_ACCESS_TOKEN` no ambiente |
 | `supabase` | `npx @supabase/mcp-server-supabase@latest --read-only` | Requer `SUPABASE_ACCESS_TOKEN`; read-only por flag explícita |
 
@@ -299,13 +299,48 @@ servidor de escopo de usuário mora em `~/.claude.json`, registrado por
 "quem chama o quê" sobre um índice já construído, o serena responde sobre o estado
 atual do arquivo via LSP. Quando discordam, o LSP está certo.
 
-### Fora do Claude Code
+Instalação do serena, sem pipe de instalador para o shell (negado por
+`permissions.deny`):
+
+```bash
+uv tool install -p 3.13 serena-agent   # instala serena, serena-agent, serena-hooks
+serena setup claude-code               # registra o MCP em escopo de usuário
+```
+
+`serena setup` roda o `claude mcp add --scope user` sozinho — não montar o comando
+à mão. `--project-from-cwd` faz o servidor pegar o projeto do diretório em que a
+sessão abriu. O `uv` em si veio do tarball da release no GitHub, extraído para
+`~/.local/bin`. Os hooks opcionais para Claude Code estão em
+[oraios.github.io/serena](https://oraios.github.io/serena/02-usage/030_clients.html#claude-code)
+e **não** estão configurados.
+
+### Fora do Claude Code — CocoIndex
 
 [CocoIndex](https://github.com/cocoindex-io/cocoindex) não é MCP server: é
 biblioteca Python de indexação incremental — fonte, transformação, destino
-(pgvector, grafo), reprocessando só o delta a cada commit. Entra num projeto que
+(arquivo, pgvector, grafo), reprocessando só o delta. Entra num projeto que
 precisa de busca semântica própria, não na configuração do agente. Traz a própria
 skill para agentes em `skills/cocoindex/` do repo deles.
+
+```bash
+uv tool install cocoindex        # CLI: init, ls, show, update, drop
+echo "COCOINDEX_DB=./cocoindex.db" > .env
+cocoindex update main.py
+```
+
+**Não precisa de Postgres.** A 1.0 usa um arquivo local de banco por app
+(`COCOINDEX_DB`); pgvector é um *destino* que se escolhe, não pré-requisito.
+
+Um app é `coco.App(nome, main_fn, **args)`; a função marcada com
+`@coco.fn(memo=True)` é a unidade que o motor memoiza; `localfs.walk_dir(...)` com
+`coco.mount_each(...)` é o par que percorre a fonte. Dentro da função,
+`file.file_path` é um `FilePath`, não um `pathlib.Path`: chamar `.read_text()`
+direto levanta `AttributeError`, então `.resolve()` primeiro.
+
+**A memoização é por conteúdo, não por mtime.** Medido sobre os 84 `SKILL.md`
+desta frota: primeira execução `84 added`; execução seguinte sem mudança
+`84 unchanged`; `touch` num arquivo continua `84 unchanged`; uma linha alterada de
+verdade dá `1 reprocessed, 83 unchanged`.
 
 ---
 
