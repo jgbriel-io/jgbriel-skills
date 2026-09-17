@@ -87,7 +87,7 @@ Imported skills are never ready as-is. After pulling, grep the pulled skills for
 
 - `/setup-matt-pocock-skills` → replace with "configured in the project's
   `CLAUDE.md` or equivalent context file"
-- `diagnosing-bugs` → `diagnose` · `grill-me` → `grill-me`
+- `diagnosing-bugs` → `diagnose` · upstream `grilling` → `grill-me`
 - `ask-matt`, matt's URLs/paths → remove or adapt
 
 Verify with a final grep — zero leftovers.
@@ -99,17 +99,17 @@ Verify with a final grep — zero leftovers.
   skills also get a row in the vault `skills/index.md`, and the counts there and
   in the Claude `index.md` get updated. The old `mirror-to-vault.sh` was removed —
   it hardcoded one machine's vault path and only ever ran from Git Bash.
-- Append a sync entry to `Critérios de Qualidade das Skills.md`'s audit section: date, pulled,
+- Append a sync entry to the audit section of `Skills Quality Criteria.md`: date, pulled,
   adopted, protected.
 - New skills go on the pending list for a `/skill-audit` pass.
 
 ### 7. Commit and republish
 
-1. **Bump the `version` in each touched plugin's `.claude-plugin/plugin.json`.**
+1. **Bump `version` in `.claude-plugin/plugin.json`.** The fleet is one plugin.
    The runtime is pinned to a version and a commit; without a bump, `update` has
    nothing to install and the pull silently never reaches any machine.
 2. Ask the user before committing; Conventional Commits, English.
-3. `claude plugin update <plugin>@jgbriel` on this machine to land it, then the
+3. `claude plugin update jgbriel-skills` on this machine to land it, then the
    same on the others. `claude plugin validate .` before pushing catches a broken
    manifest earlier than any of them.
 

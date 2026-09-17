@@ -181,10 +181,6 @@ Toda mensagem de erro de UI tem três partes:
 Boundary, os quatro estados e o mapeador de mensagem implementados em React, Vue e
 Svelte: [references/stacks.md](references/stacks.md).
 
-  <ul>{#each $promise.data as o (o.id)}<li>{o.name}</li>{/each}</ul>
-{/if}
-```
-
 ## Anti-patterns
 
 - ❌ Um erro de render em um card derruba a página inteira por falta de boundary

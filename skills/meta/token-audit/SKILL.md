@@ -1,6 +1,6 @@
 ---
 name: token-audit
-description: Audita consumo de token do Claude Code entre sessões e projetos — tendência semanal, sessões e projetos mais pesados, sessões maratona (que recompõem cache_read a cada turno) e skills que queimam muitos turnos num intervalo curto. Use quando o usuário disser "quanto token eu gastei", "token audit", "quais skills custam mais", "sessão gastando muito", ou como manutenção periódica.
+description: Audit Claude Code token consumption across sessions and projects — weekly trend, heaviest sessions and projects, marathon sessions (which re-send cache_read every turn) and skills burning many turns in a short window. Use when the user says "quanto token eu gastei", "token audit", "which skills cost the most", "this session is expensive", or as periodic maintenance.
 allowed-tools: Bash, Read
 ---
 
@@ -11,11 +11,12 @@ projects, all sessions) and prints only derived summaries, never raw
 transcript content:
 
 ```bash
-node "$(dirname "$0")/scripts/analyze.mjs"
+node "${CLAUDE_PLUGIN_ROOT}/skills/meta/token-audit/scripts/analyze.mjs"
 ```
 
-(Or reference the absolute path directly:
-`~/.claude/skills/token-audit/scripts/analyze.mjs`.)
+The skill ships inside the plugin, so its script lives in the installed copy —
+`~/.claude/plugins/cache/jgbriel/jgbriel-skills/<version>/`, not in
+`~/.claude/skills/`, which the plugin migration emptied.
 
 ## What it reports
 

@@ -205,7 +205,7 @@ solta em `skills/` não é descoberta sozinha.
 | `skill-audit` | Audit Claude Code skills against the fleet's reference implementation — a mechanical sweep first, then criterion-by-cri… |
 | `skill-creator` | Create new Claude Code skills from scratch and iteratively improve existing ones. |
 | `skill-sync` | Sync the skill fleet against its upstreams — mattpocock/skills and lucasmonstrox/utevo-lux — diffing repo vs upstream, … |
-| `token-audit` | Audita consumo de token do Claude Code entre sessões e projetos — tendência semanal, sessões e projetos mais pesados, s… |
+| `token-audit` | Audit Claude Code token consumption across sessions and projects — weekly trend, heaviest sessions and projects, marath… |
 | `wizard` | Generates an interactive bash wizard for setup steps only a human can do — dashboards, credentials, CI secrets, one-off… |
 | `writing-great-skills` | Reference for writing and editing skills well — the vocabulary and principles that make a skill predictable. |
 

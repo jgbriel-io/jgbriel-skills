@@ -117,7 +117,7 @@ Claude sees when deciding whether to load the skill. Cover:
 - Write in **third person** ("Create skills" not "I create skills").
 - First sentence: what it does. Second sentence: "Use when ...".
 
-**Naming (C1.1):** kebab-case; the name says what the skill does or its
+**Naming:** kebab-case; the name says what the skill does or its
 domain — never a persona or vibe (no `senior-*`, `elite-*`, `*-pro-max`).
 Use a domain-prefix family when 3+ skills share a domain (`tcc-*`,
 `project-*`). Command-style skills may be imperative (`setup-pre-commit`).
@@ -127,17 +127,19 @@ Good: `Extract structured data from PDFs (invoices, receipts, forms) into JSON o
 
 ### Body
 
-Keep under ~500 lines. If longer, split into `references/` and link from body.
+Keep inside the range the reference skills actually occupy — `utevo-lux` runs 64
+to 185 lines, this fleet's `core-loop` 28 to 257. Past ~260, split into
+`references/` and link from the body; `/skill-audit` measures against the same
+numbers, so a skill written to a looser rule fails its first audit.
 
 Use **imperative** voice. Explain *why* a step matters instead of all-caps
 MUSTs. Claude has theory of mind; explain the reasoning and it'll generalize.
 
 #### Patterns that work
 
-**Defining output format:**
-```markdown
-Formato do relatório e estilo de commit:
-[references/report-and-commit.md](references/report-and-commit.md).
+Concrete shapes that keep a skill's output predictable — a fixed report
+skeleton, an examples block, a decision table — with the commit style that goes
+with them: [references/report-and-commit.md](references/report-and-commit.md).
 
 ## Step 3 — Test on realistic prompts
 
