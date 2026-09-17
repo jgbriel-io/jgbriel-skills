@@ -21,7 +21,7 @@ Esta skill **não** aplica normas ABNT, não exige voz impessoal, não estrutura
 ## Quando NÃO usar
 
 - Reescrita de seção já existente → use edição direta no capítulo.
-- Aplicar normas ABNT → use `tcc-writing` (skill do projeto).
+- Aplicar normas ABNT → `tcc-writing`, skill local do projeto SyncClass (fora desta frota; pode não estar na sessão).
 - Moldar fragmentos em parágrafos formatados → use `tcc-rascunho`.
 - Revisão de voz impessoal/clichês → use `tcc-revisao-impessoal`.
 
