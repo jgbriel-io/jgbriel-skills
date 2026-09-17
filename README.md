@@ -195,7 +195,7 @@ solta em `skills/` não é descoberta sozinha.
 | `react-best-practices` | React 18 + Vite performance rules — bundle size, re-renders, waterfalls, subscriptions. |
 | `supabase-hooks` | Client data layer for Supabase + TanStack Query — custom hooks, mutations, queries, real-time subscriptions, error hand… |
 | `tanstack-query-patterns` | Client data layer with TanStack Query 5 + Axios — service pattern, module-prefixed query keys, mutations, cache invalid… |
-| `web-perf` | Analyzes web performance using Chrome DevTools MCP. |
+| `web-perf` | Measures web performance on a running page through the Chrome DevTools MCP — Core Web Vitals (LCP, INP, CLS), FCP, TBT … |
 
 </details>
 <details><summary><code>meta</code> — 5 skills</summary>

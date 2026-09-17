@@ -164,6 +164,10 @@ Toda mensagem de erro de UI tem três partes:
 - **Por que, se for útil** — só quando ajuda a decidir a próxima ação ("sua sessão expirou" vs. genérico "erro")
 - **O que fazer agora** — botão/link de ação (retry, voltar, contatar suporte), nunca deixar o usuário só olhando o texto
 
+Erro de validação por campo, dentro de um formulário, não é estado de tela: é
+`forms-validation` — a mesma requisição 422 vira mensagem ao lado do campo, não
+tela de erro. Esta skill cobre o que falha em volta do formulário.
+
 ## Checklist
 
 - [ ] Toda seção que renderiza dado externo/de terceiro tem boundary próprio (não só o boundary de topo da app)

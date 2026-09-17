@@ -70,6 +70,9 @@ import { Button } from '@/components/ui/button'
 
 ## Acessibilidade
 
+O mínimo que todo componente novo cumpre. Auditar o que já existe — axe no CI,
+navegação por teclado, contraste, leitor de tela — é `accessibility-audit`.
+
 - `alt` descritivo em imagens
 - Botões com texto ou `aria-label`
 - Inputs sempre com `label` associado
