@@ -3,10 +3,10 @@
 ```markdown
 # JOB ANALYSIS REPORT
 
-**Position:** Senior Product Manager
-**Company:** TechCorp Inc.
-**Location:** San Francisco, CA (Hybrid)
-**Salary Range:** $140K-$180K + equity
+**Vaga:** Desenvolvedor Back-end Pleno
+**Empresa:** Empresa Exemplo
+**Local:** Remoto (Brasil) · híbrido 2x em São Paulo
+**Faixa:** R$ 8.000-11.000 CLT · PJ equivalente ≈ R$ 11.500
 
 ═══════════════════════════════════════════
 
@@ -142,7 +142,7 @@ Better: "Launched 8 features in 12 months, increasing user engagement by 35% and
 ### Opening Hook (Choose One):
 
 **Option 1 - Specific Company Knowledge:**
-"I noticed TechCorp recently launched your API marketplace - I've spent the last 2 years as PM for a developer tools platform, and I'm excited about the opportunity to bring that experience to your growing API ecosystem."
+"I noticed Empresa Exemplo recently launched your API marketplace - I've spent the last 2 years as PM for a developer tools platform, and I'm excited about the opportunity to bring that experience to your growing API ecosystem."
 
 **Option 2 - Mutual Connection:**
 "[Name] on your product team mentioned you're looking for a PM to lead the API product line - my 2 years in developer tools and B2B SaaS background would be a strong fit."
@@ -169,7 +169,7 @@ Better: "Launched 8 features in 12 months, increasing user engagement by 35% and
 - Interpretation: Likely startup or high-growth
 - May mean: Long hours, ambiguity, rapid changes
 
-**Flag 2:** Salary range is wide ($140K-$180K)
+**Flag 2:** Salary range is wide (R$ 14.000-R$ 18.000)
 - 29% spread
 - May indicate: Experience range is flexible, or negotiation room
 

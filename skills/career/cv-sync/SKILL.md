@@ -7,6 +7,9 @@ description: Pipeline do currículo: edita os .tex canônicos, recompila, distri
 
 Um comando, ciclo completo: .tex → PDF → pasta pessoal → site → produção → vault.
 
+**Windows apenas.** O pipeline depende do MiKTeX e dos discos `D:` e `/d/`. Em
+outra máquina, diga isso e pare — não existe meio caminho útil aqui.
+
 ## Fontes e destinos
 
 | O quê | Onde |
@@ -17,20 +20,17 @@ Um comando, ciclo completo: .tex → PDF → pasta pessoal → site → produç�
 | Site (servido pelo botão) | `D:/Projetos/projetos-pessoais/jgbriel-dev/public/resumes/` |
 | Cópia pessoal | `D:/documentos/pessoais/` |
 | Espelho vault | `wiki/Professional/Currículo.md` |
-| Runbook/releases | `wiki/Projetos/Pessoais/jgabriel.dev/deployment/jgabriel.dev - Deploy.md` |
+| Runbook/releases | a página de deployment do site no vault |
 
 `resumes-src/` fica fora de `public/` de propósito: fonte versionada no git, nunca servida.
 
 ## Regras de conteúdo
 
-Da memória `feedback-textos-profissionais` — aplicar antes de propor qualquer texto:
-
-1. Sem travessão (em dash). Vírgula, dois-pontos, parênteses ou ponto-e-vírgula.
-2. PostgreSQL, não Supabase, em resumo/headline. Supabase só em Habilidades e stack de projeto.
-3. Métricas voláteis com qualificador: "cerca de 200 containers", "100+ deploys", "múltiplos ambientes". Nunca cravar número exato volátil.
-4. 1 página, sempre. EN define layout, PT encurta texto.
-5. Título B2ML no CV: "Analista de TI Júnior" (oficial). Título funcional é só no LinkedIn.
-6. E-mail oficial; JLAC fora do CV.
+Ler a memória `feedback-textos-profissionais` **antes de propor qualquer texto**.
+Ela guarda as regras fixas do usuário para texto sobre ele mesmo: pontuação,
+como nomear a stack, como qualificar métrica volátil, tamanho, e o que vai em
+cada canal. São preferências pessoais dele, não convenção pública, e por isso
+vivem na memória e não neste repositório.
 
 Mudança de conteúdo aplica nos DOIS .tex (PT e EN espelhados) e no espelho do vault.
 
@@ -80,7 +80,10 @@ Content-Length de `https://jgbriel.dev/resumes/<nome>.pdf` deve bater com o tama
 
 ### 6. Registrar
 
-- Apender linha na tabela `## Releases` do runbook: `| YYYY-MM-DD | <sha curto> | <mudança em 1 frase> |`
+- Apender linha na tabela `## Releases` do runbook: `| YYYY-MM-DD | <sha curto> | <mudança em 1 frase> |`.
+  Resolver a página por glob no vault em vez de escrever o caminho de memória: o
+  domínio aparece escrito de duas formas nas páginas antigas, e link por caminho
+  errado vira ghost page.
 - Sincronizar `wiki/Professional/Currículo.md` com o novo conteúdo
 - Atualizar `updated:` do frontmatter nas duas páginas
 
