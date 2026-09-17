@@ -29,7 +29,6 @@ jgbriel-skills/
 │   ├── check-doc-refs.py         # fails when the docs name a command or skill that is gone
 │   ├── audit-sweep.py            # mechanical pass over skills, agents and commands
 │   ├── check-project-skills.sh   # finds a project skill shadowed by a personal one
-│   ├── migrate-windows.ps1       # takes the machine out of the old symlink layout
 │   └── audit-labels.sh
 │
 ├── templates/                    # project templates, to copy into any repo
@@ -297,15 +296,6 @@ claude plugin install jgbriel-skills@jgbriel
 
 Skills, commands, agents and hooks arrive together and the hooks wire themselves —
 there is nothing to copy into `~/.claude/` and no `settings.json` to edit by hand.
-
-### Coming from the old symlink layout
-
-Before the plugin, `~/.claude/{skills,agents,commands,hooks}` were symlinks into a
-clone of this repo. Those paths no longer exist on `main`: after a `git pull` the
-links dangle and Claude Code opens with no skills, no agents and no
-`guard-dangerous-bash`. On Windows, `scripts/migrate-windows.ps1` undoes the links
-and installs the plugin — and stops when it finds a real directory instead of a
-link, because something lives there that was never in the repo.
 
 To develop the skills, point the marketplace at the working copy itself:
 

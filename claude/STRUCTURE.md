@@ -26,9 +26,9 @@ that differs between them is the absolute paths.
 | `plugins/` | Cache of installed plugins, managed by the CLI |
 
 **The old layout.** Before the plugin, `~/.claude/{skills,agents,commands,hooks}`
-were symlinks into a clone of this repo. Those paths are gone: a `git pull` leaves
-the links dangling and the session opens with nothing, `guard-dangerous-bash`
-included. On Windows, `scripts/migrate-windows.ps1` undoes it.
+were symlinks into a clone of this repo. Both machines are long past it and the
+migration script is gone; a machine that still has those dangling links is fixed
+by deleting them and running `node scripts/bootstrap.mjs`.
 
 ---
 
@@ -400,8 +400,14 @@ function, `file.file_path` is a `FilePath`, not a `pathlib.Path`: calling
 | `check-doc-refs.py` | Fails when the prose names a command or skill that no longer exists |
 | `audit-sweep.py` | The mechanical pass of `/skill-audit`: size against the reference, frontmatter, broken link, residue from another tool |
 | `check-project-skills.sh` | Finds a project skill shadowed by a personal skill of the same name |
-| `migrate-windows.ps1` | Takes the machine out of the old symlink layout and installs the plugin |
 | `audit-labels.sh` | Checks the issue labels |
+
+Handoffs are not versioned here. This repository is the fleet, not a project, so a
+handoff about it has no reader other than the next session: it goes to
+`~/.claude/handoffs/`, named `YYYY-MM-DD-slug.md`. Only a project repository keeps
+handoffs in `docs/handoffs/`, where they are repository artifacts and get committed.
+Do not create that folder here — the `handoff` skill writes into it whenever it
+exists.
 
 All of these run in CI (`.github/workflows/checks.yml`), on pushes to `main` and
 on every PR: the two doc checks, the sweep, and the three test files. Until
