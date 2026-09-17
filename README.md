@@ -202,7 +202,7 @@ solta em `skills/` não é descoberta sozinha.
 
 | Skill | Uso |
 |---|---|
-| `skill-audit` | Audit installed Claude Code skills against the C1–C11 quality rubric — per-skill scores, automatic blockers, trigger-co… |
+| `skill-audit` | Audit Claude Code skills against the fleet's reference implementation — a mechanical sweep first, then criterion-by-cri… |
 | `skill-creator` | Create new Claude Code skills from scratch and iteratively improve existing ones. |
 | `skill-sync` | Sync the skill fleet against its upstreams — mattpocock/skills and lucasmonstrox/utevo-lux — diffing repo vs upstream, … |
 | `token-audit` | Audita consumo de token do Claude Code entre sessões e projetos — tendência semanal, sessões e projetos mais pesados, s… |
