@@ -89,7 +89,17 @@ tools: Read
         assert len(dupes) == 1, dupes
         assert sorted(next(iter(dupes.values()))) == sorted([same_a, same_b]), dupes
 
-    print("ok — 6 checks")
+    # The defect this rule was written for: inside references/, a link written
+    # as `references/adr.md` points at a level that does not exist. Replayed
+    # from the real file, not invented.
+    with tempfile.TemporaryDirectory() as d:
+        open(os.path.join(d, "adr.md"), "w", encoding="utf-8").write("# adr\n")
+        dead = [m for _, m in sweep.shared("See [adr.md](references/adr.md).\n", d)]
+        assert has(dead, "link to `references/adr.md`"), dead
+        live = [m for _, m in sweep.shared("See [adr.md](adr.md).\n", d)]
+        assert not has(live, "does not exist"), live
+
+    print("ok — 7 checks")
 
 
 if __name__ == "__main__":

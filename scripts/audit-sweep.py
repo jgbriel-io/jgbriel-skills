@@ -230,8 +230,13 @@ def main():
             if kind == "skills":
                 _, findings = audit(path)
                 for ref in sorted(glob.glob(os.path.join(os.path.dirname(path), "references", "*.md"))):
-                    if len(re.findall(r"^```", open(ref, encoding="utf-8").read(), re.M)) % 2:
-                        findings.append(("BLOCKER", f"unbalanced fence in references/{os.path.basename(ref)}"))
+                    # The same structural checks the SKILL.md gets. A reference
+                    # file used to get only the fence one, which is how
+                    # `[adr.md](references/adr.md)` sat dead inside references/
+                    # itself: relative to a reference, `references/` is a level
+                    # that does not exist.
+                    for sev, msg in shared(open(ref, encoding="utf-8").read(), os.path.dirname(ref)):
+                        findings.append((sev, f"references/{os.path.basename(ref)}: {msg}"))
                     if ref in dupes:
                         findings.append(("BLOCKER", f"references/{os.path.basename(ref)} is byte-identical to " +
                                          ", ".join(f"`{d}`" for d in dupes[ref]) + " — share one copy"))
