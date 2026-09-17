@@ -1,0 +1,33 @@
+# Caches
+*.log
+*.tmp
+*.cache
+node_modules/
+
+# Local backups
+*.original.md
+*.backup
+*.bak
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Local-only state (não comitar)
+local/
+.local/
+
+# Kiro example files
+*.example
+
+# impeccable is installed into ~/.claude/skills/ as its own ~413MB git clone,
+# not as a fleet skill: it has no top-level SKILL.md and instead self-registers
+# as the `impeccable@skills-dir` plugin (hence `impeccable:impeccable`).
+# It is an external checkout, so it is not tracked here -- and a reconciliation
+# reporting it as "only in global" is expected, not drift.
+claude/skills/impeccable/
+
+# private repo roster for scripts/audit-labels.sh - never commit
+scripts/.pipeline-repos
+__pycache__/

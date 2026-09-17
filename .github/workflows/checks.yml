@@ -1,0 +1,33 @@
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: generated inventories are up to date
+        run: python3 scripts/gen-inventory.py --check
+
+      - name: no reference to a command or skill that does not exist
+        run: python3 scripts/check-doc-refs.py
+
+      # The sweep and the three test files gate what they check only if
+      # something runs them. Until now nothing did, which is the same failure
+      # the sweep itself exists to catch: a rule nobody runs reports clean.
+      - name: skills, agents and commands sweep
+        run: python3 scripts/audit-sweep.py
+
+      - name: sweep rules fire on the real defects
+        run: python3 scripts/test_audit_sweep.py
+
+      - name: bootstrap asset names and hook merge
+        run: node scripts/test_bootstrap.mjs
+
+      - name: guard blocks the catastrophic and allows the ordinary
+        run: node scripts/test_guard_bash.mjs

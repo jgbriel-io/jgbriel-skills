@@ -1,0 +1,16 @@
+{
+  "name": "jgbriel",
+  "owner": {
+    "name": "João Gabriel",
+    "url": "https://github.com/jgbriel-io"
+  },
+  "description": "Fleet completo de skills, agents, commands e hooks do Claude Code — o loop de trabalho, convenções por stack, segurança, DevOps, TCC e ferramentas pessoais.",
+  "plugins": [
+    {
+      "name": "jgbriel-skills",
+      "source": "./",
+      "description": "Fleet completo de skills, agents, commands e hooks do Claude Code — o loop de trabalho, convenções por stack, segurança, DevOps, TCC e ferramentas pessoais.",
+      "category": "engineering"
+    }
+  ]
+}

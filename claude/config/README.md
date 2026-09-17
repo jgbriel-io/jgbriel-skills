@@ -1,0 +1,30 @@
+# config/ — Claude Code file-type kit
+
+Every `.md` (and config) file type Claude Code consumes, with an annotated
+template for each. Copy the template, delete the comments, fill it in.
+
+| File type | Lives at | Loaded | Template |
+|---|---|---|---|
+| `CLAUDE.md` (global) | `~/.claude/CLAUDE.md` | Every session, all projects | [CLAUDE.template.md](CLAUDE.template.md) |
+| `CLAUDE.md` (project) | `<repo>/.claude/CLAUDE.md` or repo root | Sessions inside that repo; overrides/extends global | same template, project flavor |
+| `CLAUDE.local.md` | repo root, gitignored | Like project CLAUDE.md, personal only | same |
+| `SKILL.md` | `skills/<categoria>/<nome>/` no repo (fleet) ou `<repo>/.claude/skills/<nome>/` (projeto) | description sempre, se for model-invoked; corpo no gatilho | [SKILL.template.md](SKILL.template.md) |
+| Agent | `agents/<name>.md` no repo (fleet) ou `~/.claude/agents/<name>.md` (avulso) | description always; runs as isolated subagent | [AGENT.template.md](AGENT.template.md) |
+| Slash command | `commands/<name>.md` no repo (fleet) ou `~/.claude/commands/<name>.md` (avulso) | Only when user types `/<name>` | [COMMAND.template.md](COMMAND.template.md) |
+| Memory | `~/.claude/projects/<proj>/memory/*.md` + `MEMORY.md` index | Index every session; files on recall | [MEMORY.template.md](MEMORY.template.md) |
+| Domain context file | `<repo>/CONTEXT.md`, `docs/DESIGN.md`, `docs/adr/*.md` | On demand, when a skill/agent reads it | [CONTEXT-FILE.template.md](CONTEXT-FILE.template.md) + `../../templates/CONTEXT.template.md` |
+| `settings.json` | `~/.claude/settings.json` (real) | Harness config: permissions, hooks, plugins, model | `../settings.template.json` |
+| `.mcp.json` | **project root only** | MCP servers (use `${VAR}` for secrets). NOT read from `~/.claude/` — user-scope servers live in `~/.claude.json` via `claude mcp add -s user` | — |
+| Hooks | `hooks/*.mjs` no repo, declarados no `plugin.json` | No evento declarado (PreToolUse, SessionStart, Stop) | exemplos reais em `../../hooks/` |
+
+## Rules of thumb
+
+- **CLAUDE.md** = rules Claude must always follow. **Skill** = knowledge loaded
+  when relevant. **Command** = explicit shortcut. **Agent** = isolated worker.
+  Wrong layer = wasted context or missed instruction.
+- Every token in global CLAUDE.md is paid every turn of every session — it
+  earns the strictest pruning of all file types.
+- Domain context files (DESIGN.md, CONTEXT.md, ADRs) live in the project repo,
+  not here — this kit only holds the templates.
+- Skill authoring quality bar: `wiki/Ferramentas/Claude Code/docs/Critérios de Qualidade das Skills.md`
+  (C1–C11) in the vault; theory in the `writing-great-skills` skill.

@@ -1,0 +1,132 @@
+{
+  "name": "jgbriel-skills",
+  "version": "1.0.0",
+  "description": "Fleet completo de skills, agents, commands e hooks do Claude Code — o loop de trabalho, convenções por stack, segurança, DevOps, TCC e ferramentas pessoais.",
+  "author": {
+    "name": "João Gabriel",
+    "url": "https://github.com/jgbriel-io"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "HOOK_ROOT=$(printf %s \"${CLAUDE_PLUGIN_ROOT}\" | sed 's|^/\\([a-zA-Z]\\)/|\\1:/|'); node \"$HOOK_ROOT/hooks/guard-dangerous-bash.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "HOOK_ROOT=$(printf %s \"${CLAUDE_PLUGIN_ROOT}\" | sed 's|^/\\([a-zA-Z]\\)/|\\1:/|'); node \"$HOOK_ROOT/hooks/context-mode-cache-heal.mjs\"",
+            "timeout": 30,
+            "statusMessage": "Checking context-mode cache..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '\\a'"
+          }
+        ]
+      }
+    ]
+  },
+  "repository": "https://github.com/jgbriel-io/jgbriel-skills",
+  "skills": [
+    "./skills/backend/api-design",
+    "./skills/backend/backend-service-conventions",
+    "./skills/backend/background-jobs",
+    "./skills/backend/caching-strategy",
+    "./skills/backend/input-validation",
+    "./skills/backend/rate-limiting",
+    "./skills/career/cv-sync",
+    "./skills/career/job-description-analyzer",
+    "./skills/career/resume-tailor",
+    "./skills/cloudflare/cloudflare",
+    "./skills/cloudflare/cloudflare-email-service",
+    "./skills/cloudflare/workers-best-practices",
+    "./skills/cloudflare/wrangler",
+    "./skills/core-loop/codebase-design",
+    "./skills/core-loop/codebase-memory",
+    "./skills/core-loop/diagnose",
+    "./skills/core-loop/discuss",
+    "./skills/core-loop/domain-modeling",
+    "./skills/core-loop/fable-method",
+    "./skills/core-loop/grill-me",
+    "./skills/core-loop/handoff",
+    "./skills/core-loop/implement",
+    "./skills/core-loop/plan",
+    "./skills/core-loop/pr-acceptance",
+    "./skills/core-loop/research",
+    "./skills/data/backup-restore",
+    "./skills/data/postgres-conventions",
+    "./skills/data/query-performance",
+    "./skills/data/safe-migrations",
+    "./skills/data/seed-data",
+    "./skills/data/supabase-postgres",
+    "./skills/delivery/docs-writing",
+    "./skills/delivery/estimation",
+    "./skills/delivery/incident-postmortem",
+    "./skills/delivery/proposta-comercial",
+    "./skills/delivery/to-issues",
+    "./skills/delivery/to-prd",
+    "./skills/delivery/triage",
+    "./skills/delivery/wish",
+    "./skills/devops/ci-cd-pipeline",
+    "./skills/devops/container-conventions",
+    "./skills/devops/environment-config",
+    "./skills/devops/error-tracking",
+    "./skills/devops/health-checks-metrics",
+    "./skills/devops/project-deploy",
+    "./skills/devops/resolving-merge-conflicts",
+    "./skills/devops/rollback-runbook",
+    "./skills/devops/setup-pre-commit",
+    "./skills/devops/stack-scaffold",
+    "./skills/devops/structured-logging",
+    "./skills/frontend/accessibility-audit",
+    "./skills/frontend/client-state-management",
+    "./skills/frontend/error-ux",
+    "./skills/frontend/forms-validation",
+    "./skills/frontend/frontend-conventions",
+    "./skills/frontend/react-best-practices",
+    "./skills/frontend/supabase-hooks",
+    "./skills/frontend/tanstack-query-patterns",
+    "./skills/frontend/web-perf",
+    "./skills/meta/skill-audit",
+    "./skills/meta/skill-sync",
+    "./skills/meta/token-audit",
+    "./skills/meta/wizard",
+    "./skills/meta/writing-great-skills",
+    "./skills/quality/code-reviewer",
+    "./skills/quality/e2e-testing",
+    "./skills/quality/integration-testing",
+    "./skills/quality/tdd",
+    "./skills/security/auth-patterns",
+    "./skills/security/dependency-audit",
+    "./skills/security/lgpd-checklist",
+    "./skills/security/multi-tenant-isolation-audit",
+    "./skills/security/secrets-management",
+    "./skills/security/security-review-checklist",
+    "./skills/tcc/tcc-auditoria-banca",
+    "./skills/tcc/tcc-defesa",
+    "./skills/tcc/tcc-fragmentos",
+    "./skills/tcc/tcc-grill",
+    "./skills/tcc/tcc-rascunho",
+    "./skills/tcc/tcc-revisao-impessoal",
+    "./skills/vault/obsidian-vault",
+    "./skills/vault/project-kickoff",
+    "./skills/vault/project-planner",
+    "./skills/vault/project-sync"
+  ]
+}
