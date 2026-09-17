@@ -276,8 +276,19 @@ Templates to copy as a new file into any project (they are not Claude Code confi
 
 ## How to use it
 
-This is a **Claude Code plugin**. Installing means registering the marketplace and
-installing:
+This is a **Claude Code plugin**. The whole setup — this plugin, the three
+third-party ones, and the tools around them — installs with one command, the same
+on Windows, Linux and macOS:
+
+```bash
+node scripts/bootstrap.mjs
+```
+
+It installs what is missing and skips what is there, so re-running it after a
+failure is the normal path; `--dry-run` prints the plan without touching anything.
+See [Bootstrap](#bootstrap) for what it covers.
+
+Only this plugin, nothing else:
 
 ```bash
 claude plugin marketplace add jgbriel-io/jgbriel-skills
@@ -306,6 +317,34 @@ A directory marketplace reads the tree directly, with no clone. The runtime is
 still a versioned copy: after editing, bump `version` in
 `.claude-plugin/plugin.json` and run `claude plugin update jgbriel-skills@jgbriel`.
 **Without the bump, update has nothing to install and the change never arrives.**
+
+### Bootstrap
+
+`scripts/bootstrap.mjs` takes a machine from "Claude Code installed" to this whole
+setup. It is Node rather than a shell script per platform because the repo's hooks
+are already `.mjs`: a machine that cannot run it cannot run the plugin either, and
+two scripts drift the moment one is edited.
+
+| Step | What it does |
+|---|---|
+| Plugins | `jgbriel-skills`, `caveman`, `ponytail`, `context-mode` — marketplace + install |
+| `uv` | Downloaded from the GitHub release for this OS/CPU into `~/.local/bin` |
+| `serena` | `uv tool install -p 3.13 serena-agent`, then `serena setup claude-code` |
+| `cocoindex` | `uv tool install cocoindex` |
+| `codebase-memory-mcp` | Release binary + `claude mcp add -s user` |
+| serena hooks | Merges the four documented entries into `~/.claude/settings.json` |
+
+Every step is idempotent: it checks before it installs, and the hook merge adds
+only entries whose command is not already in the file, so nothing is duplicated
+and an unrelated hook is left alone.
+
+**`codebase-memory-mcp` has no Windows build** — the release ships linux and
+darwin only. On Windows that step is skipped with the reason printed, not failed.
+
+The installer never pipes a remote script into a shell: it fetches the release
+asset and extracts it with `tar`, which reads `.zip` as well as `.tar.gz` on
+Windows 10+. `scripts/test_bootstrap.mjs` covers the per-platform asset names and
+the hook merge, including that a second merge adds nothing.
 
 ### Secrets setup
 

@@ -294,7 +294,7 @@ copy it into the root of whichever project needs it.
 
 | Server | Command | What it is for |
 |---|---|---|
-| `codebase-memory-mcp` | `~/.local/bin/codebase-memory-mcp` | Knowledge graph over the code: `search_graph`, `trace_path`, `query_graph`. User scope, already installed on Linux |
+| `codebase-memory-mcp` | `~/.local/bin/codebase-memory-mcp` | Knowledge graph over the code: `search_graph`, `trace_path`, `query_graph`. User scope. **Linux and macOS only** — the release has no Windows build |
 | `serena` | `serena start-mcp-server --context=claude-code --project-from-cwd` | Retrieval and editing **at the symbol level** through a language server — what grep cannot give. [oraios/serena](https://github.com/oraios/serena) |
 | `github` | `npx @modelcontextprotocol/server-github` | Needs `GITHUB_PERSONAL_ACCESS_TOKEN` in the environment |
 | `supabase` | `npx @supabase/mcp-server-supabase@latest --read-only` | Needs `SUPABASE_ACCESS_TOKEN`; read-only by explicit flag |
@@ -317,7 +317,8 @@ the directory the session opened in. `uv` itself came from the GitHub release
 tarball, extracted into `~/.local/bin`.
 
 Serena's optional hooks are configured in `~/.claude/settings.json`, all four with
-absolute paths so they do not depend on PATH:
+absolute paths so they do not depend on PATH. `scripts/bootstrap.mjs` merges them
+for you; the table is what it writes:
 
 | Event | Command | Job |
 |---|---|---|
@@ -327,8 +328,8 @@ absolute paths so they do not depend on PATH:
 | `SessionEnd` | `serena-hooks cleanup` | clears the session's hook data |
 
 They live in `settings.json`, not in this repo, because that file is machine state
-— see §1. The other machine needs them added by hand, from
-[oraios.github.io/serena](https://oraios.github.io/serena/02-usage/030_clients.html#claude-code).
+— see §1. That is also why the bootstrap merges instead of overwriting: it adds
+only entries whose command is absent, and leaves every other hook alone.
 
 ### Outside Claude Code — CocoIndex
 
@@ -374,6 +375,8 @@ function, `file.file_path` is a `FilePath`, not a `pathlib.Path`: calling
 
 | Script | What it does |
 |---|---|
+| `bootstrap.mjs` | Installs the whole setup on a fresh machine — plugins, uv, serena, cocoindex, the codebase-memory MCP and serena's hooks. Idempotent; `--dry-run` prints the plan |
+| `test_bootstrap.mjs` | Covers the bootstrap's per-platform asset names and the hook merge |
 | `gen-inventory.py` | Regenerates the tables in this file and in the README. `--check` fails when they are stale |
 | `check-doc-refs.py` | Fails when the prose names a command or skill that no longer exists |
 | `audit-sweep.py` | The mechanical pass of `/skill-audit`: size against the reference, frontmatter, broken link, residue from another tool |
@@ -386,6 +389,19 @@ The first two run in CI, on pushes to `main` and on every PR.
 ---
 
 ## 9. Setup
+
+One command on any of the three platforms:
+
+```bash
+node scripts/bootstrap.mjs      # --dry-run to see the plan first
+```
+
+It installs the four plugins, `uv`, serena (with `serena setup claude-code` and
+the four hooks from §6), cocoindex and the codebase-memory MCP, skipping whatever
+is already present. `codebase-memory-mcp` ships no Windows build, so on Windows
+that one step reports itself skipped.
+
+Just this plugin, by hand:
 
 ```bash
 claude plugin marketplace add jgbriel-io/jgbriel-skills
