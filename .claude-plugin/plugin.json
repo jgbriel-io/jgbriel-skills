@@ -62,7 +62,6 @@
     "./skills/core-loop/pr-acceptance",
     "./skills/core-loop/research",
     "./skills/core-loop/resolve-review",
-    "./skills/core-loop/zoom-out",
     "./skills/data/backup-restore",
     "./skills/data/postgres-conventions",
     "./skills/data/query-performance",
