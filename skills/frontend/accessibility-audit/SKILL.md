@@ -3,161 +3,189 @@ name: accessibility-audit
 description: Guides accessibility (a11y) auditing — automated tooling (axe-core) wired into CI as a floor not a substitute for manual testing, keyboard navigation, color contrast, correct ARIA usage, and screen reader checks. Use when user asks about accessibility, a11y, axe, WCAG, keyboard navigation, screen readers, color contrast, or ARIA attributes.
 ---
 
-# Auditoria de Acessibilidade (a11y)
+# Accessibility Audit
 
-Conceito agnóstico de framework de UI: aplica a React, Vue, Angular, Svelte ou HTML puro. Cruza com `forms-validation` para erro de campo acessível — aqui o foco é o restante da superfície de a11y.
+A UI-framework-agnostic concept: it applies to React, Vue, Angular, Svelte or
+plain HTML. It crosses `forms-validation` for accessible field errors; the focus
+here is the rest of the a11y surface.
 
-## Ferramenta automatizada é piso, não teto
+## Automated tooling is the floor, not the ceiling
 
-Automatizado (axe-core, Lighthouse, WAVE) pega ~30-40% dos problemas de WCAG — os mecanicamente detectáveis (contraste, `alt` ausente, label ausente, ARIA inválido). O resto (ordem de foco faz sentido, texto alternativo é *descritivo*, leitor de tela anuncia o fluxo de forma compreensível) só teste manual pega.
+Automated tools — axe-core, Lighthouse, WAVE — catch roughly 30 to 40% of WCAG
+problems: the mechanically detectable ones (contrast, missing `alt`, missing
+label, invalid ARIA). The rest — whether the focus order makes sense, whether
+alternative text is actually *descriptive*, whether a screen reader announces the
+flow comprehensibly — only manual testing catches.
 
 ```
-// ❌ CI verde com axe = "acessível", ninguém navega por teclado antes de mergear
+// ❌ Green CI on axe read as "accessible", with nobody using a keyboard before merge
 test('a11y', async () => {
   const results = await axe(container);
   expect(results.violations).toHaveLength(0);
-}); // passou, mas o modal prende o foco e ninguém testou
+}); // it passed, and the modal traps focus, and nobody checked
 
-// ✅ axe no CI pega regressão óbvia + checklist manual no fluxo crítico antes do merge
-test('a11y automatizado', async () => {
+// ✅ axe in CI catches obvious regressions; a manual checklist covers the critical flow
+test('automated a11y', async () => {
   const results = await axe(container);
   expect(results).toHaveNoViolations();
 });
-// + checklist manual (teclado, leitor de tela) rodado no PR de fluxo crítico
+// plus the manual checklist (keyboard, screen reader) run on the critical-flow PR
 ```
 
-| Camada | O que pega | Quando roda |
+| Layer | What it catches | When it runs |
 |---|---|---|
-| Linter (`eslint-plugin-jsx-a11y`, `eslint-plugin-vuejs-accessibility`) | Erro óbvio no código-fonte antes de rodar | Editor/pre-commit |
-| axe-core/Lighthouse no CI | Violação de regra WCAG mecanicamente detectável | Toda PR, roda em componente/página renderizada |
-| Manual (teclado + leitor de tela) | Ordem de foco, texto alternativo com sentido, anúncio compreensível | Fluxo crítico, antes de mergear/lançar |
+| Linter (`eslint-plugin-jsx-a11y`, `eslint-plugin-vuejs-accessibility`) | Obvious source-level mistakes, before anything runs | Editor and pre-commit |
+| axe-core/Lighthouse in CI | Mechanically detectable WCAG violations | Every PR, against the rendered component or page |
+| Manual (keyboard plus screen reader) | Focus order, meaningful alternative text, comprehensible announcements | Critical flows, before merge or release |
 
-Falha de axe no CI bloqueia o merge — não é warning ignorável. Mas CI limpo não é sinal de "pode lançar sem revisar".
+An axe failure in CI blocks the merge; it is not an ignorable warning. But clean
+CI is not permission to ship without review.
 
-## Navegação por teclado
+## Keyboard navigation
 
-Todo elemento interativo precisa ser alcançável e operável só com teclado — mouse é opcional, teclado não é.
-
-```
-// ❌ clique só funciona com mouse, div "parece" botão mas não é focável
-<div class="button" onClick={salvar}>Salvar</div>
-
-// ✅ elemento nativo é focável, operável com Enter/Space, tem role correto de graça
-<button onClick={salvar}>Salvar</button>
-```
-
-- **Tab order**: segue a ordem visual/lógica da tela. `tabindex` positivo (`tabindex="3"`) quebra a ordem natural do DOM — evitar; usar `tabindex="0"` só para tornar focável um elemento não nativo, `tabindex="-1"` para remover do tab order mantendo foco programático possível.
-- **Foco visível**: nunca `outline: none` sem substituir por um indicador de foco igual ou mais visível. Foco invisível é inacessível para quem não usa mouse.
-- **Sem trap de foco** fora de modal/dialog intencional: usuário precisa conseguir sair de qualquer componente só com Tab/Shift+Tab/Esc.
-- **Trap de foco correto em modal**: Tab circula dentro do modal enquanto aberto, Esc fecha e devolve o foco ao elemento que abriu o modal.
+Every interactive element must be reachable and operable with the keyboard alone.
+A mouse is optional; a keyboard is not.
 
 ```
-// ❌ outline removido, nenhum substituto
+// ❌ Only works with a mouse: the div looks like a button and is not focusable
+<div class="button" onClick={save}>Salvar</div>
+
+// ✅ The native element is focusable, works with Enter and Space, and gets the right role for free
+<button onClick={save}>Salvar</button>
+```
+
+- **Tab order** follows the screen's visual and logical order. A positive `tabindex`
+  (`tabindex="3"`) breaks the DOM's natural order — avoid it. Use `tabindex="0"`
+  only to make a non-native element focusable, and `tabindex="-1"` to remove
+  something from the tab order while keeping programmatic focus possible.
+- **Visible focus**: never `outline: none` without replacing it with an equally
+  visible indicator. Invisible focus is inaccessible to anyone not using a mouse.
+- **No focus trap** outside an intentional modal or dialog: the user must be able to
+  leave any component with Tab, Shift+Tab or Esc.
+- **A correct trap inside a modal**: Tab cycles within it while open, Esc closes it
+  and returns focus to whatever opened it.
+
+```
+// ❌ The outline removed with nothing in its place
 button:focus { outline: none; }
 
-// ✅ indicador de foco customizado, visível
+// ✅ A custom, visible focus indicator
 button:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 ```
 
-## Contraste de cor
+## Colour contrast
 
-Mínimo WCAG AA: **4.5:1** para texto normal, **3:1** para texto grande (≥18pt ou ≥14pt bold) e para componentes de UI/gráficos (borda de input, ícone informativo).
+WCAG AA minimums: **4.5:1** for normal text, **3:1** for large text (≥18pt, or
+≥14pt bold) and for UI components and graphics — an input border, an informative
+icon.
 
 ```
-// ❌ cinza claro sobre branco, "parece" elegante mas reprova AA
+// ❌ Light grey on white: it looks elegant and fails AA
 color: #aaaaaa; background: #ffffff; // ~2.3:1
 
-// ✅ contraste suficiente, checado com ferramenta (não "olhômetro")
+// ✅ Sufficient contrast, measured with a tool rather than by eye
 color: #595959; background: #ffffff; // ~7:1
 ```
 
-- Checar com ferramenta (DevTools contrast checker, axe, Stark), não por inspeção visual — o olho humano erra sistematicamente para cores próximas do limite.
-- Cor nunca é o único veículo de informação (erro em vermelho sem ícone/texto, gráfico que só diferencia por matiz) — quem tem daltonismo ou usa modo alto contraste perde o sinal.
+- Measure it (DevTools' contrast checker, axe, Stark) rather than judging visually.
+  The eye errs systematically for colours near the threshold.
+- Colour is never the only carrier of information. An error shown in red with no
+  icon or text, a chart distinguished only by hue — anyone colourblind, or using
+  high-contrast mode, loses the signal.
 
-## ARIA: semântica nativa primeiro
+## ARIA: native semantics first
 
-> "No ARIA is better than bad ARIA" — ARIA não muda comportamento nem estilo, só a árvore de acessibilidade exposta ao leitor de tela. ARIA errado mente para quem depende dela.
+> "No ARIA is better than bad ARIA." ARIA changes neither behaviour nor style, only
+> the accessibility tree exposed to a screen reader. Wrong ARIA lies to the people
+> who depend on it.
 
 ```
-// ❌ ARIA por cima de elemento genérico quando existe elemento nativo
-<div role="button" onClick={enviar}>Enviar</div>
-// falta: focável por Tab, ativável por Enter/Space, tudo isso o navegador dá de graça pro <button>
+// ❌ ARIA layered on a generic element when a native one exists
+<div role="button" onClick={submit}>Enviar</div>
+// missing: Tab focus, Enter/Space activation — all of which the browser gives <button> free
 
-// ✅ elemento nativo primeiro — zero ARIA necessário
-<button onClick={enviar}>Enviar</button>
+// ✅ The native element first, with no ARIA needed
+<button onClick={submit}>Enviar</button>
 ```
 
-| Regra | Exemplo |
+| Rule | Example |
 |---|---|
-| Elemento nativo com semântica embutida sempre vence ARIA + `div`/`span` | `<button>`, `<a href>`, `<nav>`, `<label>`, `<table>` em vez de recriar com `role` |
-| ARIA só quando não há elemento HTML nativo equivalente | Combobox custom, tab panel custom, tooltip custom |
-| Nunca alterar semântica que o elemento nativo já tem certo | `<button role="link">` é raramente correto — se precisa navegar, use `<a>` |
-| `aria-label`/`aria-labelledby` só quando não há texto visível suficiente | Botão de ícone sem texto (`<button aria-label="Fechar"><IconX /></button>`) |
-| `aria-live` para conteúdo que muda sem interação direta do usuário | Toast, contador, mensagem de status assíncrona |
+| A native element with built-in semantics always beats ARIA on a `div` or `span` | `<button>`, `<a href>`, `<nav>`, `<label>`, `<table>` rather than recreating them with `role` |
+| ARIA only where no native HTML equivalent exists | A custom combobox, tab panel or tooltip |
+| Never override semantics the native element already has right | `<button role="link">` is rarely correct; if it navigates, use `<a>` |
+| `aria-label`/`aria-labelledby` only where visible text is insufficient | An icon-only button (`<button aria-label="Fechar"><IconX /></button>`) |
+| `aria-live` for content that changes without direct user interaction | A toast, a counter, an async status message |
 
-## Leitor de tela como teste manual mínimo
+## Screen readers as the minimum manual test
 
-Automatizado não ouve o fluxo. Rodar ao menos uma vez por fluxo crítico (login, checkout, formulário principal) com um leitor de tela real:
+Automation does not listen to the flow. Run each critical flow — login, checkout,
+the main form — through a real screen reader at least once:
 
-| Plataforma | Leitor de tela |
+| Platform | Screen reader |
 |---|---|
-| Windows | NVDA (gratuito) ou Narrator |
-| macOS/iOS | VoiceOver (nativo) |
-| Android | TalkBack (nativo) |
+| Windows | NVDA (free) or Narrator |
+| macOS/iOS | VoiceOver (built in) |
+| Android | TalkBack (built in) |
 | Linux | Orca |
 
-Checar: nome do elemento é anunciado (não "botão", "link", "imagem" sem contexto), estado é anunciado (`aria-expanded`, `aria-selected`, `aria-invalid`), e a ordem de leitura corresponde à ordem visual/lógica.
+Check that: the element's name is announced (not a bare "button", "link" or
+"image"), its state is announced (`aria-expanded`, `aria-selected`,
+`aria-invalid`), and the reading order matches the visual and logical order.
 
 ```
-// ❌ imagem informativa sem alt — leitor de tela pula ou lê o nome do arquivo
+// ❌ An informative image with no alt — the screen reader skips it or reads the filename
 <img src="grafico-vendas-q3.png" />
 
-// ✅ alt descreve o conteúdo/função da imagem; decorativa usa alt vazio (não omitido)
+// ✅ alt describes the content or function; a decorative image uses an empty alt, never a missing one
 <img src="grafico-vendas-q3.png" alt="Vendas cresceram 20% no Q3 comparado ao Q2" />
 <img src="borda-decorativa.png" alt="" />
 ```
 
-## Formulário acessível (resumo — detalhe em `forms-validation`)
+Interface strings stay in Portuguese, because the product's users read them.
 
-- Todo input tem `<label>` associado (`for`/`id` ou wrapping) — placeholder não substitui label.
-- Erro de campo usa `aria-invalid` + `aria-describedby` apontando para a mensagem de erro.
-- Campo obrigatório marcado com `required`/`aria-required`, não só asterisco visual.
+## Accessible forms (summary — the detail is in `forms-validation`)
+
+- Every input has an associated `<label>` (through `for`/`id` or by wrapping). A
+  placeholder is not a label.
+- Field errors use `aria-invalid` plus `aria-describedby` pointing at the message.
+- Required fields are marked with `required`/`aria-required`, not only a visual
+  asterisk.
 
 ## Checklist
 
-- [ ] axe-core (ou equivalente) rodando no CI, falha bloqueia merge
-- [ ] Todo elemento interativo é alcançável e operável só com teclado
-- [ ] Ordem de tab segue a ordem visual/lógica, sem `tabindex` positivo
-- [ ] Indicador de foco visível em todo elemento focável (nunca `outline: none` sem substituto)
-- [ ] Modal/dialog tem trap de foco intencional, Esc fecha e devolve foco à origem
-- [ ] Contraste de texto ≥ 4.5:1 (normal) / 3:1 (grande e componentes de UI), checado com ferramenta
-- [ ] Cor nunca é o único veículo de informação
-- [ ] Elemento HTML nativo usado antes de recriar semântica com `role`/ARIA
-- [ ] `alt` presente em toda imagem (descritivo se informativa, vazio se decorativa)
-- [ ] Fluxo crítico testado manualmente com pelo menos um leitor de tela real
-- [ ] Todo input de formulário tem label associado e erro anunciado via `aria-invalid`/`aria-describedby`
+- [ ] axe-core or equivalent runs in CI, and a failure blocks the merge
+- [ ] Every interactive element is reachable and operable by keyboard alone
+- [ ] Tab order follows the visual and logical order, with no positive `tabindex`
+- [ ] A visible focus indicator on every focusable element; never `outline: none` with no replacement
+- [ ] Modals and dialogs trap focus intentionally, and Esc closes and returns focus to the opener
+- [ ] Text contrast ≥ 4.5:1 (normal) or 3:1 (large text and UI components), measured with a tool
+- [ ] Colour is never the only carrier of information
+- [ ] A native HTML element is used before semantics are recreated with `role`/ARIA
+- [ ] Every image has `alt` — descriptive when informative, empty when decorative
+- [ ] Critical flows tested manually with at least one real screen reader
+- [ ] Every form input has an associated label, with errors announced through `aria-invalid`/`aria-describedby`
 
-## Exemplos por stack
+## By stack
 
-**React** — teste automatizado com jest-axe:
+**React** — automated testing with jest-axe:
 ```tsx
 import { axe, toHaveNoViolations } from 'jest-axe';
 expect.extend(toHaveNoViolations);
 
-test('tela de checkout não tem violação de a11y', async () => {
+test('the checkout screen has no a11y violations', async () => {
   const { container } = render(<Checkout />);
   expect(await axe(container)).toHaveNoViolations();
 });
 ```
 
-**Vue** — `eslint-plugin-vuejs-accessibility` + axe em teste de componente:
+**Vue** — `eslint-plugin-vuejs-accessibility` plus axe in component tests:
 ```js
 // eslint.config.js
 import vueA11y from 'eslint-plugin-vuejs-accessibility';
 export default [{ plugins: { 'vuejs-accessibility': vueA11y }, rules: vueA11y.configs.recommended.rules }];
 ```
 
-**Angular** — CDK a11y para foco e navegação:
+**Angular** — the CDK's a11y utilities for focus and navigation:
 ```ts
 import { FocusTrap, FocusTrapFactory } from '@angular/cdk/a11y';
 
@@ -165,11 +193,11 @@ const trap: FocusTrap = this.focusTrapFactory.create(this.modalRef.nativeElement
 trap.focusInitialElement();
 ```
 
-**Qualquer stack (E2E)** — Playwright + `@axe-core/playwright`:
+**Any stack (E2E)** — Playwright plus `@axe-core/playwright`:
 ```ts
 import AxeBuilder from '@axe-core/playwright';
 
-test('página inicial é acessível', async ({ page }) => {
+test('the home page is accessible', async ({ page }) => {
   await page.goto('/');
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
@@ -178,13 +206,13 @@ test('página inicial é acessível', async ({ page }) => {
 
 ## Anti-patterns
 
-- ❌ CI verde no axe tratado como "acessível", sem nenhum teste manual em fluxo crítico
-- ❌ `outline: none` sem indicador de foco substituto
-- ❌ `<div onClick>`/`<span onClick>` no lugar de `<button>`/`<a>` nativo
-- ❌ `role`/ARIA adicionado a um elemento que já tem semântica nativa correta
-- ❌ `tabindex` positivo alterando a ordem natural do DOM
-- ❌ Cor como único diferenciador de estado/erro/categoria
-- ❌ Contraste avaliado "no olho" em vez de medido com ferramenta
-- ❌ Imagem informativa sem `alt`, ou `alt` decorativo ausente (deve ser vazio, não omitido)
-- ❌ Modal sem trap de foco, ou trap de foco que nunca devolve o foco de origem ao fechar
-- ❌ Placeholder usado como substituto de `<label>`
+- ❌ Green axe CI treated as "accessible", with no manual test of a critical flow
+- ❌ `outline: none` with no replacement focus indicator
+- ❌ `<div onClick>` or `<span onClick>` where a native `<button>` or `<a>` belongs
+- ❌ `role` or ARIA added to an element that already has the right native semantics
+- ❌ A positive `tabindex` reordering the DOM's natural flow
+- ❌ Colour as the only differentiator of state, error or category
+- ❌ Contrast judged by eye instead of measured
+- ❌ An informative image with no `alt`, or a decorative one missing its empty `alt`
+- ❌ A modal with no focus trap, or one that never returns focus to its opener
+- ❌ A placeholder standing in for a `<label>`

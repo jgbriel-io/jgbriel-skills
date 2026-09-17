@@ -3,70 +3,82 @@ name: forms-validation
 description: Defines form validation as a single schema shared between client and server, with Brazilian document masks (CPF, CNPJ, phone, CEP) validated by checksum, not just format, plus field-level vs form-level error UX. Use when user asks about form validation, input masks, CPF/CNPJ/CEP validation, or building forms in React, Vue, Angular, Svelte or similar.
 ---
 
-# Formulários e Validação
+# Forms and Validation
 
-Conceito agnóstico de framework de UI: schema único de validação, reaproveitado entre client e server, mais tratamento de erro por campo. Convenções gerais de componente/estado ficam em `frontend-conventions`; aqui o foco é forms.
+A UI-framework-agnostic concept: one validation schema, reused between client and
+server, plus per-field error handling. General component and state conventions
+live in `frontend-conventions`; the focus here is forms.
 
-## Princípio: schema é fonte única de verdade
+## The schema is the single source of truth
 
-Erro que não pertence a um campo — falha de rede, 500, permissão negada na tela inteira — é `error-ux`. Aqui é o que o usuário digitou.
+An error that does not belong to a field — a network failure, a 500, a permission
+denial covering the whole screen — is `error-ux`. This skill is about what the
+user typed.
 
-O client valida para dar feedback rápido (UX). O server valida porque nunca confia no client (segurança) — ver skill `input-validation`. As duas validações não podem ser regras escritas duas vezes: divergem com o tempo e um dos lados fica desatualizado.
+The client validates to give fast feedback (UX). The server validates because it
+never trusts the client (security) — see `input-validation`. Those two validations
+cannot be two separately written rule sets: they diverge over time, and one side
+silently goes stale.
 
 ```
-// ❌ Regra duplicada e divergente
-// client: idade mínima 18
-// server: idade mínima 16 (ninguém atualizou os dois)
+// ❌ The rule duplicated, and already diverging
+// client: minimum age 18
+// server: minimum age 16 (nobody updated both)
 
-// ✅ Um schema, duas execuções
+// ✅ One schema, two executions
 schema = defineSchema({ age: number().min(18) })
-client.validate(schema, formData)   // feedback imediato
-server.validate(schema, requestBody) // fonte da verdade
+client.validate(schema, formData)    // immediate feedback
+server.validate(schema, requestBody) // the source of truth
 ```
 
-Onde colocar o schema para reaproveitar:
+Where to put the schema so both sides can use it:
 
-| Cenário | Onde mora o schema |
+| Situation | Where the schema lives |
 |---|---|
-| Monorepo (front + back no mesmo repo) | Pacote compartilhado (`packages/schemas`), importado dos dois lados |
-| Repos separados | Schema replicado manualmente + teste de contrato, ou gerado a partir de um schema único (OpenAPI/JSON Schema) |
-| Front consome API de terceiro | Client valida com o schema próprio; server (fora do seu controle) valida o dele — não é a mesma fonte, mas o client ainda não deve confiar cegamente no shape da resposta |
+| Monorepo (frontend and backend together) | A shared package (`packages/schemas`), imported by both |
+| Separate repos | Replicated by hand plus a contract test, or generated from one source (OpenAPI, JSON Schema) |
+| Frontend consuming a third-party API | The client validates with its own schema; the server, outside your control, validates its own. Not the same source, but the client still must not trust the response shape blindly |
 
-Se não dá pra compartilhar o schema literal, pelo menos as regras (obrigatoriedade, formato, range) precisam ser espelhadas nos dois lados — não só "parece que bate".
+Where the literal schema cannot be shared, at least the rules — required fields,
+formats, ranges — must be mirrored on both sides, rather than "looking about
+right".
 
-## Validação em duas camadas
+## Two layers of validation
 
-- **Sincronismo** (a cada tecla/blur): formato, obrigatoriedade, range — barato, roda no client
-- **Assíncrona** (on submit ou debounced): unicidade (email já existe, CPF já cadastrado), regra que depende de estado do servidor
+- **Synchronous** (per keystroke or on blur): format, required fields, ranges.
+  Cheap, and it runs on the client.
+- **Asynchronous** (on submit, or debounced): uniqueness — this email already
+  exists, this CPF is already registered — and any rule depending on server state.
 
 ```
-// ❌ Bloquear o campo esperando round-trip a cada tecla
+// ❌ Blocking the field on a round trip per keystroke
 onKeyUp: () => checkEmailExists(value)
 
-// ✅ Validação síncrona no digitar, assíncrona no blur/submit
+// ✅ Synchronous while typing, asynchronous on blur or submit
 onChange: () => validateFormat(value)
 onBlur: () => checkEmailExists(value) // debounced
 ```
 
-## Máscaras localizadas (mercado brasileiro)
+## Localised masks (Brazilian market)
 
-Máscara é só apresentação (formatação visual). Validação de verdade checa o **dígito verificador**, não apenas se o formato bate.
+A mask is presentation only. Real validation checks the **check digit**, not
+merely that the format matches.
 
 ```
-// ❌ Só regex de formato — aceita CPF com dígitos verificadores errados
+// ❌ Format regex alone — accepts a CPF whose check digits are wrong
 /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(value)
 
-// ✅ Extrai só números, valida dígito verificador, formato é só exibição
+// ✅ Strip to digits, validate the check digit; the format is only for display
 isValidCPF(onlyDigits(value))
 ```
 
-Algoritmo de CPF (mesma lógica vale para CNPJ com pesos diferentes):
+The CPF algorithm — the same shape applies to CNPJ with different weights:
 
 ```
 function isValidCPF(cpf):
   digits = onlyDigits(cpf)
   if length(digits) != 11: return false
-  if allSameDigit(digits): return false // "11111111111" passa no regex, é inválido
+  if allSameDigit(digits): return false // "11111111111" passes the regex and is invalid
 
   d1 = calcCheckDigit(digits[0:9], weights=[10,9,8,7,6,5,4,3,2])
   d2 = calcCheckDigit(digits[0:9] + d1, weights=[11,10,9,8,7,6,5,4,3,2])
@@ -74,50 +86,56 @@ function isValidCPF(cpf):
   return digits[9:11] == [d1, d2]
 ```
 
-| Campo | Validação real (além de regex de formato) |
+| Field | Real validation, beyond a format regex |
 |---|---|
-| CPF | Dígito verificador (módulo 11, 2 dígitos), rejeitar sequências repetidas (`000...`, `111...`) |
-| CNPJ | Dígito verificador (módulo 11 com pesos próprios), rejeitar sequências repetidas |
-| Telefone | DDD válido (lista de 11-99 existentes), 8 ou 9 dígitos conforme DDD/celular |
-| CEP | Formato `00000-000`; existência real só via consulta a serviço de CEP (ViaCEP ou similar), não dá para checar dígito verificador — não existe |
+| CPF | Check digits (mod 11, two digits), and reject repeated sequences (`000...`, `111...`) |
+| CNPJ | Check digits (mod 11 with its own weights), and reject repeated sequences |
+| Phone | A valid area code (the existing 11–99 list), 8 or 9 digits depending on the code and whether it is mobile |
+| CEP | Format `00000-000`. Real existence needs a postcode service (ViaCEP or similar); there is no check digit to verify |
 
-Nunca reimplementar esse cálculo em cada formulário — centralizar em uma função/módulo de validadores (`validators/cpf.ts`, `validators/cnpj.ts`) e importar do schema.
+Never reimplement that calculation in each form. Centralise it in a validators
+module (`validators/cpf.ts`, `validators/cnpj.ts`) and import it from the schema.
 
-## Erro de campo vs erro geral do formulário
+## Field errors vs form errors
 
 ```
-// ❌ Um único bloco de erro genérico no topo do form
+// ❌ One generic error block at the top of the form
 <div class="error">Erro ao enviar formulário</div>
 
-// ✅ Erro específico ancorado no campo + erro geral só quando não há campo culpado
+// ✅ A specific error anchored to its field, plus a form-level error only when no field is to blame
 <Field name="email" error={errors.email} />      // "E-mail inválido"
 <Field name="cpf" error={errors.cpf} />          // "CPF inválido"
-<FormError message={errors._form} />              // "Erro ao salvar. Tente novamente." (falha de rede, 500, etc.)
+<FormError message={errors._form} />             // "Erro ao salvar. Tente novamente."
 ```
 
-- Erro de campo: mensagem específica da regra que falhou (`obrigatório`, `formato inválido`, `CPF inválido`), exibida perto do input, associada via `aria-describedby`/`aria-invalid`
-- Erro geral (`_form`/`root`): reservado para falha que não pertence a um campo — erro de rede, 500 do server, conflito genérico
-- Erro 422 do server com detalhe por campo (ver `input-validation`) deve ser mapeado de volta para os campos do form, não virar um único erro genérico
+- Field error: the specific rule that failed (`obrigatório`, `formato inválido`,
+  `CPF inválido`), shown next to the input and wired through `aria-describedby`
+  and `aria-invalid`.
+- Form error (`_form`/`root`): reserved for failures belonging to no field — a
+  network error, a 500, a generic conflict.
+- A 422 from the server carrying per-field detail (see `input-validation`) is
+  mapped back onto the form's fields, rather than collapsing into one generic
+  message.
 
 ```
-// ✅ Mapear erro de validação do server (formato { fields: [{ path, message }] }) de volta pros campos
+// ✅ Map the server's field errors ({ fields: [{ path, message }] }) back onto the form
 response.error.fields.forEach(({ path, message }) => form.setFieldError(path, message))
 ```
 
 ## Checklist
 
-- [ ] Schema de validação é a mesma definição usada por client e server (ou espelhada com teste de contrato)
-- [ ] CPF/CNPJ validam dígito verificador, não só regex de formato
-- [ ] Telefone/CEP validam formato e removem máscara antes de enviar ao server
-- [ ] Erro de campo aparece perto do input, com mensagem específica da regra
-- [ ] Erro geral do form (`_form`) só é usado para falha sem campo específico (rede, 500)
-- [ ] Erro 422 do server (por campo) é remapeado para os campos do form, não vira mensagem genérica
-- [ ] Botão de submit desabilita/mostra loading durante o envio (evita duplo submit)
-- [ ] Campos obrigatórios marcados visualmente e no `required`/`aria-required`
+- [ ] The validation schema is one definition used by client and server, or mirrored with a contract test
+- [ ] CPF and CNPJ validate check digits, not just a format regex
+- [ ] Phone and CEP validate their format, and the mask is stripped before sending to the server
+- [ ] Field errors appear next to the input, with the message of the rule that failed
+- [ ] The form-level error (`_form`) is used only for failures with no specific field
+- [ ] A 422 with per-field detail is remapped onto the fields rather than becoming a generic message
+- [ ] The submit button disables or shows loading while the request is in flight, preventing a double submit
+- [ ] Required fields are marked visually and through `required`/`aria-required`
 
-## Exemplos por stack
+## By stack
 
-**React Hook Form + Zod** (stack de referência)
+**React Hook Form + Zod** (the reference stack)
 ```tsx
 const schema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -170,13 +188,15 @@ form = this.fb.group({
 <span role="alert" *ngIf="form.get('cpf')?.errors?.['invalidCpf']">CPF inválido</span>
 ```
 
+The user-facing messages stay in Portuguese: the product's users read them.
+
 ## Anti-patterns
 
-- ❌ Regra de validação escrita separadamente no client e no server (divergem com o tempo)
-- ❌ Validar CPF/CNPJ só por regex de formato, sem checar dígito verificador
-- ❌ Um único bloco de erro genérico no topo do form em vez de erro por campo
-- ❌ Enviar valor com máscara (`123.456.789-00`) para o server em vez de só dígitos
-- ❌ Reimplementar o cálculo de dígito verificador em cada formulário/projeto
-- ❌ Ignorar o detalhe por campo que o server devolve e mostrar mensagem genérica de erro
-- ❌ Permitir múltiplos submits enquanto a request está em voo
-- ❌ Confiar que "o form validou" dispensa validação no server
+- ❌ The validation rule written separately on client and server, so they drift
+- ❌ Validating CPF or CNPJ by format regex alone, with no check digit
+- ❌ One generic error block at the top of the form instead of per-field errors
+- ❌ Sending the masked value (`123.456.789-00`) to the server instead of digits
+- ❌ Reimplementing the check-digit calculation in every form or project
+- ❌ Ignoring the server's per-field detail and showing a generic error
+- ❌ Allowing repeated submits while a request is in flight
+- ❌ Treating "the form validated" as a reason to skip server-side validation
