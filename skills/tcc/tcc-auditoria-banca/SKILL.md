@@ -1,6 +1,6 @@
 ---
 name: tcc-auditoria-banca
-description: Simula o parecer escrito de uma banca avaliadora de TCC sobre o documento já redigido. Lê os capítulos e produz um relatório de avaliação por critérios (estrutura e normas ABNT/FEPI, problema/objetivos/hipóteses, referencial teórico, metodologia e validade, resultados e discussão, conclusão, qualidade da escrita, contribuição), com conceito por critério, pontos fortes, fragilidades, exigências obrigatórias vs sugestões, e recomendação final (aprovado / aprovado com ressalvas / reprovado). Use quando o usuário disser "simular banca", "parecer de banca", "auditoria de banca", "avaliar como banca", "nota da banca", "tá pronto pra banca?", "avalia meu TCC como examinador", antes da entrega final ou da defesa. Não é interrogatório oral (isso é tcc-grill) nem revisão mecânica de forma (tcc-revisao-impessoal) — é o parecer avaliativo do documento.
+description: Simula o parecer escrito de uma banca avaliadora sobre o TCC já redigido: conceito por critério (normas, problema, referencial, metodologia, resultados, escrita), pontos fortes, fragilidades, exigências obrigatórias separadas de sugestões, e recomendação final. Use quando o usuário disser "simular banca", "parecer de banca", "avalia meu TCC como examinador", "tá pronto pra banca?", antes da entrega final ou da defesa. Interrogatório oral é tcc-grill; revisão de forma é tcc-revisao-impessoal.
 allowed-tools: Read, Grep, Glob, Bash
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: tcc-fragmentos
-description: Captura matéria-prima bruta de TCC acadêmico — anotações de leitura, observações sobre código do projeto, decisões técnicas, citações, ideias soltas — em arquivo de fragmentos antes de virar texto formal. Use quando o usuário menciona "fragmentos do TCC", "anotações para o capítulo X", "ideias soltas pro TCC", "matéria-prima", "vou anotar pra escrever depois", ou inicia uma sessão de captura antes do drafting formal. Não substitui escrita formal — alimenta a etapa de rascunho com material bruto. Sempre em português, voz livre nesta fase (a impessoalidade entra no rascunho).
+description: Captura matéria-prima bruta de TCC — anotações de leitura, decisões técnicas, citações, ideias soltas — em arquivo de fragmentos, antes de virar texto formal. Use quando o usuário menciona "fragmentos do TCC", "anotações para o capítulo X", "matéria-prima", "vou anotar pra escrever depois". Alimenta tcc-rascunho; não escreve texto de capítulo.
 allowed-tools: Read, Write, Edit
 ---
 

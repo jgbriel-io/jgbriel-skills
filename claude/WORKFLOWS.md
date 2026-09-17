@@ -114,7 +114,6 @@ Receitas práticas combinando slash commands, skills e agents.
 | Onde está definido X? | `/where X` |
 | Quem modificou esta linha? | `/why` |
 | Mapa do diretório | `/map` |
-| Estado do repo | `/status` |
 | Diff staged | `/diff` |
 | Desfazer último commit | `/undo` |
 
@@ -125,6 +124,5 @@ Receitas práticas combinando slash commands, skills e agents.
 | Agent | Quando chamar diretamente |
 |-------|--------------------------|
 | `researcher` | "onde está X definido?", "quais arquivos usam Y?" |
-| `reviewer` | revisão de arquivo específico fora do `/review` |
 | `planner` | plano detalhado antes de implementar feature complexa |
 | `tcc-orientador` | feedback acadêmico severo de capítulo ou seção |
