@@ -138,7 +138,7 @@ Invocar `/setup-pre-commit` — lint, type-check e testes no pre-commit. Não de
 
 **Objetivo:** manter o wiki em sync com o código real.
 
-- Invocar `/project-sync` sempre que docs do projeto em `D:/Projetos/<nome>/docs/` forem atualizadas.
+- Invocar `/project-sync` sempre que docs do projeto na `docs/` do projeto forem atualizadas.
 - Atualizar `status:` no frontmatter do index.md conforme projeto avança (`seed` → `developing` → `evergreen`).
 - Registrar decisões arquiteturais não óbvias no wiki (por que mudou de X para Y).
 
@@ -190,5 +190,5 @@ Fase 5 — Manutenção
 
 - Projeto de 1 dia / throwaway → pular Fase 3 e 5
 - Projeto sem UI → pular Fase 3
-- Projeto com docs existentes em `D:/Projetos/` → substituir Fase 1 por `/project-sync`
+- Projeto com docs já existentes no disco → substituir Fase 1 por `/project-sync`
 - Refatoração de projeto existente → começar da Fase 4, usar `/project-sync` para atualizar wiki
