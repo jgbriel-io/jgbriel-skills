@@ -1,6 +1,6 @@
 ---
 name: obsidian-vault
-description: Create, search, and link notes in jgabriel's personal Obsidian vault (C:\Users\jgabriel\Documents\Obsidian Vault) following its wiki conventions — folder structure, path-based wikilinks, alias rules, anti-ghost checks. Use when the user says "salva no vault", "anota no Obsidian", "cria nota na wiki", "adiciona no vault", or wants to record knowledge in the personal vault from any project or directory. Not for heavy workflows — ingestion, autoresearch, and vault linting belong to the claude-obsidian plugin skills.
+description: Cria, busca e conecta notas no vault pessoal do Obsidian seguindo as convenções da wiki — estrutura de pastas, wikilink por caminho, regras de alias, checagem de link órfão. Use quando o usuário disser "salva no vault", "anota no Obsidian", "cria nota na wiki", "adiciona no vault", de qualquer projeto ou diretório. Documentação de projeto inteira é project-sync.
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 

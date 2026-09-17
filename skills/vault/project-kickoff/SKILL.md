@@ -1,6 +1,6 @@
 ---
 name: project-kickoff
-description: Orchestrates the full workflow for starting a project from scratch — idea to production-ready spec, design system, and implementation plan. Runs 5 phases in order: ideation, spec, design, implementation, maintenance. Invokes discuss, project-planner, domain-modeling, design-direction, setup-pre-commit, and project-sync at the right moment. Use when user says "novo projeto", "vou começar um projeto", "quero criar X do zero", "fluxo completo de projeto", "como começo o projeto X", or starts describing a project idea and wants to build it properly without rework.
+description: Orquestra o começo de um projeto do zero, da ideia ao spec, design system e plano de implementação, invocando as skills de cada fase na ordem certa. Use quando o usuário disser "novo projeto", "vou começar um projeto", "quero criar X do zero", "fluxo completo de projeto", ou começar a descrever uma ideia que quer construir direito.
 ---
 
 # project-kickoff
@@ -78,10 +78,9 @@ Perguntar ao usuário:
 - Referências visuais (sites, apps, marcas)
 - Público e tom (jovem/formal, feminino/neutro, tech/popular)
 
-### 3.2 Invocar design skill
-- `/design-direction` — para landing pages e sites de conteúdo
-- `/high-end-visual-design` — para produtos premium
-- `/minimalist-ui` — para interfaces editoriais e clean
+### 3.2 Fechar a direção visual
+Escolher, com o usuário, uma direção e registrá-la em uma frase: referência
+principal, o que copiar dela e o que não copiar. Sem essa frase, a Fase 4 chuta.
 
 ### 3.3 Documentar design tokens
 Criar seção `## Design system` no Spec (ou arquivo separado) com:

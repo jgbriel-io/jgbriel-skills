@@ -86,7 +86,7 @@ solta em `skills/` não é descoberta sozinha.
 - `context-mode-cache-heal.mjs` — auto-cura o cache do plugin context-mode no `SessionStart`
 
 <!-- inventory:skills:start -->
-**87 skills**, em 13 pastas de categoria:
+**86 skills**, em 13 pastas de categoria:
 
 <details><summary><code>backend</code> — 8 skills</summary>
 
@@ -106,7 +106,7 @@ solta em `skills/` não é descoberta sozinha.
 
 | Skill | Uso |
 |---|---|
-| `cv-sync` | Pipeline de atualização do currículo — edita os .tex canônicos, recompila com pdflatex, renomeia para os nomes de distr… |
+| `cv-sync` | Pipeline do currículo: edita os .tex canônicos, recompila, distribui para o site e o vault, commita e confere a produçã… |
 | `job-description-analyzer` | Analyze job postings, calculate match scores, identify gaps, and create application strategy. |
 | `resume-tailor` | Customize resume for specific job postings while maintaining truthfulness. |
 
@@ -183,7 +183,7 @@ solta em `skills/` não é descoberta sozinha.
 | `structured-logging` | Apply structured (JSON) logging practices — log levels, request/tenant correlation IDs, context propagation, and what m… |
 
 </details>
-<details><summary><code>frontend</code> — 8 skills</summary>
+<details><summary><code>frontend</code> — 7 skills</summary>
 
 | Skill | Uso |
 |---|---|
@@ -192,7 +192,6 @@ solta em `skills/` não é descoberta sozinha.
 | `error-ux` | Defines client-side error handling — render error boundaries that isolate failure without crashing the whole tree, the … |
 | `forms-validation` | Defines form validation as a single schema shared between client and server, with Brazilian document masks (CPF, CNPJ, … |
 | `frontend-conventions` | Conventions for WRITING new frontend code — component structure and extraction, page files that only compose components… |
-| `image-to-code` | Elite website image-to-code skill for Codex. |
 | `react-best-practices` | React 18 + Vite performance rules — bundle size, re-renders, waterfalls, subscriptions. |
 | `web-perf` | Analyzes web performance using Chrome DevTools MCP. |
 
@@ -204,7 +203,7 @@ solta em `skills/` não é descoberta sozinha.
 | `skill-audit` | Audit installed Claude Code skills against the C1–C11 quality rubric — per-skill scores, automatic blockers, trigger-co… |
 | `skill-creator` | Create new Claude Code skills from scratch and iteratively improve existing ones. |
 | `skill-sync` | Sync the skill fleet against its upstreams — mattpocock/skills and lucasmonstrox/utevo-lux — diffing repo vs upstream, … |
-| `token-audit` | Audit Claude Code token consumption across all sessions and projects — weekly trend, heaviest sessions/projects, marath… |
+| `token-audit` | Audita consumo de token do Claude Code entre sessões e projetos — tendência semanal, sessões e projetos mais pesados, s… |
 | `wizard` | Generates an interactive bash wizard for setup steps only a human can do — dashboards, credentials, CI secrets, one-off… |
 | `writing-great-skills` | Reference for writing and editing skills well — the vocabulary and principles that make a skill predictable. |
 
@@ -235,11 +234,11 @@ solta em `skills/` não é descoberta sozinha.
 
 | Skill | Uso |
 |---|---|
-| `tcc-auditoria-banca` | Simula o parecer escrito de uma banca avaliadora de TCC sobre o documento já redigido. |
+| `tcc-auditoria-banca` | Simula o parecer escrito de uma banca avaliadora sobre o TCC já redigido: conceito por critério (normas, problema, refe… |
 | `tcc-defesa` | Monta a apresentação de defesa do TCC SyncClass a partir dos capítulos escritos — arco narrativo, roteiro slide a slide… |
-| `tcc-fragmentos` | Captura matéria-prima bruta de TCC acadêmico — anotações de leitura, observações sobre código do projeto, decisões técn… |
+| `tcc-fragmentos` | Captura matéria-prima bruta de TCC — anotações de leitura, decisões técnicas, citações, ideias soltas — em arquivo de f… |
 | `tcc-grill` | Arguição acadêmica do TCC SyncClass — questiona hipóteses, metodologia, recorte, lacunas bibliográficas e validade dos … |
-| `tcc-rascunho` | Transforma arquivo de fragmentos brutos em seção formal de TCC parágrafo a parágrafo, aplicando normas ABNT/FEPI, voz i… |
+| `tcc-rascunho` | Transforma fragmentos brutos em seção formal de TCC, parágrafo a parágrafo, aplicando normas ABNT/FEPI, voz impessoal e… |
 | `tcc-revisao-impessoal` | Varredura final de capítulo de TCC procurando primeira pessoa, clichês acadêmicos, informalidade, vocabulário fraco, ci… |
 
 </details>
@@ -247,8 +246,8 @@ solta em `skills/` não é descoberta sozinha.
 
 | Skill | Uso |
 |---|---|
-| `obsidian-vault` | Create, search, and link notes in jgabriel's personal Obsidian vault (C:\Users\jgabriel\Documents\Obsidian Vault) follo… |
-| `project-kickoff` | Orchestrates the full workflow for starting a project from scratch — idea to production-ready spec, design system, and … |
+| `obsidian-vault` | Cria, busca e conecta notas no vault pessoal do Obsidian seguindo as convenções da wiki — estrutura de pastas, wikilink… |
+| `project-kickoff` | Orquestra o começo de um projeto do zero, da ideia ao spec, design system e plano de implementação, invocando as skills… |
 | `project-planner` | Scaffolds a project's wiki pages in wiki/Projetos/ — index.md with frontmatter, subpage stubs and ADRs — from a directi… |
 | `project-sync` | Reads docs/ from a project on D:/Projetos and creates or updates wiki/Projetos/<name>/ pages in the Obsidian vault. |
 
