@@ -36,10 +36,11 @@ line and carry on — never turn the task into a language lesson.
 
 ## 2. Environment
 
-- Default shell: **PowerShell**. Use PowerShell syntax in shell commands
-  (`$env:VAR`, `$null`, backtick for line continuation).
-- Bash via WSL/Git Bash available through the `Bash` tool for POSIX scripts.
-- System: Windows 11 — backslash paths (`C:\Users\...`).
+- **Two machines, and the shell differs.** Windows 11 is the main one: PowerShell
+  syntax (`$env:VAR`, `$null`, backtick continuation), backslash paths, Git Bash
+  reachable through the `Bash` tool for POSIX scripts. The work machine is Ubuntu:
+  plain bash, forward slashes. Check which one you are on before writing a command
+  — a PowerShell one-liner fails silently enough on Linux to waste a turn.
 - When generating paths in portable code, use `path.join` / `pathlib` instead of strings.
 
 ## 3. Model and costs
@@ -138,9 +139,9 @@ One-time approval is **not** a blank check. Ask again in new context.
 
 ## 9. Internal tools (plugins)
 
-- **Enabled:** `caveman`, `context-mode`, `claude-obsidian`, `i-have-adhd`, `ponytail`.
-  **Disabled:** `socraticode`, `claude-seo`, `claude-blog` (the last two dropped
-  2026-08-17 — 63 skills, ~7.6k tokens/session, near-zero use).
+- **Installed:** `jgbriel-skills` (this fleet), `caveman`, `ponytail`,
+  `context-mode`. A plugin earns its slot by being used; one that has not been
+  reached for in a month is costing context for nothing and goes.
 - `context-mode` reduces context consumption — follow its guidance for
   commands with long output (use `ctx_batch_execute`, `ctx_execute_file`).
   **Its MCP server sometimes fails to connect at session start.** When the
@@ -154,7 +155,7 @@ One-time approval is **not** a blank check. Ask again in new context.
 
 ## 10. Persistent memory
 
-- Directory: `C:\Users\jgabriel\.claude\projects\<project>\memory\`.
+- Directory: `~/.claude/projects/<project>/memory/` (`%USERPROFILE%` on Windows).
 - Save learnings about the user, recurring feedback, non-obvious project
   decisions. **Do not** save ephemeral state, code, or things
   derivable from `git log`.
