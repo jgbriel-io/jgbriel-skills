@@ -1,6 +1,6 @@
 {
   "name": "jgbriel-skills",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Fleet completo de skills, agents, commands e hooks do Claude Code — o loop de trabalho, convenções por stack, segurança, DevOps, TCC e ferramentas pessoais.",
   "author": {
     "name": "João Gabriel",
@@ -105,7 +105,6 @@
     "./skills/frontend/react-best-practices",
     "./skills/frontend/web-perf",
     "./skills/meta/skill-audit",
-    "./skills/meta/skill-creator",
     "./skills/meta/skill-sync",
     "./skills/meta/token-audit",
     "./skills/meta/wizard",
