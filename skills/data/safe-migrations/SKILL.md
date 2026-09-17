@@ -3,135 +3,160 @@ name: safe-migrations
 description: Explains zero-downtime schema migrations for relational databases — expand-contract pattern, batch data backfills, lock avoidance, safe column add/rename/drop/type-change. Use when user asks about migrations, ALTER TABLE, schema changes, downtime, locks, backfill, or rollback strategy.
 ---
 
-# Migrations Seguras — Zero Downtime
+# Safe Migrations — Zero Downtime
 
-Em deploy rolling, código antigo e código novo rodam ao mesmo tempo contra o mesmo schema. Uma migration que só funciona com uma versão do código quebra a outra. Vale para qualquer banco relacional e qualquer ferramenta (Supabase CLI, Flyway, Liquibase, Prisma, Alembic, ActiveRecord, goose, EF Core).
+In a rolling deploy, old code and new code run at the same time against the same
+schema. A migration that only works with one version of the code breaks the
+other. This holds for any relational database and any tool: Supabase CLI, Flyway,
+Liquibase, Prisma, Alembic, ActiveRecord, goose, EF Core.
 
 ## Expand-Contract (Parallel Change)
 
-Toda migration destrutiva (rename, drop, mudança de tipo, `NOT NULL` novo) quebra em 3 deploys, nunca 1:
+Every destructive migration — rename, drop, type change, a new `NOT NULL` — takes
+three deploys, never one:
 
-1. **Expand** — adiciona o novo, sem tocar no antigo. Código velho e novo convivem.
-2. **Migrate** — backfill de dados + deploy do código novo lendo/escrevendo na coluna nova (dual-write se necessário).
-3. **Contract** — remove o antigo, só depois que 100% do tráfego usa o novo.
+1. **Expand** — add the new thing without touching the old one. Old and new code
+   coexist.
+2. **Migrate** — backfill the data and deploy code that reads and writes the new
+   column, dual-writing where needed.
+3. **Contract** — remove the old thing, only once all traffic uses the new one.
 
 ```sql
--- ❌ Um deploy só: renomeia coluna em uso — quebra o código antigo em produção
-ALTER TABLE pedidos RENAME COLUMN valor TO valor_total;
+-- ❌ One deploy: renaming a column in use breaks the old code in production
+ALTER TABLE orders RENAME COLUMN amount TO total_amount;
 
--- ✅ Deploy 1 (expand): coluna nova, nullable
-ALTER TABLE pedidos ADD COLUMN valor_total NUMERIC(10,2);
+-- ✅ Deploy 1 (expand): new column, nullable
+ALTER TABLE orders ADD COLUMN total_amount NUMERIC(10,2);
 
--- ✅ Deploy 2 (migrate): backfill em lote (ver seção abaixo) +
--- código novo passa a escrever nas duas colunas (dual-write)
-UPDATE pedidos SET valor_total = valor WHERE valor_total IS NULL;
+-- ✅ Deploy 2 (migrate): batched backfill (below) and new code dual-writing
+UPDATE orders SET total_amount = amount WHERE total_amount IS NULL;
 
--- ✅ Deploy 3 (contract): só depois que todo código lê/escreve valor_total
-ALTER TABLE pedidos DROP COLUMN valor;
+-- ✅ Deploy 3 (contract): only once every path reads and writes total_amount
+ALTER TABLE orders DROP COLUMN amount;
 ```
 
-## Regras por tipo de mudança
+## Rules by change type
 
-| Mudança | Risco | Estratégia |
+| Change | Risk | Strategy |
 |---|---|---|
-| Add coluna nullable | Baixo | Direto, 1 deploy |
-| Add coluna `NOT NULL` | Alto — lock + falha em linhas existentes | Nullable → backfill → constraint `NOT VALID` → `VALIDATE CONSTRAINT` separado |
-| Rename coluna/tabela | Alto — quebra código antigo | Expand-contract completo |
-| Drop coluna | Médio — código antigo pode ler/escrever nela | Remover uso no código → deploy → esperar → só então dropar |
-| Mudar tipo | Alto — rewrite de tabela + lock | Coluna nova do tipo certo + backfill + swap |
-| Add índice | Médio — lock de escrita na tabela inteira | Variante concorrente/online (nunca `CREATE INDEX` simples em tabela grande) |
-| Add FK/CHECK | Médio — lock durante validação do dado existente | `NOT VALID` na criação + `VALIDATE CONSTRAINT` em passo separado |
+| Add nullable column | Low | Straight through, one deploy |
+| Add `NOT NULL` column | High — lock, and it fails on existing rows | Nullable → backfill → `NOT VALID` constraint → separate `VALIDATE CONSTRAINT` |
+| Rename column or table | High — breaks old code | Full expand-contract |
+| Drop column | Medium — old code may still read or write it | Remove the usage → deploy → wait → only then drop |
+| Change type | High — table rewrite plus lock | New column of the right type, backfill, swap |
+| Add index | Medium — write lock on the whole table | Concurrent/online variant; never a plain `CREATE INDEX` on a large table |
+| Add FK or CHECK | Medium — lock while existing data is validated | `NOT VALID` on creation, `VALIDATE CONSTRAINT` as its own step |
 
 ## Locks
 
-- `ALTER TABLE` sem `NOT VALID` pode travar leitura/escrita durante toda a operação (o nome do lock muda por banco, mas o efeito — tabela inteira bloqueada — existe em todo relacional).
-- Criar índice do jeito ingênuo bloqueia escrita na tabela inteira; usar a variante que não bloqueia (`CONCURRENTLY` no Postgres/Supabase, `pt-online-schema-change`/`gh-ost` ou `ALGORITHM=INPLACE` no MySQL).
-- Configurar timeout de lock e de statement na migration, para falhar rápido em vez de travar a aplicação esperando:
+- `ALTER TABLE` without `NOT VALID` can block reads and writes for the whole
+  operation. The lock's name differs per engine; the effect — the whole table
+  blocked — exists in all of them.
+- Creating an index the naive way blocks writes across the table. Use the
+  non-blocking variant: `CONCURRENTLY` on Postgres and Supabase,
+  `pt-online-schema-change`/`gh-ost` or `ALGORITHM=INPLACE` on MySQL.
+- Set lock and statement timeouts in the migration so it fails fast instead of
+  holding the application while it waits:
 
 ```sql
 SET lock_timeout = '2s';
 SET statement_timeout = '30s';
 ```
 
-- Nunca rodar a migration de schema dentro da mesma transação que faz backfill de milhões de linhas — a transação fica aberta, prende locks e cresce o log de transações (WAL/undo/binlog).
+- Never run the schema migration inside the same transaction that backfills
+  millions of rows. The transaction stays open, holds locks, and grows the
+  transaction log (WAL, undo, binlog).
 
-## Migração de dados em lote (backfill)
+## Batched backfills
 
 ```sql
--- ❌ Um UPDATE gigante — trava a tabela inteira, transação longa, log explode
-UPDATE pedidos SET valor_total = valor;
+-- ❌ One giant UPDATE: locks the table, long transaction, log explodes
+UPDATE orders SET total_amount = amount;
 
--- ✅ Em lotes pequenos, cada um em sua própria transação, com pausa entre eles
+-- ✅ Small batches, each in its own transaction, with a pause between them
 DO $$
 DECLARE
-  linhas_afetadas INT;
+  affected INT;
 BEGIN
   LOOP
-    UPDATE pedidos SET valor_total = valor
-    WHERE id IN (SELECT id FROM pedidos WHERE valor_total IS NULL LIMIT 1000);
-    GET DIAGNOSTICS linhas_afetadas = ROW_COUNT;
-    EXIT WHEN linhas_afetadas = 0;
-    PERFORM pg_sleep(0.1); -- alivia carga, deixa outras queries passarem
+    UPDATE orders SET total_amount = amount
+    WHERE id IN (SELECT id FROM orders WHERE total_amount IS NULL LIMIT 1000);
+    GET DIAGNOSTICS affected = ROW_COUNT;
+    EXIT WHEN affected = 0;
+    PERFORM pg_sleep(0.1); -- eases load, lets other queries through
   END LOOP;
 END $$;
 ```
 
-Regras:
+Rules:
 
-- Lotes pequenos (500–5000 linhas), nunca a tabela inteira numa transação só.
-- Idempotente — reexecutar o job não pode duplicar/corromper (filtrar por `WHERE coluna IS NULL`, não por contador externo).
-- Fora do horário de pico quando a tabela é grande (dezenas de milhões de linhas).
-- Job de backfill roda fora da migration versionada — script separado, com checkpoint pra retomar se cair no meio.
-- Monitorar lag de réplica/CDC durante o backfill, se existir.
+- Small batches (500–5000 rows), never the whole table in one transaction.
+- Idempotent: re-running the job must not duplicate or corrupt anything. Filter on
+  `WHERE column IS NULL` rather than on an external counter.
+- Off-peak when the table is large — tens of millions of rows.
+- The backfill job runs outside the versioned migration: a separate script with a
+  checkpoint so it can resume if it dies halfway.
+- Watch replica or CDC lag while it runs.
 
-## Reversibilidade
+## Reversibility
 
-- Toda migration tem `up` e `down` — mesmo que `down` seja só "documentado, não totalmente executável" (dado apagado por `DROP COLUMN` não volta).
-- Rollback de código é rápido (revert de deploy); rollback de schema é lento e arriscado — por isso expand-contract existe: o schema nunca precisa ser revertido no meio de um deploy.
-- Backup/snapshot antes de qualquer `DROP COLUMN`/`DROP TABLE` em produção.
+- Every migration has an `up` and a `down`, even when the `down` is "documented,
+  not fully executable" — data removed by `DROP COLUMN` does not come back.
+- Rolling back code is fast; rolling back schema is slow and risky. That is why
+  expand-contract exists: the schema never has to be reverted mid-deploy.
+- Take a backup or snapshot before any `DROP COLUMN` or `DROP TABLE` in
+  production.
 
 ## Checklist
 
-- [ ] Migration destrutiva quebrada em expand → migrate → contract, nunca 1 deploy só
-- [ ] `NOT NULL` novo aplicado via `NOT VALID` + `VALIDATE CONSTRAINT` em passo separado
-- [ ] Índice novo criado com variante concorrente/online
-- [ ] Backfill em lotes, fora da transação da migration, idempotente
-- [ ] `lock_timeout`/`statement_timeout` configurados na migration
-- [ ] Testado contra um dump/cópia de produção (volume real), não só banco vazio de dev
-- [ ] Código velho e código novo validados rodando simultaneamente contra o schema pós-migration
-- [ ] Backup feito antes de operação destrutiva
+- [ ] Destructive migration split into expand → migrate → contract, never one deploy
+- [ ] New `NOT NULL` applied through `NOT VALID` plus a separate `VALIDATE CONSTRAINT`
+- [ ] New index created with the concurrent/online variant
+- [ ] Backfill batched, outside the migration transaction, idempotent
+- [ ] `lock_timeout` and `statement_timeout` set in the migration
+- [ ] Tested against a production dump or copy at real volume, not an empty dev database
+- [ ] Old and new code both exercised against the post-migration schema
+- [ ] Backup taken before any destructive operation
 
 ## Anti-patterns
 
-- ❌ Rename/drop de coluna em uso no mesmo deploy que remove o uso no código
-- ❌ `ALTER TABLE ... ADD COLUMN ... NOT NULL` direto em tabela com dados existentes
-- ❌ `CREATE INDEX` sem variante concorrente em tabela grande de produção
-- ❌ Backfill de milhões de linhas em uma única transação/UPDATE
-- ❌ Migration sem `down`/estratégia de rollback documentada
-- ❌ Rodar migration manualmente em produção fora do pipeline versionado
-- ❌ Migration testada só em banco vazio de dev, nunca com volume real de produção
+- ❌ Renaming or dropping a column in the same deploy that removes its usage in code
+- ❌ `ALTER TABLE ... ADD COLUMN ... NOT NULL` straight onto a table with data
+- ❌ `CREATE INDEX` without the concurrent variant on a large production table
+- ❌ Backfilling millions of rows in a single transaction
+- ❌ A migration with no `down` and no documented rollback strategy
+- ❌ Running a migration by hand in production, outside the versioned pipeline
+- ❌ Testing only against an empty dev database, never at production volume
 
-## Exemplos por stack
+## By stack
 
-**Supabase CLI** — `supabase migration new add_valor_total`, editar o SQL gerado seguindo expand-contract; backfill roda como script separado, nunca dentro da migration versionada.
+**Supabase CLI** — `supabase migration new add_total_amount`, then edit the
+generated SQL to follow expand-contract. The backfill is a separate script, never
+inside the versioned migration.
 
-**Prisma (Node/TS)** — gerar o SQL e editar antes de aplicar (`prisma migrate dev --create-only`):
+**Prisma (Node/TS)** — generate the SQL and edit it before applying
+(`prisma migrate dev --create-only`):
 ```prisma
-model Pedido {
-  valor      Decimal
-  valorTotal Decimal? @map("valor_total") // expand: nullable
+model Order {
+  amount      Decimal
+  totalAmount Decimal? @map("total_amount") // expand: nullable
 }
 ```
-Backfill roda como script separado (`ts-node scripts/backfill.ts`), nunca dentro do arquivo de migration gerado.
+The backfill runs as its own script (`ts-node scripts/backfill.ts`), never inside
+the generated migration file.
 
 **Alembic (Python/SQLAlchemy)**:
 ```python
 def upgrade():
-    op.add_column('pedidos', sa.Column('valor_total', sa.Numeric(10, 2), nullable=True))
-    # backfill aqui só se a tabela for pequena; senão, job separado em lotes
+    op.add_column('orders', sa.Column('total_amount', sa.Numeric(10, 2), nullable=True))
+    # backfill here only for a small table; otherwise a separate batched job
 
 def downgrade():
-    op.drop_column('pedidos', 'valor_total')
+    op.drop_column('orders', 'total_amount')
 ```
 
-**Flyway/Liquibase (Java) e Rails ActiveRecord** seguem o mesmo padrão de uma migration versionada por fase — `V2__add_valor_total.sql` → `V3__backfill_valor_total.sql` → `V4__drop_valor.sql` no Flyway; `AddValorTotalToPedidos` → job de backfill → `RemoveValorFromPedidos` no Rails — nunca uma migration só fazendo tudo de uma vez.
+**Flyway/Liquibase (Java) and Rails ActiveRecord** follow the same shape — one
+versioned migration per phase. `V2__add_total_amount.sql` →
+`V3__backfill_total_amount.sql` → `V4__drop_amount.sql` in Flyway;
+`AddTotalAmountToOrders` → backfill job → `RemoveAmountFromOrders` in Rails. Never
+one migration doing all of it at once.

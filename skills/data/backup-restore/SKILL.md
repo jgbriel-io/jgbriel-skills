@@ -5,107 +5,142 @@ description: Explains backup strategy and restore testing for relational databas
 
 # Backup & Restore
 
-Backup que nunca foi restaurado não é backup — é uma aposta não testada. A pergunta que importa não é "temos backup?", é "quando testamos o restore pela última vez, e quanto tempo levou?". Vale para qualquer banco relacional e qualquer ferramenta (pg_dump, mysqldump, PITR nativo, snapshot gerenciado do Supabase/cloud).
+A backup that has never been restored is not a backup — it is an untested bet.
+The question that matters is not "do we have backups?" but "when did we last
+restore one, and how long did it take?". This holds for any relational database
+and any tool: `pg_dump`, `mysqldump`, native PITR, a managed cloud snapshot.
 
-## RPO e RTO — definir antes de escolher ferramenta
+## RPO and RTO — decide before picking a tool
 
-| Métrica | Pergunta | Define |
+| Metric | Question | Determines |
 |---|---|---|
-| RPO (Recovery Point Objective) | Quanto de dado posso perder? | Frequência de backup / uso de PITR |
-| RTO (Recovery Time Objective) | Quanto tempo posso ficar fora do ar? | Estratégia de restore, tamanho do banco, automação |
+| RPO (Recovery Point Objective) | How much data can we afford to lose? | Backup frequency, whether PITR is required |
+| RTO (Recovery Time Objective) | How long can we be down? | Restore strategy, database size, automation |
 
-Sem RPO/RTO definidos, "fazer backup" é uma tarefa sem critério de sucesso. Exemplo: RPO de 5 minutos exige PITR (replay de WAL/binlog) — backup noturno sozinho não atende. RTO de 15 minutos exige restore automatizado testado, não um runbook manual de 40 passos.
+Without RPO and RTO, "do backups" is a task with no success criterion. A 5-minute
+RPO demands PITR (WAL/binlog replay); a nightly dump cannot meet it. A 15-minute
+RTO demands a tested, automated restore, not a 40-step manual runbook.
 
-## Tipos de backup
+## Backup types
 
-| Tipo | O que é | Quando usar |
+| Type | What it is | When to use |
 |---|---|---|
-| Lógico (dump) | Exporta dados como SQL/formato portável (`pg_dump`, `mysqldump`) | Migração entre versões/motores, backups pequenos, portabilidade |
-| Físico (snapshot) | Copia os arquivos de dados brutos do disco | Bancos grandes, restore rápido, mesma versão/motor |
-| Completo | Cópia integral do banco num instante | Base de qualquer estratégia, mais caro em espaço/tempo |
-| Incremental | Só o que mudou desde o último backup | Reduz janela e custo, mas encadeia dependência (perder um elo quebra a cadeia) |
-| PITR (Point-in-Time Recovery) | Backup completo + log de transações (WAL/binlog) contínuo | Restaurar para qualquer segundo específico, não só o horário do backup |
+| Logical (dump) | Exports data as SQL or a portable format (`pg_dump`, `mysqldump`) | Migrating across versions or engines, small backups, portability |
+| Physical (snapshot) | Copies the raw data files from disk | Large databases, fast restore, same engine and version |
+| Full | A complete copy at one instant | The base of any strategy; most expensive in space and time |
+| Incremental | Only what changed since the last backup | Smaller window and cost, but chains dependencies — lose one link and the chain breaks |
+| PITR | A full backup plus a continuous transaction log (WAL/binlog) | Restoring to a specific second, not just to whenever the backup ran |
 
-Lógico é portável mas lento para restaurar em bancos grandes (recria índices, reprocessa constraints). Físico/snapshot restaura rápido mas geralmente exige mesma versão de motor e mesma arquitetura.
+Logical is portable but slow to restore at size: it rebuilds indexes and
+re-checks constraints. Physical restores fast but usually demands the same engine
+version and architecture.
 
-## Retenção e armazenamento
+## Retention and storage
 
 ```
-# ❌ backup na mesma instância/disco do banco de produção
+# ❌ backup on the same instance and disk as the production database
 /var/lib/postgresql/backups/dump.sql
 
-# ✅ backup replicado para storage separado, fora do blast radius do banco original
-# (outra região, outra conta/projeto, storage imutável quando disponível)
+# ✅ replicated to storage outside the original database's blast radius
+# (another region, another account or project, immutable storage where available)
 ```
 
-- Regra 3-2-1 como piso: 3 cópias, 2 mídias/storages diferentes, 1 fora do site/região.
-- Retenção em camadas: diário (7–14 dias) + semanal (4–8 semanas) + mensal (6–12 meses), ajustado a exigência regulatória/contratual do cliente.
-- Backup criptografado em repouso e em trânsito — mesmo nível de proteção que o banco original (backup é o mesmo dado, só em outro formato).
-- Storage com política de retenção/imutabilidade (WORM, object lock) quando o risco inclui ransomware ou remoção maliciosa — backup mutável por quem tem acesso ao banco não protege contra esse cenário.
-- Backup de banco multi-tenant carrega dado de todos os clientes — restrição de acesso ao backup precisa ser igual ou mais estrita que ao banco vivo (ver `multi-tenant-isolation-audit`).
+- 3-2-1 as the floor: 3 copies, 2 different media or storage systems, 1 off-site
+  or in another region.
+- Layered retention: daily (7–14 days) plus weekly (4–8 weeks) plus monthly
+  (6–12 months), adjusted to whatever the client's contract or regulator demands.
+- Encrypted at rest and in transit. A backup is the same data in another format,
+  so it deserves the same protection as the live database.
+- Retention or immutability policy (WORM, object lock) where the threat model
+  includes ransomware or malicious deletion: a backup that whoever holds database
+  access can also delete does not cover that case.
+- A multi-tenant backup carries every client's data, so access to it must be at
+  least as restricted as access to the live database — see
+  `multi-tenant-isolation-audit`.
 
-## O teste de restore é o produto, não o backup
+## The restore drill is the product, not the backup
 
-Um job de backup verde no painel de monitoramento prova que o *dump* foi gerado — não prova que ele restaura, não prova que os dados estão íntegros, e não prova que o RTO combinado é alcançável.
+A green backup job proves the dump was produced. It does not prove the dump
+restores, that the data is intact, or that the agreed RTO is reachable.
 
 ```
-# ❌ "backup roda toda noite, nunca falhou" — sem nunca ter restaurado de fato
-# ✅ restore de verdade, em ambiente isolado, com validação de conteúdo, em cadência fixa
+# ❌ "the backup runs nightly and has never failed" — with no restore ever performed
+# ✅ a real restore, in an isolated environment, with content validation, on a fixed cadence
 ```
 
-Runbook mínimo do teste periódico:
+Minimum drill runbook:
 
-1. Provisionar ambiente isolado (não é a mesma instância nem a mesma rede do banco de produção).
-2. Restaurar o backup mais recente (ou um ponto aleatório dentro da janela de retenção, para não testar sempre o caminho mais fácil).
-3. Rodar validação de conteúdo — contagem de linhas em tabelas-chave, checksum, uma query de negócio conhecida (ex: total de pedidos do mês bate com o valor esperado).
-4. Medir o tempo total do processo (download + restore + validação) e comparar contra o RTO combinado.
-5. Registrar resultado (sucesso/falha, tempo, versão restaurada) — histórico de testes é a evidência de que o backup é confiável, não a existência do arquivo.
-6. Se falhar: tratar como incidente, não como "tentar de novo depois" — a causa (dump corrompido, credencial vencida, storage inacessível) provavelmente afeta o próximo backup também.
+1. Provision an isolated environment — not the same instance and not the same
+   network as production.
+2. Restore the most recent backup, or a random point inside the retention window,
+   so the drill does not always exercise the easiest path.
+3. Validate content: row counts on key tables, a checksum, and one known business
+   query whose answer you can predict (last month's order total, say).
+4. Measure the whole thing — download plus restore plus validation — and compare
+   it against the agreed RTO.
+5. Record the result: date, success or failure, elapsed time, version restored.
+   The history of drills is the evidence that the backup is trustworthy; the
+   existence of a file is not.
+6. On failure, treat it as an incident rather than something to retry later. The
+   cause — a corrupt dump, an expired credential, unreachable storage — probably
+   affects the next backup too.
 
-Cadência sugerida: trimestral no mínimo; mensal para dados críticos/regulados; sempre após mudança relevante de infraestrutura (troca de versão do motor, migração de storage, mudança de topologia de réplica).
+Cadence: quarterly at a minimum, monthly for critical or regulated data, and
+always after a relevant infrastructure change (engine upgrade, storage migration,
+replication topology change).
 
-## Sinais de que o backup não é confiável
+## Signs the backup is not trustworthy
 
-| Sinal | Risco |
+| Sign | Risk |
 |---|---|
-| Nunca foi restaurado, só gerado | Dump pode estar corrompido ou incompleto sem ninguém saber |
-| Restore só testado em banco pequeno/vazio de dev | RTO real desconhecido — volume de produção muda tudo |
-| Credencial/permissão de acesso ao storage de backup não testada há meses | Rotação de chave pode ter quebrado o job silenciosamente |
-| Backup e banco de produção na mesma conta/região sem isolamento | Um incidente de conta comprometida ou desastre regional apaga os dois |
-| Sem alerta de falha de job de backup | Job pode estar quebrado há semanas sem ninguém notar |
-| PITR sem teste de replay do log até um ponto específico | "Backup completo existe" não é o mesmo que "sei restaurar até as 14h32 de terça" |
+| Only ever generated, never restored | The dump may be corrupt or incomplete and nobody would know |
+| Restore only ever tested against a small, empty dev database | The real RTO is unknown; production volume changes everything |
+| Access to backup storage untested for months | A key rotation may have broken the job silently |
+| Backup and production in the same account and region, unisolated | One compromised account or regional outage takes both |
+| No alert on backup job failure | The job can be broken for weeks unnoticed |
+| PITR with no replay test to a specific point | "A full backup exists" is not "I can restore to 14:32 on Tuesday" |
 
 ## Checklist
 
-- [ ] RPO e RTO definidos e documentados por sistema/cliente (não um valor genérico para tudo)
-- [ ] Backup automatizado, com alerta ativo em caso de falha do job
-- [ ] Backup replicado para storage separado da instância de produção (3-2-1 como piso)
-- [ ] Retenção em camadas configurada e alinhada a exigência contratual/regulatória (ver `lgpd-checklist`)
-- [ ] Backup criptografado em repouso e em trânsito
-- [ ] Restore testado em ambiente isolado em cadência fixa, com validação de conteúdo (não só "o comando rodou sem erro")
-- [ ] Tempo de restore medido e comparado contra o RTO combinado
-- [ ] Resultado de cada teste de restore registrado (data, sucesso/falha, tempo)
-- [ ] Acesso ao backup restrito com o mesmo rigor que o acesso ao banco vivo (crítico em multi-tenant)
-- [ ] PITR (quando usado) testado com replay até um ponto específico, não só existência do log
+- [ ] RPO and RTO defined and written down per system or client, not one generic number for everything
+- [ ] Backup automated, with an active alert when the job fails
+- [ ] Backup replicated to storage separate from the production instance (3-2-1 as the floor)
+- [ ] Layered retention configured and matched to contractual or regulatory demands (see `lgpd-checklist`)
+- [ ] Encrypted at rest and in transit
+- [ ] Restore drilled in an isolated environment on a fixed cadence, with content validation — not just "the command exited zero"
+- [ ] Restore time measured and compared against the agreed RTO
+- [ ] Every drill recorded: date, success or failure, elapsed time
+- [ ] Backup access restricted as strictly as live database access — critical in multi-tenant
+- [ ] PITR, where used, tested by replaying to a specific point rather than by the log's existence
 
-## Exemplos por stack
+## By stack
 
-**Supabase** — backup automático diário incluído no plano; PITR disponível no plano Pro+. Teste de restore ainda é manual: restaurar num projeto Supabase novo e isolado, rodar a validação de conteúdo, medir o tempo — o Supabase gerenciar o backup não elimina a necessidade de testar o restore.
+**Supabase** — daily automated backups on every plan; PITR from Pro up. The
+restore drill is still manual: restore into a fresh, isolated Supabase project,
+run the content validation, measure the time. Managed backups do not remove the
+need to test the restore.
 
-**PostgreSQL (self-managed)** — lógico com `pg_dump -Fc` (formato custom, restaura com `pg_restore`, permite restore paralelo e seletivo por tabela); PITR com `pg_basebackup` + arquivamento contínuo de WAL (`archive_command`), restaurado com `restore_command` + `recovery_target_time`.
+**PostgreSQL (self-managed)** — logical with `pg_dump -Fc` (custom format,
+restored by `pg_restore`, supports parallel and per-table restore); PITR with
+`pg_basebackup` plus continuous WAL archiving (`archive_command`), restored via
+`restore_command` and `recovery_target_time`.
 
-**RDS / Cloud SQL (snapshot gerenciado)** — backup automático + PITR nativo da plataforma; o teste de restore ainda é manual: restaurar o snapshot/PITR para um projeto/instância novo e isolado, rodar a validação de conteúdo, medir o tempo.
+**RDS / Cloud SQL (managed snapshots)** — automated backups and native PITR. The
+drill is still manual: restore the snapshot or PITR target into a fresh, isolated
+instance, validate, measure.
 
-**MySQL/MariaDB** — lógico com `mysqldump --single-transaction` (evita lock em InnoDB); PITR combinando snapshot completo + replay de binlog (`mysqlbinlog --start-datetime`) até o ponto desejado.
+**MySQL/MariaDB** — logical with `mysqldump --single-transaction`, which avoids
+locking InnoDB; PITR by combining a full snapshot with binlog replay
+(`mysqlbinlog --start-datetime`) up to the chosen point.
 
 ## Anti-patterns
 
-- ❌ Confiar em "o job de backup nunca falhou" sem nunca ter restaurado de fato
-- ❌ Testar restore só em banco vazio/pequeno de dev, nunca com volume real de produção
-- ❌ Backup na mesma conta/região/instância do banco original, sem cópia isolada
-- ❌ Sem alerta configurado para falha silenciosa do job de backup
-- ❌ Retenção genérica (ex: só 7 dias) sem checar exigência contratual/regulatória do cliente
-- ❌ Backup não criptografado, ou com controle de acesso mais frouxo que o banco vivo
-- ❌ RPO/RTO nunca discutidos com o cliente — descobertos na hora do incidente
-- ❌ PITR configurado mas nunca testado o replay até um ponto específico no tempo
-- ❌ Backup de banco multi-tenant acessível por quem não teria acesso a todos os tenants no banco vivo
+- ❌ Trusting "the backup job has never failed" without ever having restored
+- ❌ Drilling only against an empty dev database, never at production volume
+- ❌ Backup in the same account, region or instance as the original, with no isolated copy
+- ❌ No alert for a silently failing backup job
+- ❌ A generic retention window (7 days, say) chosen without checking the client's contractual or regulatory requirement
+- ❌ Unencrypted backups, or backups with looser access control than the live database
+- ❌ RPO and RTO never discussed with the client, and discovered during the incident
+- ❌ PITR configured but never replayed to a specific point in time
+- ❌ A multi-tenant backup reachable by someone who could not reach every tenant in the live database

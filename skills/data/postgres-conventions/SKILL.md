@@ -3,9 +3,10 @@ name: postgres-conventions
 description: Apply Postgres best practices — schema design, indexes, RLS policies, SQL queries, connection pooling. Use when user asks about Postgres schema, indexes, RLS policies, connection pooling, or SQL conventions on a plain Postgres backend (not Supabase). For Supabase use the supabase-postgres skill instead. Migrations are covered by the safe-migrations skill; slow-query diagnosis by query-performance.
 ---
 
-# Postgres — Boas Práticas
+# Postgres
 
-> Migrations têm skill dedicada (`safe-migrations`); diagnóstico de query lenta também (`query-performance`).
+> Migrations have their own skill (`safe-migrations`), and so does slow-query
+> diagnosis (`query-performance`).
 
 ## Queries
 
@@ -13,93 +14,99 @@ description: Apply Postgres best practices — schema design, indexes, RLS polic
 -- ❌
 SELECT * FROM users;
 
--- ✅ Selecionar apenas colunas necessárias
+-- ✅ Select only the columns you need
 SELECT id, name, email, status FROM users;
 ```
 
-Paginação: `ORDER BY created_at DESC LIMIT :size OFFSET :page * :size` —
-para listas muito grandes, preferir keyset pagination (`WHERE created_at < :cursor`).
+Pagination: `ORDER BY created_at DESC LIMIT :size OFFSET :page * :size`. For very
+large lists, prefer keyset pagination (`WHERE created_at < :cursor`) — `OFFSET`
+still walks every skipped row.
 
-Operações transacionais multi-tabela: função no banco ou transação explícita
-na aplicação (`BEGIN ... COMMIT`) — nunca sequência de statements soltos.
+Multi-table transactional work: a database function, or an explicit transaction
+in the application (`BEGIN ... COMMIT`). Never a loose sequence of statements.
 
-## Índices
+## Indexes
 
 ```sql
--- FKs usadas em WHERE/JOIN
-CREATE INDEX idx_tabela_coluna ON tabela(coluna);
+-- FKs used in WHERE/JOIN
+CREATE INDEX idx_table_column ON table(column);
 
--- ORDER BY frequente
-CREATE INDEX idx_tabela_created_at ON tabela(created_at DESC);
+-- Frequent ORDER BY
+CREATE INDEX idx_table_created_at ON table(created_at DESC);
 
--- Filtros combinados
-CREATE INDEX idx_tabela_owner_status ON tabela(owner_id, status);
+-- Combined filters
+CREATE INDEX idx_table_owner_status ON table(owner_id, status);
 ```
 
 ## RLS
 
-Row Level Security é feature nativa do Postgres — usar para tenant isolation
-no nível do banco, mesmo fora do Supabase.
+Row Level Security is a native Postgres feature — use it for tenant isolation at
+the database level, Supabase or not. A filter in application code is one forgotten
+`WHERE` away from a leak; a policy is not.
 
 ```sql
--- Sempre habilitar em novas tabelas
-ALTER TABLE nova_tabela ENABLE ROW LEVEL SECURITY;
+-- Always enable it on new tables
+ALTER TABLE new_table ENABLE ROW LEVEL SECURITY;
 
--- Policy de owner (tenant isolation) — o app seta o contexto por transação:
+-- Owner policy (tenant isolation) — the app sets the context per transaction:
 -- SET LOCAL app.current_user_id = '<uuid>';
-CREATE POLICY "owner_own_data" ON nova_tabela
+CREATE POLICY "owner_own_data" ON new_table
   FOR ALL TO app_user
   USING (owner_id = current_setting('app.current_user_id')::uuid);
 
--- Policy de admin
-CREATE POLICY "admin_all" ON nova_tabela
+-- Admin policy
+CREATE POLICY "admin_all" ON new_table
   FOR ALL TO app_user
   USING ((SELECT is_admin()));
 ```
 
-**CRÍTICO:** Funções helpers como `is_admin()` DEVEM ter `SECURITY DEFINER` — sem isso causam recursão infinita em policies.
+Helper functions like `is_admin()` need `SECURITY DEFINER`. Without it they
+recurse infinitely inside the policy that calls them, and the table becomes
+unreadable rather than merely slow.
 
-## Schema Design
+## Schema design
 
 - PKs: `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`
 - Timestamps: `created_at TIMESTAMPTZ DEFAULT NOW()`, `updated_at TIMESTAMPTZ DEFAULT NOW()`
 - Soft delete: `deleted_at TIMESTAMPTZ`
-- Status: `TEXT CHECK (status IN ('ativo', 'inativo'))`
-- Valores monetários: `NUMERIC(10,2)` não `FLOAT`
+- Status: `TEXT CHECK (status IN ('active', 'inactive'))`
+- Money: `NUMERIC(10,2)`, never `FLOAT`
 
-## Funções
+## Functions
 
 ```sql
-CREATE OR REPLACE FUNCTION minha_funcao()
+CREATE OR REPLACE FUNCTION my_function()
 RETURNS void LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
 BEGIN
-  -- lógica
+  -- logic
 END;
 $$;
 ```
 
-Sempre `SET search_path` — sem isso é vulnerável a injection de schema.
+Always `SET search_path`: without it the function resolves names against whatever
+schema the caller has in scope, which is a schema-injection hole.
 
 ## Connection pooling
 
-- Aplicação nunca abre uma conexão por request — usar pool do driver/ORM
-  com limite explícito (`max`), dimensionado pelo `max_connections` do servidor
-- Muitas instâncias/serverless: pooler externo (ex: PgBouncer em modo
-  `transaction`) na frente do Postgres
-- Em modo `transaction` do PgBouncer, evitar estado de sessão (`SET` sem
-  `LOCAL`, prepared statements nomeados, advisory locks de sessão)
-- Fechar/devolver conexão sempre — vazamento de conexão derruba o banco antes da CPU
+- The application never opens a connection per request. Use the driver's or ORM's
+  pool with an explicit `max`, sized against the server's `max_connections`
+- Many instances, or serverless: put an external pooler in front (PgBouncer in
+  `transaction` mode)
+- Under PgBouncer's `transaction` mode, avoid session state — `SET` without
+  `LOCAL`, named prepared statements, session-level advisory locks
+- Always return the connection. A connection leak takes the database down long
+  before CPU does
 
 ## Anti-patterns
 
-- ❌ `SELECT *` em tabelas grandes
+- ❌ `SELECT *` on large tables
 - ❌ N+1 queries
-- ❌ Funções sem `SET search_path`
-- ❌ Tabelas sem RLS
-- ❌ PKs sequenciais (INTEGER/SERIAL)
-- ❌ Cálculos no frontend que poderiam ser views/funções no banco
-- ❌ Policies com funções recursivas sem `SECURITY DEFINER`
-- ❌ Conexão por request sem pool
+- ❌ Functions without `SET search_path`
+- ❌ Tables without RLS
+- ❌ Sequential PKs (INTEGER/SERIAL)
+- ❌ Computing in the frontend what a view or database function should compute
+- ❌ Policies calling recursive functions without `SECURITY DEFINER`
+- ❌ A connection per request, with no pool
