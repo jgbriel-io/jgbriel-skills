@@ -57,7 +57,7 @@ solta em `skills/` não é descoberta sozinha.
 <!-- inventory:commands:start -->
 **11 slash commands:**
 
-| Comando | Descrição |
+| Command | Description |
 |---|---|
 | `/branch` | Creates a new branch from an up-to-date main/master and switches to it. |
 | `/commit` | Writes a Conventional Commits message from the staged diff. |
@@ -73,9 +73,9 @@ solta em `skills/` não é descoberta sozinha.
 <!-- inventory:commands:end -->
 
 <!-- inventory:agents:start -->
-**3 agents** — rodam em subagent isolado:
+**3 agents** — they run in an isolated subagent:
 
-| Agent | Uso |
+| Agent | What it is for |
 |---|---|
 | `planner` | Breaks a task or feature into an ordered implementation plan with explicit dependencies, risks, and exit criteria. |
 | `researcher` | Read-only code locator and codebase mapper. |
@@ -88,11 +88,11 @@ solta em `skills/` não é descoberta sozinha.
 - `context-mode-cache-heal.mjs` — auto-cura o cache do plugin context-mode no `SessionStart`
 
 <!-- inventory:skills:start -->
-**84 skills**, em 13 pastas de categoria:
+**84 skills**, across 13 category folders:
 
 <details><summary><code>backend</code> — 6 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `api-design` | Applies stack-agnostic REST API design conventions — resource naming, HTTP verbs, status codes, error envelope, version… |
 | `backend-service-conventions` | Framework-agnostic conventions for backend service structure — layering (controller/service/repository), dependency inj… |
@@ -104,7 +104,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>career</code> — 3 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `cv-sync` | The resume pipeline — edit the canonical .tex files, recompile, distribute to the site and the vault, commit, and verif… |
 | `job-description-analyzer` | Analyzes a job posting against the user's profile — mandatory requirements separated from nice-to-have, a fit score, ga… |
@@ -113,7 +113,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>cloudflare</code> — 4 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `cloudflare` | Comprehensive Cloudflare platform skill covering Workers, Pages, storage (KV, D1, R2), AI (Workers AI, Vectorize, Agent… |
 | `cloudflare-email-service` | Send and receive transactional emails with Cloudflare Email Service (Email Sending + Email Routing). |
@@ -123,7 +123,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>core-loop</code> — 12 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `codebase-design` | Shared vocabulary for designing deep modules. |
 | `codebase-memory` | Use the codebase knowledge graph for structural code queries. |
@@ -141,7 +141,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>data</code> — 6 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `backup-restore` | Explains backup strategy and restore testing for relational databases — full vs. |
 | `postgres-conventions` | Apply Postgres best practices — schema design, indexes, RLS policies, SQL queries, connection pooling. |
@@ -153,7 +153,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>delivery</code> — 8 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `docs-writing` | Technical documentation style guide for README, docs/, ADRs, JSDoc/TSDoc, and inline code comments. |
 | `estimation` | Applies effort-estimation technique to any deliverable, technical or not — task decomposition, three-point estimation (… |
@@ -167,7 +167,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>devops</code> — 11 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `ci-cd-pipeline` | Defines standard CI/CD pipeline stages (lint, type-check, test, build), dependency caching, running migrations in CI, a… |
 | `container-conventions` | Defines multi-stage Docker builds, minimal base images, non-root users, .dockerignore, layer cache ordering, and docker… |
@@ -184,7 +184,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>frontend</code> — 9 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `accessibility-audit` | Guides accessibility (a11y) auditing — automated tooling (axe-core) wired into CI as a floor not a substitute for manua… |
 | `client-state-management` | Defines the boundary between server state, local UI state, and URL state as an architecture decision independent of sta… |
@@ -199,7 +199,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>meta</code> — 5 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `skill-audit` | Audit Claude Code skills against the fleet's reference implementation — a mechanical sweep first, then criterion-by-cri… |
 | `skill-sync` | Sync the skill fleet against its upstreams — mattpocock/skills and lucasmonstrox/utevo-lux — diffing repo vs upstream, … |
@@ -210,7 +210,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>quality</code> — 4 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `code-reviewer` | Stack-specific review checklist for React + TanStack Query + Supabase multi-tenant apps — hook architecture, RLS/tenant… |
 | `e2e-testing` | Guides writing reliable end-to-end tests — programmatic auth fixtures instead of UI login, per-run data isolation, acce… |
@@ -220,7 +220,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>security</code> — 6 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `auth-patterns` | Authentication and authorization patterns — OTP/password/OAuth/OIDC flows, session vs JWT, RBAC/ABAC, MFA, token refres… |
 | `dependency-audit` | Audits third-party dependencies for security and maintainability — lockfile discipline, upgrade cadence (automatic patc… |
@@ -232,7 +232,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>tcc</code> — 6 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `tcc-auditoria-banca` | Simulates the written report an examining board issues on a finished TCC (Brazilian undergraduate thesis) — grade per c… |
 | `tcc-defesa` | Builds the defense presentation for the SyncClass TCC out of the written chapters — narrative arc, slide-by-slide scrip… |
@@ -244,7 +244,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>vault</code> — 4 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `obsidian-vault` | Creates, searches and links notes in the personal Obsidian vault following the wiki conventions — folder structure, wik… |
 | `project-kickoff` | Orchestrates a project from scratch — idea to spec, design system and implementation plan — invoking each phase's skill… |

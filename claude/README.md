@@ -1,19 +1,20 @@
-# Claude Code — Índice
+# Claude Code — Index
 
-Quatro arquivos, um job cada. Ordem de leitura sugerida:
+Four files, one job each. Suggested reading order:
 
-| Ordem | Arquivo | Job |
+| Order | File | Job |
 |---|---|---|
-| 1 | [CLAUDE.md](CLAUDE.md) | Regras globais de comportamento — idioma, git, segurança, custo. É o arquivo que o Claude Code lê sozinho |
-| 2 | [STRUCTURE.md](STRUCTURE.md) | Onde tudo mora e como se conecta: plugin, hooks, MCP, `settings.json`, inventário gerado |
-| 3 | [WORKFLOWS.md](WORKFLOWS.md) | Receitas — qual skill encadear com qual, e por quê |
-| 4 | [GUIDE.md](GUIDE.md) | Cheat sheet de plugin de terceiro e de onde a config mora |
+| 1 | [CLAUDE.md](CLAUDE.md) | Global behaviour rules — language, git, security, cost. The file Claude Code reads on its own |
+| 2 | [STRUCTURE.md](STRUCTURE.md) | Where everything lives and how it connects: plugin, hooks, MCP, `settings.json`, generated inventory |
+| 3 | [WORKFLOWS.md](WORKFLOWS.md) | Recipes — which skill to chain with which, and why |
+| 4 | [GUIDE.md](GUIDE.md) | Cheat sheet for third-party plugins and where the config lives |
 
-`config/` guarda os templates de arquivo (`CLAUDE.template.md`,
-`AGENT.template.md`, e os outros); `skills-archived/` guarda o que saiu de
-circulação e não entra no plugin.
+`config/` holds the file templates (`CLAUDE.template.md`, `AGENT.template.md`
+and the rest); `skills-archived/` holds what went out of circulation and does
+not ship in the plugin.
 
-**Regra contra drift:** cada fato vive em um arquivo só, e os outros apontam.
-Toda lista de skill, command ou agent é **gerada** por `scripts/gen-inventory.py`
-a partir da árvore — nenhuma é mantida à mão. `scripts/check-doc-refs.py` falha
-quando a prosa em volta cita algo que não existe mais; os dois rodam no CI.
+**The rule against drift:** each fact lives in exactly one file, and the others
+point at it. Every list of skills, commands or agents is **generated** by
+`scripts/gen-inventory.py` from the tree — none is maintained by hand.
+`scripts/check-doc-refs.py` fails when the prose around them names something
+that no longer exists. Both run in CI.

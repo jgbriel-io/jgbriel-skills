@@ -64,11 +64,11 @@ def flat(kind):
 def block_skills():
     cats = skills()
     total = sum(len(v) for v in cats.values())
-    lines = [f"**{total} skills**, em {len(cats)} pastas de categoria:", ""]
+    lines = [f"**{total} skills**, across {len(cats)} category folders:", ""]
     for cat in sorted(cats):
         entries = cats[cat]
         lines.append(f"<details><summary><code>{cat}</code> — {len(entries)} skills</summary>")
-        lines += ["", "| Skill | Uso |", "|---|---|"]
+        lines += ["", "| Skill | What it is for |", "|---|---|"]
         lines += [f"| `{n}` | {first_sentence(d)} |" for n, d in sorted(entries)]
         lines += ["", "</details>"]
     return "\n".join(lines)
@@ -77,7 +77,7 @@ def block_skills():
 def block_commands():
     rows = flat("commands")
     return "\n".join(
-        [f"**{len(rows)} slash commands:**", "", "| Comando | Descrição |", "|---|---|"]
+        [f"**{len(rows)} slash commands:**", "", "| Command | Description |", "|---|---|"]
         + [f"| `/{n}` | {d} |" for n, d in rows]
     )
 
@@ -85,7 +85,7 @@ def block_commands():
 def block_agents():
     rows = flat("agents")
     return "\n".join(
-        [f"**{len(rows)} agents** — rodam em subagent isolado:", "", "| Agent | Uso |", "|---|---|"]
+        [f"**{len(rows)} agents** — they run in an isolated subagent:", "", "| Agent | What it is for |", "|---|---|"]
         + [f"| `{n}` | {d} |" for n, d in rows]
     )
 
@@ -119,12 +119,12 @@ def main():
 
     if check:
         if stale:
-            print("inventário desatualizado: " + ", ".join(stale))
-            print("rode scripts/gen-inventory.py")
+            print("inventory out of date: " + ", ".join(stale))
+            print("run scripts/gen-inventory.py")
             return 1
-        print("inventário em dia")
+        print("inventory in sync")
         return 0
-    print("atualizado: " + (", ".join(written) if written else "nada a fazer"))
+    print("updated: " + (", ".join(written) if written else "nothing to do"))
     return 0
 
 
