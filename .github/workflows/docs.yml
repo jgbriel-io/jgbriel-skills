@@ -1,0 +1,16 @@
+name: docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: inventários gerados estão em dia
+        run: python3 scripts/gen-inventory.py --check
+      - name: nenhuma referência para comando ou skill inexistente
+        run: python3 scripts/check-doc-refs.py

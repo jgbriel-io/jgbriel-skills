@@ -1,13 +1,19 @@
 # Claude Code — Índice
 
-5 arquivos `.md` em caixa alta, cada um com um job só. Ordem de leitura sugerida:
+Quatro arquivos, um job cada. Ordem de leitura sugerida:
 
 | Ordem | Arquivo | Job |
 |---|---|---|
-| 1 | `CLAUDE.md` | Regras globais de comportamento (idioma, git, segurança, code style) — lido automaticamente pelo Claude Code |
-| 2 | `STRUCTURE.md` | Onde tudo mora: symlinks D: ↔ `~/.claude/`, skills/agents/plugins/hooks/MCP, `settings.json`, setup prático |
-| 3 | `COMMANDS.md` | Tabela de slash commands (`commands/`) — referência rápida, sem duplicar skills/agents (isso é `STRUCTURE.md`) |
-| 4 | `WORKFLOWS.md` | Receitas combinando commands + skills + agents pra casos de uso reais |
-| 5 | `GUIDE.md` | Cheat sheet condensado — pra consulta no meio de uma sessão, não pra ler do zero |
+| 1 | [CLAUDE.md](CLAUDE.md) | Regras globais de comportamento — idioma, git, segurança, custo. É o arquivo que o Claude Code lê sozinho |
+| 2 | [STRUCTURE.md](STRUCTURE.md) | Onde tudo mora e como se conecta: plugin, hooks, MCP, `settings.json`, inventário gerado |
+| 3 | [WORKFLOWS.md](WORKFLOWS.md) | Receitas — qual skill encadear com qual, e por quê |
+| 4 | [GUIDE.md](GUIDE.md) | Cheat sheet de plugin de terceiro e de onde a config mora |
 
-Regra pra evitar drift: cada fato (skill existe, hook faz X, plugin Y) vive em **um único arquivo**. Os outros apontam pra ele em vez de copiar.
+`config/` guarda os templates de arquivo (`CLAUDE.template.md`,
+`AGENT.template.md`, e os outros); `skills-archived/` guarda o que saiu de
+circulação e não entra no plugin.
+
+**Regra contra drift:** cada fato vive em um arquivo só, e os outros apontam.
+Toda lista de skill, command ou agent é **gerada** por `scripts/gen-inventory.py`
+a partir da árvore — nenhuma é mantida à mão. `scripts/check-doc-refs.py` falha
+quando a prosa em volta cita algo que não existe mais; os dois rodam no CI.
