@@ -56,7 +56,7 @@ The dominant failure mode is acting early and then insisting — not hallucinati
 
 ## 4. Verify — by the surface you touched
 
-Read [verification.md](verification.md) for the proof matrix, the scenario ladder and the reviewer protocol.
+Read [verification.md](references/verification.md) for the proof matrix, the scenario ladder and the reviewer protocol.
 
 Non-negotiable:
 

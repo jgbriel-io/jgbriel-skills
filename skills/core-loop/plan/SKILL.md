@@ -57,7 +57,7 @@ Everything entering the briefing **carries its source**. Conflicts resolve to th
 
 ## 4. Write it
 
-For tier 3, use [templates.md](templates.md) — dossier first, `## Plan` last, in one file.
+For tier 3, use [templates.md](references/templates.md) — dossier first, `## Plan` last, in one file.
 
 **The quality bar: a fresh session with zero context from this conversation executes it without re-deciding anything.** That is the whole point of the artifact.
 
