@@ -20,7 +20,7 @@ The result is an **understood and confirmed decision**. Discuss until you can ex
 - **`/plan` makes it executable:** architecture that fits the repository, paths, symbols, final contracts, steps, proofs, tests and **implementation** `Don't:` constraints next to each function or step.
 - **`/implement` implements and verifies.** Do not write code during `discuss`.
 - **`grill-me` is the light version of this conversation.** A plan or design that already exists and just needs pressure goes there; `discuss` is for building the direction from scratch, and it costs accordingly. If the user arrives with something already formed, say so and offer the cheaper one.
-- Judging a finished PR is `pr-acceptance`; the diff itself is `/code-review`.
+- Judging a finished PR is `pr-acceptance accept`; the diff itself is `/code-review`.
 
 Do not assume something already exists to "improve." First classify the transformation: a new capability, behavior change, correction, risk reduction, maintenance/refactoring, infrastructure or developer feedback. In a new project, the baseline may simply be "this does not exist yet"; look for adjacent capabilities and constraints instead of inventing a current state.
 

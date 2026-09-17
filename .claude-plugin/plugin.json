@@ -1,6 +1,6 @@
 {
   "name": "jgbriel-skills",
-  "version": "1.0.28",
+  "version": "1.0.29",
   "description": "Fleet completo de skills, agents, commands e hooks do Claude Code — o loop de trabalho, convenções por stack, segurança, DevOps, TCC e ferramentas pessoais.",
   "author": {
     "name": "João Gabriel",
@@ -69,7 +69,6 @@
     "./skills/core-loop/plan",
     "./skills/core-loop/pr-acceptance",
     "./skills/core-loop/research",
-    "./skills/core-loop/resolve-review",
     "./skills/data/backup-restore",
     "./skills/data/postgres-conventions",
     "./skills/data/query-performance",
