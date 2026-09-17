@@ -1,6 +1,6 @@
 {
   "name": "jgbriel-skills",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Fleet completo de skills, agents, commands e hooks do Claude Code — o loop de trabalho, convenções por stack, segurança, DevOps, TCC e ferramentas pessoais.",
   "author": {
     "name": "João Gabriel",
@@ -50,8 +50,6 @@
     "./skills/backend/caching-strategy",
     "./skills/backend/input-validation",
     "./skills/backend/rate-limiting",
-    "./skills/backend/supabase-hooks",
-    "./skills/backend/tanstack-query-patterns",
     "./skills/career/cv-sync",
     "./skills/career/job-description-analyzer",
     "./skills/career/resume-tailor",
@@ -103,6 +101,8 @@
     "./skills/frontend/forms-validation",
     "./skills/frontend/frontend-conventions",
     "./skills/frontend/react-best-practices",
+    "./skills/frontend/supabase-hooks",
+    "./skills/frontend/tanstack-query-patterns",
     "./skills/frontend/web-perf",
     "./skills/meta/skill-audit",
     "./skills/meta/skill-sync",

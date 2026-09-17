@@ -5,6 +5,11 @@ description: Validates untrusted input at every system boundary — API requests
 
 # Input Validation — Validação na Borda
 
+Esta skill cobre a borda do servidor: request, mensagem de fila, upload, webhook,
+arg de CLI. A validação de formulário no client, com máscara de CPF/CNPJ/CEP e UX
+de erro por campo, é `forms-validation` — e as duas compartilham o mesmo schema
+de propósito, porque duas definições de "válido" divergem na primeira mudança.
+
 ## Princípio
 
 Nunca confiar em payload externo. Todo dado que entra por uma borda (request HTTP, mensagem de fila, upload, arg de CLI, webhook) é hostil até provado o contrário — mesmo vindo de um client "seu".
