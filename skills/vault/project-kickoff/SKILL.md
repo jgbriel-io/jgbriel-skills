@@ -1,89 +1,104 @@
 ---
 name: project-kickoff
-description: Orquestra o começo de um projeto do zero, da ideia ao spec, design system e plano de implementação, invocando as skills de cada fase na ordem certa. Use quando o usuário disser "novo projeto", "vou começar um projeto", "quero criar X do zero", "fluxo completo de projeto", ou começar a descrever uma ideia que quer construir direito.
+description: Orchestrates a project from scratch — idea to spec, design system and implementation plan — invoking each phase's skill in the right order. Use when the user says "novo projeto", "vou começar um projeto", "quero criar X do zero", "fluxo completo de projeto", or starts describing an idea they want to build properly.
 ---
 
 # project-kickoff
 
-Guia o usuário pelo fluxo completo de criação de projeto, fase por fase, garantindo que nada seja pulado. Foco em evitar retrabalho — as decisões que mais custam (design system, schema, escopo) são tomadas antes de escrever código.
+Walks the user through starting a project, phase by phase, so nothing gets
+skipped. The point is to avoid rework: the decisions that cost most to reverse —
+design system, schema, scope — are made before any code is written.
 
 ---
 
-## Fase 1 — Ideação & Escopo
+## Phase 1 — Ideation and scope
 
-**Objetivo:** entender o que é o projeto e o que NÃO é.
+**Goal:** understand what the project is, and what it is not.
 
-1. Invocar `/discuss` para construir a direção — uma decisão por vez, até intenção, audiência, cenários, precedentes, opções e fronteiras fecharem num brief confirmado. É aqui que a ideia vira direção defensável.
-   - Ideia já formada e só precisando de pressão? `/grill-me` é o caminho barato (trabalha a fronteira em rodadas). O `/discuss` é pra construir do zero, e custa de acordo.
+1. Invoke `/discuss` to build the direction — one decision at a time, until
+   intent, audience, scenarios, precedents, options and boundaries close into a
+   confirmed brief. This is where an idea becomes a defensible direction.
+   - If the idea is already formed and only needs pressure, `/grill-me` is the
+     cheap path: it works the boundary in rounds. `/discuss` builds from nothing
+     and costs accordingly.
 
-2. Invocar `/project-planner` para transformar o brief nas páginas do vault em `wiki/Projetos/<nome>/`.
-   - Ele extrai os campos do brief do `discuss`; o que faltar, ele pergunta.
-   - Ao final, o index.md e os stubs das subpáginas já existem.
+2. Invoke `/project-planner` to turn the brief into the vault pages under
+   `wiki/Projetos/<name>/`.
+   - It takes its fields from the `discuss` brief and asks for whatever is missing.
+   - It leaves `index.md` and the subpage stubs in place.
 
-3. **Definir fora do escopo explicitamente** — criar seção `## Fora do escopo (v1)` no index.md com lista em texto (sem emoji — regra do vault). Isso evita scope creep durante o desenvolvimento.
+3. **Write down what is out of scope.** Create a `## Fora do escopo (v1)` section
+   in `index.md`, as plain text without emoji (a vault rule). This is what keeps
+   scope creep out during development.
 
-**Entregáveis da Fase 1:**
-- `wiki/Projetos/<nome>/index.md` completo
-- Fora do escopo documentado
-- Ideia stress-testada
+**Phase 1 deliverables:**
+- A complete `wiki/Projetos/<name>/index.md`
+- Out of scope, documented
+- An idea that has been stress-tested
 
 ---
 
-## Fase 2 — Spec
+## Phase 2 — Spec
 
-**Objetivo:** documentar o que o sistema deve fazer antes de qualquer código.
+**Goal:** write down what the system must do, before any code.
 
-Criar `wiki/Projetos/<nome>/<Nome> - Spec.md` cobrindo:
+Create `wiki/Projetos/<name>/<Name> - Spec.md` covering:
 
-### 2.1 Requisitos funcionais
-Lista de comportamentos que o sistema DEVE ter. Formato de checkbox:
+### 2.1 Functional requirements
+The behaviours the system MUST have, as checkboxes:
 ```markdown
-- [ ] Usuário pode fazer X sem login
-- [ ] Ao finalizar Y, sistema faz Z automaticamente
+- [ ] A user can do X without logging in
+- [ ] On finishing Y, the system does Z automatically
 ```
 
-### 2.2 Requisitos não-funcionais
-Performance, SEO, acessibilidade, LGPD, segurança, mobile-first. Sempre incluir LGPD se produto coleta dados de usuário.
+### 2.2 Non-functional requirements
+Performance, SEO, accessibility, LGPD, security, mobile-first. Always include LGPD
+when the product collects user data.
 
-### 2.3 Mapa de rotas
-Tabela com todas as URLs, tipo (SSR vs estático) e o que renderiza. Não deixar rotas implícitas — nomear tudo.
+### 2.3 Route map
+A table of every URL, its type (SSR or static) and what it renders. No implicit
+routes — name them all.
 
-### 2.4 Fluxos UX por tela
-Para cada rota principal: o que o usuário vê, o que faz, o que acontece. 3–5 bullets por tela. Não wireframe — prose de intenção.
+### 2.4 UX flows per screen
+For each main route: what the user sees, what they do, what happens. Three to five
+bullets per screen. Not a wireframe — prose about intent.
 
-### 2.5 Motor de negócio
-A lógica central do produto (scoring, cálculo, regras de negócio). Se tem algoritmo, documentar em pseudocódigo ou TypeScript antes de implementar.
+### 2.5 The business engine
+The product's central logic: scoring, calculation, business rules. If there is an
+algorithm, write it as pseudocode or TypeScript before implementing it.
 
-### 2.6 Inventário de componentes
-Lista de componentes Astro/React/Vue que existirão. Ajuda a ver duplicações antes de criar.
+### 2.6 Component inventory
+The Astro/React/Vue components that will exist. Listing them exposes duplication
+before anything is built.
 
-### 2.7 Invocar `/domain-modeling`
-Para fixar terminologia antes de nomear variáveis, rotas, tabelas e tipos. Nomes inconsistentes geram refatoração.
+### 2.7 Invoke `/domain-modeling`
+To fix the vocabulary before naming variables, routes, tables and types.
+Inconsistent names turn into refactors.
 
-**Entregáveis da Fase 2:**
-- `<Nome> - Spec.md` completo
-- Terminologia fixada pelo domain-modeling
+**Phase 2 deliverables:**
+- A complete `<Name> - Spec.md`
+- Terminology fixed by domain-modeling
 
 ---
 
-## Fase 3 — Design
+## Phase 3 — Design
 
-**Objetivo:** definir a identidade visual ANTES de escrever frontend.
+**Goal:** settle the visual identity BEFORE writing any frontend.
 
-Mudar design system depois = refatorar CSS do projeto inteiro.
+Changing the design system later means refactoring the whole project's CSS.
 
-### 3.1 Direção visual
-Perguntar ao usuário:
-- Qual estética? (ex: clean/minimalista, quente/aconchegante, escuro/premium, editorial, etc.)
-- Referências visuais (sites, apps, marcas)
-- Público e tom (jovem/formal, feminino/neutro, tech/popular)
+### 3.1 Visual direction
+Ask the user:
+- Which aesthetic? (clean and minimal, warm, dark and premium, editorial…)
+- Visual references — sites, apps, brands
+- Audience and tone (young or formal, tech or mainstream)
 
-### 3.2 Fechar a direção visual
-Escolher, com o usuário, uma direção e registrá-la em uma frase: referência
-principal, o que copiar dela e o que não copiar. Sem essa frase, a Fase 4 chuta.
+### 3.2 Settle the direction
+Pick one with the user and record it in a sentence: the main reference, what to
+take from it, and what not to take. Without that sentence, Phase 4 guesses.
 
-### 3.3 Documentar design tokens
-Criar seção `## Design system` no Spec (ou arquivo separado) com:
+### 3.3 Document the design tokens
+Create a `## Design system` section in the spec, or its own file:
 
 ```css
 :root {
@@ -98,97 +113,100 @@ Criar seção `## Design system` no Spec (ou arquivo separado) com:
 }
 ```
 
-**Entregáveis da Fase 3:**
-- Design tokens definidos
-- Direção visual documentada no wiki
+**Phase 3 deliverables:**
+- Design tokens defined
+- The visual direction written down in the wiki
 
 ---
 
-## Fase 4 — Implementação
+## Phase 4 — Implementation
 
-**Objetivo:** codar com fundação sólida, feature por feature.
+**Goal:** build on a solid foundation, one feature at a time.
 
-### 4.1 Scaffold + qualidade desde o dia 1
+### 4.1 Scaffold, with quality gates from day one
 ```bash
-# scaffold do projeto (Next, Astro, etc.)
-# depois:
+# scaffold the project (Next, Astro, etc.), then:
 ```
-Invocar `/setup-pre-commit` — lint, type-check e testes no pre-commit. Não deixar para depois.
+Invoke `/setup-pre-commit` — lint, type-check and tests on pre-commit. Not later.
 
-### 4.2 Ordem de implementação
-1. **Schema do banco primeiro** — migrations mudam e quebram tudo. Definir antes de criar qualquer query.
-2. **Types/domain layer** — interfaces TypeScript que modelam o domínio. Sem UI ainda.
-3. **Feature por feature end-to-end** — uma rota funcionando completamente antes de partir para a próxima. Não fazer todas as rotas em paralelo.
-4. **Edge cases por último** — MVP funcionando > casos raros tratados.
+### 4.2 Order of work
+1. **Database schema first.** Migrations change and break everything downstream,
+   so settle the schema before writing any query.
+2. **Types and domain layer** — the TypeScript interfaces that model the domain.
+   Still no UI.
+3. **Feature by feature, end to end.** One route working completely before
+   starting the next; never all routes in parallel.
+4. **Edge cases last.** A working MVP beats rare cases handled early.
 
-### 4.3 Skills durante implementação
-- `/supabase-hooks` — hooks, mutations, queries Supabase/TanStack
-- `/supabase-postgres` — schema, RLS, índices, migrations
+### 4.3 Skills during implementation
+- `/supabase-hooks` — Supabase/TanStack hooks, mutations, queries
+- `/supabase-postgres` — schema, RLS, indexes, migrations
 - `/react-best-practices` — performance, bundle, re-renders
-- `/tdd` — quando feature tem lógica complexa
+- `/tdd` — when a feature carries real logic
 
-**Entregáveis da Fase 4:**
-- Projeto rodando localmente
-- Pre-commit configurado
-- Schema de banco em migrations versionadas
-
----
-
-## Fase 5 — Manutenção
-
-**Objetivo:** manter o wiki em sync com o código real.
-
-- Invocar `/project-sync` sempre que docs do projeto na `docs/` do projeto forem atualizadas.
-- Atualizar `status:` no frontmatter do index.md conforme projeto avança (`seed` → `developing` → `evergreen`).
-- Registrar decisões arquiteturais não óbvias no wiki (por que mudou de X para Y).
+**Phase 4 deliverables:**
+- The project running locally
+- Pre-commit configured
+- The database schema in versioned migrations
 
 ---
 
-## Checklist de fases
+## Phase 5 — Maintenance
+
+**Goal:** keep the wiki in sync with the real code.
+
+- Invoke `/project-sync` whenever the project's `docs/` changes.
+- Move `status:` in the index frontmatter along as the project matures
+  (`seed` → `developing` → `evergreen`).
+- Record non-obvious architectural decisions in the wiki — why X became Y.
+
+---
+
+## Phase checklist
 
 ```
-Fase 1 — Ideação
-  [ ] /discuss fechado — brief confirmado
-  [ ] /project-planner executado — wiki stub criado
-  [ ] Fora do escopo documentado no index.md
+Phase 1 — Ideation
+  [ ] /discuss closed — brief confirmed
+  [ ] /project-planner run — wiki stubs created
+  [ ] Out of scope documented in index.md
 
-Fase 2 — Spec
-  [ ] Requisitos funcionais (checkboxes)
-  [ ] Requisitos não-funcionais
-  [ ] Mapa de rotas completo
-  [ ] Fluxos UX por tela
-  [ ] Motor de negócio documentado
-  [ ] /domain-modeling feito — terminologia fixada
+Phase 2 — Spec
+  [ ] Functional requirements (checkboxes)
+  [ ] Non-functional requirements
+  [ ] Complete route map
+  [ ] UX flows per screen
+  [ ] Business engine documented
+  [ ] /domain-modeling done — terminology fixed
 
-Fase 3 — Design
-  [ ] Direção visual definida
-  [ ] Design tokens documentados
-  [ ] Design skill invocada
+Phase 3 — Design
+  [ ] Visual direction settled
+  [ ] Design tokens documented
 
-Fase 4 — Implementação
-  [ ] /setup-pre-commit configurado
-  [ ] Schema do banco definido antes de queries
-  [ ] Feature por feature, end-to-end
+Phase 4 — Implementation
+  [ ] /setup-pre-commit configured
+  [ ] Schema settled before any query
+  [ ] Feature by feature, end to end
 
-Fase 5 — Manutenção
-  [ ] /project-sync configurado
-  [ ] status: atualizado no wiki
+Phase 5 — Maintenance
+  [ ] /project-sync in place
+  [ ] status: current in the wiki
 ```
 
 ---
 
-## O que mais gera retrabalho (por ordem)
+## What generates the most rework, in order
 
-1. Design system definido tarde — refatora CSS do projeto inteiro
-2. Schema sem pensar nos fluxos — migrations que quebram tudo
-3. Fora do escopo não definido — scope creep constante
-4. Terminologia inconsistente — refatora types, variáveis, rotas
+1. A design system settled late — refactors the whole project's CSS
+2. A schema designed without the flows in mind — migrations that break everything
+3. Scope never bounded — constant creep
+4. Inconsistent terminology — refactors types, variables and routes
 
 ---
 
-## Quando pular fases
+## When to skip phases
 
-- Projeto de 1 dia / throwaway → pular Fase 3 e 5
-- Projeto sem UI → pular Fase 3
-- Projeto com docs já existentes no disco → substituir Fase 1 por `/project-sync`
-- Refatoração de projeto existente → começar da Fase 4, usar `/project-sync` para atualizar wiki
+- A one-day or throwaway project → skip phases 3 and 5
+- A project with no UI → skip phase 3
+- A project that already has docs on disk → replace phase 1 with `/project-sync`
+- Refactoring something that exists → start at phase 4, and use `/project-sync` to
+  bring the wiki up to date

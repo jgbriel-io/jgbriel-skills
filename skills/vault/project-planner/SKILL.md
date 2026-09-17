@@ -7,112 +7,129 @@ disable-model-invocation: true
 
 # project-planner
 
-Entrevista o usuário sobre um projeto novo e cria as páginas wiki em `wiki/Projetos/` seguindo a convenção do vault.
+Interview the user about a new project and create its wiki pages under
+`wiki/Projetos/`, following the vault's conventions.
 
-## Quando usar
+## When to use
 
-- Usuário descreve ideia de projeto e quer documentar
-- Usuário quer criar estrutura wiki para projeto ainda não documentado
-- Usuário diz "vamos planejar X", "tenho ideia de Y", "cria projeto Z no wiki"
+- The user describes a project idea and wants it documented
+- The user wants the wiki structure for a project nobody has written up yet
+- The user says "vamos planejar X", "tenho ideia de Y", "cria projeto Z no wiki"
 
-Não usar quando: projeto tem `docs/` existente em disco → usar `project-sync` em vez disso.
-
----
-
-## Profundidade adaptável
-
-Dois níveis — decidir pelo estágio do projeto, não perguntar:
-
-| Nível | Quando | O que muda |
-|-------|--------|-----------|
-| **Mínimo** | Ideia solta, side-project, sem stack definida | Só os tópicos essenciais (Passo 1); index.md enxuto, subpáginas como stub |
-| **Completo** | Projeto com arquitetura, stack ou repos existentes | Tópicos essenciais + arquitetura (domínios, papéis de usuário, decisões); decisões relevantes viram ADR |
-
-Sinal para nível completo: usuário menciona stack, repos, módulos, migração, ou decisão arquitetural.
+Not for a project that already has `docs/` on disk — that is `project-sync`.
 
 ---
 
-## Passo 1 — Insumos
+## Depth
 
-**A conversa é do `discuss`.** Ele constrói a direção uma decisão por vez, com intenção, audiência, cenários, precedentes, opções e fronteiras, e fecha num brief confirmado — é mais fundo do que esta skill precisa fazer sozinha. Se o usuário chegou aqui com um brief do `discuss`, extraia os campos abaixo dele e não pergunte de novo.
+Two levels, chosen from the project's stage rather than asked about:
 
-Sem brief, colete o que falta você mesmo: o usuário trouxe a info → aceita; não sabe → **sugere** com base no contexto e confirma; quer avançar logo → respeita e marca o resto como `> [!gap]`. Nunca mais de 1–2 perguntas por turno. Para uma ideia ainda crua que precisa ser pensada antes de virar página, mande pro `discuss` primeiro.
+| Level | When | What changes |
+|-------|------|--------------|
+| **Minimum** | A loose idea, a side project, no stack decided | Essential topics only (Step 1); a lean index.md and stub subpages |
+| **Full** | A project with architecture, a stack, or existing repos | Essential topics plus architecture — domains, user roles, decisions — and the relevant decisions become ADRs |
 
-### Campos exigidos pelo scaffold (todo projeto)
+The signal for full: the user mentions a stack, repos, modules, a migration, or an
+architectural decision.
 
-1. **Nome** — se ainda não foi dito, sugerir baseado na descrição.
-2. **Objetivo** — o que resolve / entrega em 1 frase. Sugerir se não estiver claro.
-3. **Stack** — perguntar ou sugerir camada a camada (frontend, backend, banco, infra). Sugerir stack comum pro tipo de projeto se o usuário não souber.
-4. **Status** — sem código (`seed`), em desenvolvimento (`developing`), em produção (`evergreen`).
-5. **Subpáginas** — propor as que fazem sentido pro projeto e confirmar.
-6. **Docs/repo em disco?** — perguntar só se parecer projeto já iniciado. Se
-   existir (ou estiver planejada) pasta em na pasta de projetos do disco, registrar o
-   caminho em `sources:` do frontmatter — é o que o project-sync usa depois.
-7. **Fora do escopo (v1)** — o que o projeto NÃO vai fazer na primeira versão.
-   Sugerir 2–3 candidatos com base no objetivo (integrações, mobile, admin,
-   multi-tenant...) e confirmar. Entregável obrigatório da Fase 1 do
-   project-kickoff — sem isso, scope creep entra de graça.
+---
 
-### Tópicos de arquitetura (nível completo — só quando o sinal acima aparecer)
+## Step 1 — Inputs
 
-8. **Domínios/módulos** — quais as áreas do sistema e a responsabilidade de cada uma. Se o usuário não pensou nisso, propor divisão a partir do objetivo.
-9. **Papéis de usuário** — roles e permissões, se o sistema tiver auth.
-10. **Decisões já tomadas** — arquitetura, monorepo vs polyrepo, hosting… Cada decisão relevante e não-óbvia vira **ADR** (ver Passo 3b).
+**The conversation belongs to `discuss`.** It builds the direction one decision at
+a time — intent, audience, scenarios, precedents, options, boundaries — and closes
+on a confirmed brief, which goes deeper than this skill needs to on its own. If
+the user arrives with a `discuss` brief, take these fields from it and do not ask
+again.
 
-### Confirmar antes de escrever
+Without a brief, collect what is missing yourself: the user has the information →
+take it; does not know → **suggest** from context and confirm; wants to move fast →
+respect that and mark the rest `> [!gap]`. Never more than one or two questions per
+turn. An idea still too raw to become a page goes to `discuss` first.
 
-Com nome, objetivo, stack (mesmo que parcial) e subpáginas em mãos → apresentar resumo final:
+### Fields the scaffold requires (every project)
+
+1. **Name** — suggest one from the description if it has not been said.
+2. **Goal** — what it solves or delivers, in one sentence. Suggest if unclear.
+3. **Stack** — ask or suggest layer by layer (frontend, backend, database,
+   infrastructure). Offer a common stack for that kind of project when the user
+   does not know.
+4. **Status** — no code yet (`seed`), under development (`developing`), in
+   production (`evergreen`).
+5. **Subpages** — propose the ones that make sense and confirm.
+6. **Docs or repo on disk?** — ask only when it looks like a project already
+   underway. If a folder exists (or is planned) in the projects folder on disk,
+   record the path in the frontmatter's `sources:` — that is what `project-sync`
+   reads later.
+7. **Out of scope (v1)** — what the project will NOT do in its first version.
+   Suggest two or three candidates from the goal (integrations, mobile, an admin
+   panel, multi-tenancy) and confirm. This is a required deliverable of
+   project-kickoff's Phase 1: without it, scope creep is free.
+
+### Architecture topics (full level only, when the signal above appears)
+
+8. **Domains and modules** — the areas of the system and what each is responsible
+   for. If the user has not thought about it, propose a split from the goal.
+9. **User roles** — roles and permissions, when the system has auth.
+10. **Decisions already made** — architecture, monorepo vs polyrepo, hosting. Each
+    relevant, non-obvious one becomes an **ADR** (see Step 3b).
+
+### Confirm before writing
+
+With name, goal, stack (even partial) and subpages in hand, present the summary:
 
 ```
 Resumo antes de criar:
 
-**Nome**: <nome>
-**Objetivo**: <frase>
+**Nome**: <name>
+**Objetivo**: <sentence>
 **Stack**: Frontend: X · Backend: Y · Banco: Z · Infra: W
 **Status**: seed
 **Subpáginas**: Arquitetura · Backend · Frontend · Database
 **Fora do escopo (v1)**: A · B · C
-[se nível completo] **Domínios**: ... **Papéis de usuário**: ... **Decisões a virar ADR**: ...
+[full level] **Domínios**: ... **Papéis de usuário**: ... **Decisões a virar ADR**: ...
 
 Crio os arquivos?
 ```
 
-Só criar após confirmação explícita. Se o usuário der "sim" / "pode" / "vai" → criar.
+Create only after an explicit yes.
 
 ---
 
-## Passo 2 — Criar index.md e subpáginas
+## Step 2 — Create index.md and the subpages
 
-Frontmatter obrigatório, corpo do index por nível, template de subpágina stub e as
-seções que só entram no nível completo:
-[references/templates.md](references/templates.md). Escreva na ordem de lá — é o
-que faz duas páginas de projeto ficarem comparáveis.
+Required frontmatter, the index body per level, the stub subpage template and the
+sections that only appear at full level:
+[references/templates.md](references/templates.md). Write in that order — it is
+what makes two project pages comparable.
 
-## Passo 4 — Reportar o que foi criado
+## Step 4 — Report what was created
 
-Após criar os arquivos, listar:
+After writing the files, list them:
 
 ```
 Criado:
-- wiki/Projetos/<nome>/index.md
-- wiki/Projetos/<nome>/architecture/<Nome> - Arquitetura.md
-- [se houver] wiki/Projetos/<nome>/architecture/<Nome> - ADR-001-slug.md
+- wiki/Projetos/<name>/index.md
+- wiki/Projetos/<name>/architecture/<Name> - Arquitetura.md
+- [if any] wiki/Projetos/<name>/architecture/<Name> - ADR-001-slug.md
 - ...
 
 Próximos passos:
 - Preencher seções marcadas com > [!gap]
 - Se tiver docs no disco, rodar project-sync pra enriquecer
-- [se não veio de um brief] Fechar a direção: /discuss · ou pressionar o que já existe: /grill-me
+- [if it did not come from a brief] Fechar a direção: /discuss · ou pressionar o que já existe: /grill-me
 - Fluxo completo (spec → design → implementação): project-kickoff — esta skill foi a Fase 1
 ```
 
 ---
 
-## Convenções do vault (não violar)
+## Vault conventions (do not violate)
 
-- Nunca criar `.md` na raiz do vault
-- Alias no frontmatter deve ser único — checar com `Grep` se alias já existe
-- `related:` usa aspas duplas: `"[[Nome]]"`, não `[[Nome]]`
-- Nome de arquivo: Title Case com espaços (`<Nome> - Backend.md`)
-- Nome de pasta: lowercase com hífens (`backend/`, `architecture/`)
-- Wikilinks em tabelas: escapar o pipe do display — `[[caminho\|Texto]]` — senão o `|` parte a célula e quebra link e tabela (regra do CLAUDE.md do vault)
+- Never create a `.md` at the vault root
+- The frontmatter alias must be unique — `Grep` for it before writing
+- `related:` uses double quotes: `"[[Name]]"`, not `[[Name]]`
+- File names in Title Case with spaces (`<Name> - Backend.md`)
+- Folder names lowercase with hyphens (`backend/`, `architecture/`)
+- Wikilinks inside tables escape the display pipe — `[[path\|Text]]` — otherwise
+  the `|` splits the cell and breaks both the link and the table (the vault's own
+  `CLAUDE.md` rule)

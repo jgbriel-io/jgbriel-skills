@@ -196,9 +196,9 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 | Skill | Uso |
 |---|---|
 | `obsidian-vault` | Cria, busca e conecta notas no vault pessoal do Obsidian seguindo as convenções da wiki — estrutura de pastas, wikilink… |
-| `project-kickoff` | Orquestra o começo de um projeto do zero, da ideia ao spec, design system e plano de implementação, invocando as skills… |
+| `project-kickoff` | Orchestrates a project from scratch — idea to spec, design system and implementation plan — invoking each phase's skill… |
 | `project-planner` | Scaffolds a project's wiki pages in wiki/Projetos/ — index.md with frontmatter, subpage stubs and ADRs — from a directi… |
-| `project-sync` | Lê a pasta `docs/` de um projeto e cria ou atualiza as páginas dele em `wiki/Projetos/` no vault do Obsidian, espelhand… |
+| `project-sync` | Reads a project's `docs/` folder and creates or updates its pages under `wiki/Projetos/` in the Obsidian vault, mirrori… |
 
 </details>
 <!-- inventory:skills:end -->

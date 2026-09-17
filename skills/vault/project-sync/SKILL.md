@@ -1,134 +1,141 @@
 ---
 name: project-sync
-description: Lê a pasta `docs/` de um projeto e cria ou atualiza as páginas dele em `wiki/Projetos/` no vault do Obsidian, espelhando a estrutura e preservando conteúdo manual já escrito. Use quando o usuário disser "sincroniza projeto X", "atualiza wiki do projeto", "documenta o X no vault", ou apontar o caminho de um projeto direto. Fonte solta — transcrição, URL, arquivo único — é obsidian-vault.
+description: Reads a project's `docs/` folder and creates or updates its pages under `wiki/Projetos/` in the Obsidian vault, mirroring the structure and preserving whatever was written by hand. Use when the user says "sincroniza projeto X", "atualiza wiki do projeto", "documenta o X no vault", or points at a project path directly. A loose source — a transcript, a URL, a single file — is obsidian-vault.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # project-sync
 
-Lê a `docs/` de um projeto e cria ou atualiza `wiki/Projetos/<nome>/` seguindo as convenções do vault.
+Reads a project's `docs/` and creates or updates `wiki/Projetos/<name>/`
+following the vault's conventions.
 
 ---
 
-## Catálogo de projetos
+## The project catalogue
 
-O mapa projeto → pasta no disco → pasta no vault é **dado de máquina, não de
-skill**: muda quando um cliente entra ou um repo é renomeado, e não pertence a um
-repositório público. Ele vive em `~/.claude/projects-map.md`, fora deste repo.
+The map from project to folder on disk to folder in the vault is **machine data,
+not skill data**: it changes when a client arrives or a repo is renamed, and it
+does not belong in a public repository. It lives in `~/.claude/projects-map.md`,
+outside this repo.
 
-Leia esse arquivo primeiro. Cada linha é `<nome> | <caminho do projeto> | <pasta no vault>`.
-Se o arquivo não existir, ou o projeto pedido não estiver nele, **pergunte o
-caminho ao usuário** e ofereça acrescentar a linha — nunca adivinhe um caminho
-nem escreva o mapa aqui dentro.
+Read that file first. Each line is `<name> | <project path> | <vault folder>`. If
+the file does not exist, or the requested project is not in it, **ask the user for
+the path** and offer to append the line — never guess a path, and never write the
+map back into this file.
 
 ---
 
-## Passo 1 — Resolver projeto e path
+## Step 1 — Resolve the project and its path
 
-1. Identificar projeto pelo nome na mensagem do usuário.
-2. Confirmar path D: via catálogo acima ou input do usuário.
-3. Verificar se `docs/` existe:
+1. Identify the project from the user's message.
+2. Confirm its path from the catalogue or from the user.
+3. Check that `docs/` exists:
    ```bash
-   ls "<D_PATH>/docs/" 2>/dev/null || echo "NO_DOCS"
+   ls "<PROJECT_PATH>/docs/" 2>/dev/null || echo "NO_DOCS"
    ```
-4. Se `NO_DOCS`: buscar `README.md` na raiz do projeto como fonte alternativa. Informar usuário.
-5. Verificar se `wiki/Projetos/<categoria>/<nome>/` já existe (categorias: `Clientes/`, `Pessoais/`, `Backlog/` — ver coluna "Pasta no vault" do catálogo) → determinar modo CREATE vs UPDATE. Em CREATE, confirmar a categoria com o usuário se não for óbvia.
+4. On `NO_DOCS`: fall back to the root `README.md` as the source, and say so.
+5. Check whether `wiki/Projetos/<category>/<name>/` already exists — the
+   categories are `Clientes/`, `Pessoais/` and `Backlog/`, per the catalogue's
+   vault-folder column — to decide between CREATE and UPDATE. On CREATE, confirm
+   the category with the user when it is not obvious.
 
 ---
 
-## Passo 2 — Ler docs/
+## Step 2 — Read docs/
 
-Escanear estrutura completa:
+Scan the whole structure:
 ```bash
-find "<D_PATH>/docs" -name "*.md" | sort
+find "<PROJECT_PATH>/docs" -name "*.md" | sort
 ```
 
-Mapear subpastas de `docs/` para subpáginas wiki:
+Map `docs/` subfolders onto wiki subpages:
 
-| docs/ subpasta | wiki/ subpasta | arquivo |
-|----------------|----------------|---------|
-| `architecture/` ou `arch/` | `architecture/` | `<Nome> - Arquitetura.md` |
-| `backend/` ou `api/` | `backend/` | `<Nome> - Backend.md` |
-| `frontend/` ou `ui/` | `frontend/` | `<Nome> - Frontend.md` |
-| `database/` ou `db/` | `database/` | `<Nome> - Database.md` |
-| `security/` ou `auth/` | `security/` | `<Nome> - Segurança.md` |
-| `deployment/` ou `deploy/` ou `infra/` | `deployment/` | `<Nome> - Deploy.md` |
+| docs/ subfolder | wiki/ subfolder | file |
+|----------------|-----------------|------|
+| `architecture/` or `arch/` | `architecture/` | `<Name> - Arquitetura.md` |
+| `backend/` or `api/` | `backend/` | `<Name> - Backend.md` |
+| `frontend/` or `ui/` | `frontend/` | `<Name> - Frontend.md` |
+| `database/` or `db/` | `database/` | `<Name> - Database.md` |
+| `security/` or `auth/` | `security/` | `<Name> - Segurança.md` |
+| `deployment/`, `deploy/` or `infra/` | `deployment/` | `<Name> - Deploy.md` |
 
-Se docs/ sem subpastas → conteúdo vai pro `index.md`, subpáginas viram stubs com `> [!gap]`.
+A `docs/` with no subfolders sends its content to `index.md`, and the subpages
+become stubs marked `> [!gap]`.
 
 ---
 
-## Passo 3 — index.md
+## Step 3 — index.md
 
-Path: `wiki/Projetos/<nome>/index.md`
+Path: `wiki/Projetos/<name>/index.md`
 
 ### CREATE
 
 ```yaml
 ---
 type: entity
-title: "<Nome>"
+title: "<Name>"
 aliases:
-  - <Nome>
+  - <Name>
 created: <YYYY-MM-DD>
 updated: <YYYY-MM-DD>
 tags:
   - projeto
-  - <tag-stack>
+  - <stack-tag>
 entity_type: repository
 status: <seed|developing|evergreen>
 related:
   - "[[Projetos]]"
 sources:
-  - "<D_PATH>/docs/"
+  - "<PROJECT_PATH>/docs/"
 ---
 ```
 
 ### UPDATE
 
-Ler arquivo existente primeiro. Atualizar apenas:
-- `updated:` → hoje
-- `sources:` → garantir path D: listado
-- `## Stack` se mudou
-- Tabela de subpáginas (adicionar novas)
+Read the existing file first. Update only:
+- `updated:` → today
+- `sources:` → make sure the project path is listed
+- `## Stack`, if it changed
+- The subpage table, adding new entries
 
-**Nunca sobrescrever** conteúdo manual existente.
+**Never overwrite** content written by hand.
 
 ---
 
-## Passo 4 — Subpáginas
+## Step 4 — Subpages
 
-Frontmatter padrão:
+Standard frontmatter:
 
 ```yaml
 ---
 type: reference
-title: "<Nome> — <Seção>"
+title: "<Name> — <Section>"
 created: <YYYY-MM-DD>
 updated: <YYYY-MM-DD>
-tags: [projeto, <nome-kebab>, <tag-secao>]
+tags: [projeto, <name-kebab>, <section-tag>]
 status: <seed|developing|evergreen>
 related:
-  - "[[<Nome>]]"
+  - "[[<Name>]]"
 sources:
-  - "<D_PATH>/docs/<arquivo>.md"
+  - "<PROJECT_PATH>/docs/<file>.md"
 ---
 ```
 
-**CREATE**: extrair conteúdo do arquivo fonte. Marcar lacunas com `> [!gap]`.
+**CREATE**: extract the content from the source file. Mark gaps with `> [!gap]`.
 
-**UPDATE**: ler antes de editar. Só atualizar seções com fonte direta. Preservar anotações manuais. Atualizar `updated:`.
+**UPDATE**: read before editing. Only refresh sections that have a direct source,
+preserve hand-written notes, and bump `updated:`.
 
 ---
 
-## Passo 5 — Reportar
+## Step 5 — Report
 
 ```
-Projeto: <Nome> | <D_PATH>
+Projeto: <Name> | <PROJECT_PATH>
 Modo: CREATE | UPDATE
 
-Criado: wiki/Projetos/<nome>/index.md
-         wiki/Projetos/<nome>/backend/<Nome> - Backend.md
+Criado: wiki/Projetos/<name>/index.md
+         wiki/Projetos/<name>/backend/<Name> - Backend.md
          ...
 Atualizado: ...
 Stubs (> [!gap]): ...
@@ -136,11 +143,11 @@ Stubs (> [!gap]): ...
 
 ---
 
-## Convenções (não violar)
+## Conventions (do not violate)
 
-- Alias único — checar com Grep antes de criar.
-- `related:` com aspas duplas: `"[[Nome]]"`.
-- Wikilinks em tabelas: `[[X|display]]` sem barra invertida.
-- Nomes de arquivo: Title Case com espaços.
-- Nomes de pasta: lowercase com hífens.
-- `sources:` sempre lista o path D: de origem.
+- Aliases are unique — `Grep` before creating one.
+- `related:` uses double quotes: `"[[Name]]"`.
+- Wikilinks in tables: `[[X|display]]`, no backslash.
+- File names in Title Case with spaces.
+- Folder names lowercase with hyphens.
+- `sources:` always lists the originating path on disk.
