@@ -38,7 +38,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 <!-- inventory:skills:start -->
 **85 skills**, em 13 pastas de categoria:
 
-<details><summary><code>backend</code> — 8 skills</summary>
+<details><summary><code>backend</code> — 6 skills</summary>
 
 | Skill | Uso |
 |---|---|
@@ -48,8 +48,6 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 | `caching-strategy` | Applies stack-agnostic caching strategy — layers (client, server, CDN), invalidation policy, cache-aside vs write-throu… |
 | `input-validation` | Validates untrusted input at every system boundary — API requests, queue messages, uploads, CLI args — via schema defin… |
 | `rate-limiting` | Stack-agnostic rate limiting and throttling — token bucket vs sliding/fixed window algorithms, where to enforce limits … |
-| `supabase-hooks` | Data-layer patterns for Supabase + TanStack Query — custom hooks, mutations, queries, real-time subscriptions, error ha… |
-| `tanstack-query-patterns` | Frontend data layer patterns with TanStack Query 5 + Axios — service pattern, module-prefixed query keys, mutations, ca… |
 
 </details>
 <details><summary><code>career</code> — 3 skills</summary>
@@ -133,7 +131,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 | `structured-logging` | Apply structured (JSON) logging practices — log levels, request/tenant correlation IDs, context propagation, and what m… |
 
 </details>
-<details><summary><code>frontend</code> — 7 skills</summary>
+<details><summary><code>frontend</code> — 9 skills</summary>
 
 | Skill | Uso |
 |---|---|
@@ -143,6 +141,8 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 | `forms-validation` | Defines form validation as a single schema shared between client and server, with Brazilian document masks (CPF, CNPJ, … |
 | `frontend-conventions` | Conventions for WRITING new frontend code — component structure and extraction, page files that only compose components… |
 | `react-best-practices` | React 18 + Vite performance rules — bundle size, re-renders, waterfalls, subscriptions. |
+| `supabase-hooks` | Client data layer for Supabase + TanStack Query — custom hooks, mutations, queries, real-time subscriptions, error hand… |
+| `tanstack-query-patterns` | Client data layer with TanStack Query 5 + Axios — service pattern, module-prefixed query keys, mutations, cache invalid… |
 | `web-perf` | Analyzes web performance using Chrome DevTools MCP. |
 
 </details>

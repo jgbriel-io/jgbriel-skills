@@ -1,6 +1,6 @@
 ---
 name: tanstack-query-patterns
-description: Frontend data layer patterns with TanStack Query 5 + Axios — service pattern, module-prefixed query keys, mutations, cache invalidation, error handling. Use when user asks about data fetching, TanStack Query, hooks architecture, mutations, or cache invalidation on a non-Supabase backend. For a Supabase backend use the supabase-hooks skill instead.
+description: Client data layer with TanStack Query 5 + Axios — service pattern, module-prefixed query keys, mutations, cache invalidation, error handling. Use when the user asks about data fetching, TanStack Query, hooks architecture, mutations or cache invalidation on a non-Supabase backend. With Supabase it is supabase-hooks; the boundary between server, UI and URL state is client-state-management.
 ---
 
 # TanStack Query — Data Layer Patterns

@@ -1,11 +1,15 @@
 ---
 name: supabase-hooks
-description: Data-layer patterns for Supabase + TanStack Query — custom hooks, mutations, queries, real-time subscriptions, error handling. Use when the user asks about data fetching, hooks architecture, Supabase client patterns, or reviewing the data layer. SQL/schema/RLS side is supabase-postgres.
+description: Client data layer for Supabase + TanStack Query — custom hooks, mutations, queries, real-time subscriptions, error handling. Use when the user asks about data fetching, hooks architecture, Supabase client patterns, or reviewing the data layer. SQL, schema and RLS are supabase-postgres; the boundary between server, UI and URL state is client-state-management.
 ---
 
-# Senior Backend — Supabase & Hooks
+# Supabase & Hooks
 
 Para projetos com Supabase (PostgreSQL + Auth + Storage + Real-time). Toda comunicação passa por hooks customizados em `src/hooks/`.
+
+Isto é a camada de dados do client: **estado de servidor**, na fronteira que
+`client-state-management` define. Estado de UI e estado de URL não entram em
+hook de query. Schema, RLS e índice são `supabase-postgres`.
 
 ## Hook com Query
 
