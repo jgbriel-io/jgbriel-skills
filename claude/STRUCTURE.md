@@ -255,6 +255,24 @@ platforms.
 | `context-mode-cache-heal.mjs` | `SessionStart` | Heals the context-mode plugin cache, which breaks its own path on auto-update |
 | `printf '\a'` | `Stop` | Beep when finished. It used to be a `.ps1` pinned to one machine; now it is one line |
 
+### What the guard blocks, and what it deliberately does not
+
+It matches the command's **text**, which made it refuse two things that are not
+dangerous at all:
+
+- **`rm -rf` against any absolute path.** Deleting one versioned plugin cache
+  directory is not deleting a system path. It now blocks only a target one or two
+  segments deep — `/`, `/etc`, `/home/user` — plus `~`, `$HOME` and `*`. Anything
+  deeper is ordinary work.
+- **A dangerous command written as data.** Documenting `permissions.deny` through
+  `cat > file <<'EOF'` was refused as though the text ran. Heredoc bodies are now
+  stripped before matching — **except** when the heredoc feeds `bash`, `sh`, `zsh`
+  or `ksh`, where the body really is executed and stays under inspection.
+
+`scripts/test_guard_bash.mjs` holds both halves: what must still be blocked, and
+the real commands that used to be refused. The second half matters more — a guard
+that cries wolf teaches people to route around it.
+
 ---
 
 ## 5. Third-party plugins
@@ -377,6 +395,7 @@ function, `file.file_path` is a `FilePath`, not a `pathlib.Path`: calling
 |---|---|
 | `bootstrap.mjs` | Installs the whole setup on a fresh machine — plugins, uv, serena, cocoindex, the codebase-memory MCP and serena's hooks. Idempotent; `--dry-run` prints the plan |
 | `test_bootstrap.mjs` | Covers the bootstrap's per-platform asset names and the hook merge |
+| `test_guard_bash.mjs` | Covers what `guard-dangerous-bash.mjs` blocks and what it must stop blocking |
 | `gen-inventory.py` | Regenerates the tables in this file and in the README. `--check` fails when they are stale |
 | `check-doc-refs.py` | Fails when the prose names a command or skill that no longer exists |
 | `audit-sweep.py` | The mechanical pass of `/skill-audit`: size against the reference, frontmatter, broken link, residue from another tool |
@@ -384,7 +403,39 @@ function, `file.file_path` is a `FilePath`, not a `pathlib.Path`: calling
 | `migrate-windows.ps1` | Takes the machine out of the old symlink layout and installs the plugin |
 | `audit-labels.sh` | Checks the issue labels |
 
-The first two run in CI, on pushes to `main` and on every PR.
+All of these run in CI (`.github/workflows/checks.yml`), on pushes to `main` and
+on every PR: the two doc checks, the sweep, and the three test files. Until
+2026-09-17 the workflow ran only the first two, so every sweep rule was enforced
+by somebody remembering to run it — the same shape of failure the sweep exists to
+catch.
+
+---
+
+## 8a. Releasing: the version is the release
+
+There are **no git tags**. `version` in `.claude-plugin/plugin.json` is the whole
+release mechanism: the runtime installs a versioned copy, and `claude plugin
+update` has nothing to install unless that number moved. **Every PR that changes
+anything shipped bumps it.**
+
+That has two consequences nobody remembers until it bites:
+
+- **Stacked PRs conflict on exactly one line.** Each branch bumps `version`
+  assuming the one before it already merged, so they must merge in order.
+  Out of order you get a conflict on that line — or worse, a version that walks
+  backwards. Resolution is always: keep the higher number, re-run the checks,
+  push, wait for CI, merge.
+- **A child PR dies when its parent's branch is deleted.** Merging with
+  `--delete-branch` closes any PR still targeting that branch, and GitHub refuses
+  to reopen it (`GraphQL: Could not open the pull request`). **Retarget the child
+  to `main` before merging the parent** — or reopen it as a new PR from the same
+  branch, which is what happened to #40, reborn as #41.
+
+After the merge, `claude plugin update jgbriel-skills` pulls the new version and
+asks for a restart. The old version directories stay in
+`~/.claude/plugins/cache/jgbriel/jgbriel-skills/`; deleting the one the running
+session loaded its hooks from breaks that session, so clean them up after the
+restart, not before.
 
 ---
 
