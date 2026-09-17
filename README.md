@@ -1,63 +1,64 @@
 # jgbriel-skills
 
-O meu setup de **Claude Code** inteiro, como um plugin instalável: skills por
-categoria, slash commands, agents, hooks e as regras globais de comportamento.
-Uma máquina nova fica igual à antiga com dois comandos.
+My entire **Claude Code** setup as an installable plugin: skills by category,
+slash commands, agents, hooks and the global behaviour rules. A new machine
+matches the old one in two commands.
 
-**Repo público.** Fork, clone, ou pegue só o que servir.
+**Public repo.** Fork it, clone it, or take only what is useful.
 
 ---
 
-## Estrutura
+## Structure
 
-O repositório **é** o plugin: a raiz tem o manifesto, e cada componente fica na
-pasta que o Claude Code espera.
+The repository **is** the plugin: the root holds the manifest, and each component
+sits in the folder Claude Code expects.
 
 ```
 jgbriel-skills/
 ├── .claude-plugin/
-│   ├── plugin.json           # manifesto: hooks + cada caminho de skill, declarado um a um
+│   ├── plugin.json           # manifest: hooks + every skill path, declared one by one
 │   └── marketplace.json      # 1 plugin, source "./"
 │
-├── skills/<categoria>/<nome>/SKILL.md    # uma pasta por categoria
+├── skills/<category>/<name>/SKILL.md     # one folder per category
 ├── agents/*.md                           # subagents
 ├── commands/*.md                         # slash commands
-├── hooks/*.mjs                           # conectados pelo manifesto, não por settings.json
+├── hooks/*.mjs                           # wired by the manifest, not by settings.json
 │
 ├── scripts/
-│   ├── gen-inventory.py          # regenera os inventários deste README e do STRUCTURE
-│   ├── check-doc-refs.py         # falha se a doc citar comando ou skill que não existe
-│   ├── check-project-skills.sh   # acha skill de projeto sombreada por skill pessoal
-│   ├── migrate-windows.ps1       # tira a máquina do layout antigo de symlink
+│   ├── gen-inventory.py          # regenerates the inventories in this README and in STRUCTURE
+│   ├── check-doc-refs.py         # fails when the docs name a command or skill that is gone
+│   ├── audit-sweep.py            # mechanical pass over skills, agents and commands
+│   ├── check-project-skills.sh   # finds a project skill shadowed by a personal one
+│   ├── migrate-windows.ps1       # takes the machine out of the old symlink layout
 │   └── audit-labels.sh
 │
-├── templates/                    # templates de projeto, pra copiar em qualquer repo
+├── templates/                    # project templates, to copy into any repo
 │   ├── CONTEXT.template.md
 │   └── CONTEXT-MAP.template.md
 │
-└── claude/                       # documentação e config de referência
-    ├── CLAUDE.md                 # regras globais (idioma, git, response style)
-    ├── STRUCTURE.md              # onde tudo mora, settings, MCP, hooks
-    ├── COMMANDS.md · WORKFLOWS.md · GUIDE.md
-    ├── settings.template.json    # settings.json sanitizado
-    ├── config/                   # referência de formatos
-    └── skills-archived/          # fora de circulação, não entram no plugin
+└── claude/                       # reference documentation and config
+    ├── CLAUDE.md                 # global rules (language, git, response style)
+    ├── STRUCTURE.md              # where everything lives: settings, MCP, hooks
+    ├── WORKFLOWS.md · GUIDE.md · README.md
+    ├── settings.template.json    # sanitised settings.json
+    ├── config/                   # format reference
+    └── skills-archived/          # out of circulation, not shipped in the plugin
 ```
 
-**A nomenclatura de skill importa**: o `plugin.json` lista cada caminho
-explicitamente. Uma skill nova só existe depois de entrar nessa lista — pasta
-solta em `skills/` não é descoberta sozinha.
+**Skill naming matters**: `plugin.json` lists every path explicitly. A new skill
+only exists once it enters that list — a loose folder under `skills/` is never
+discovered on its own.
 
 ---
 
-## O que tem aqui
+## What is in here
 
 ### Claude Code (`claude/`)
 
 <!-- inventory:commands:start -->
 **11 slash commands:**
 
-| Comando | Descrição |
+| Command | Description |
 |---|---|
 | `/branch` | Creates a new branch from an up-to-date main/master and switches to it. |
 | `/commit` | Writes a Conventional Commits message from the staged diff. |
@@ -73,26 +74,26 @@ solta em `skills/` não é descoberta sozinha.
 <!-- inventory:commands:end -->
 
 <!-- inventory:agents:start -->
-**3 agents** — rodam em subagent isolado:
+**3 agents** — they run in an isolated subagent:
 
-| Agent | Uso |
+| Agent | What it is for |
 |---|---|
 | `planner` | Breaks a task or feature into an ordered implementation plan with explicit dependencies, risks, and exit criteria. |
 | `researcher` | Read-only code locator and codebase mapper. |
 | `tcc-orientador` | Academic reviewer playing a severe TCC advisor. |
 <!-- inventory:agents:end -->
 
-**Hooks** — conectados pelo próprio plugin, sem fiação em `settings.json`:
+**Hooks** — wired by the plugin itself, with no wiring in `settings.json`:
 
-- `guard-dangerous-bash.mjs` — bloqueia comandos destrutivos (`rm -rf`, `git push --force`) no `PreToolUse`
-- `context-mode-cache-heal.mjs` — auto-cura o cache do plugin context-mode no `SessionStart`
+- `guard-dangerous-bash.mjs` — blocks destructive commands (`rm -rf`, `git push --force`) on `PreToolUse`
+- `context-mode-cache-heal.mjs` — self-heals the context-mode plugin cache on `SessionStart`
 
 <!-- inventory:skills:start -->
-**84 skills**, em 13 pastas de categoria:
+**84 skills**, across 13 category folders:
 
 <details><summary><code>backend</code> — 6 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `api-design` | Applies stack-agnostic REST API design conventions — resource naming, HTTP verbs, status codes, error envelope, version… |
 | `backend-service-conventions` | Framework-agnostic conventions for backend service structure — layering (controller/service/repository), dependency inj… |
@@ -104,7 +105,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>career</code> — 3 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `cv-sync` | The resume pipeline — edit the canonical .tex files, recompile, distribute to the site and the vault, commit, and verif… |
 | `job-description-analyzer` | Analyzes a job posting against the user's profile — mandatory requirements separated from nice-to-have, a fit score, ga… |
@@ -113,7 +114,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>cloudflare</code> — 4 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `cloudflare` | Comprehensive Cloudflare platform skill covering Workers, Pages, storage (KV, D1, R2), AI (Workers AI, Vectorize, Agent… |
 | `cloudflare-email-service` | Send and receive transactional emails with Cloudflare Email Service (Email Sending + Email Routing). |
@@ -123,7 +124,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>core-loop</code> — 12 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `codebase-design` | Shared vocabulary for designing deep modules. |
 | `codebase-memory` | Use the codebase knowledge graph for structural code queries. |
@@ -141,7 +142,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>data</code> — 6 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `backup-restore` | Explains backup strategy and restore testing for relational databases — full vs. |
 | `postgres-conventions` | Apply Postgres best practices — schema design, indexes, RLS policies, SQL queries, connection pooling. |
@@ -153,7 +154,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>delivery</code> — 8 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `docs-writing` | Technical documentation style guide for README, docs/, ADRs, JSDoc/TSDoc, and inline code comments. |
 | `estimation` | Applies effort-estimation technique to any deliverable, technical or not — task decomposition, three-point estimation (… |
@@ -167,7 +168,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>devops</code> — 11 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `ci-cd-pipeline` | Defines standard CI/CD pipeline stages (lint, type-check, test, build), dependency caching, running migrations in CI, a… |
 | `container-conventions` | Defines multi-stage Docker builds, minimal base images, non-root users, .dockerignore, layer cache ordering, and docker… |
@@ -184,7 +185,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>frontend</code> — 9 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `accessibility-audit` | Guides accessibility (a11y) auditing — automated tooling (axe-core) wired into CI as a floor not a substitute for manua… |
 | `client-state-management` | Defines the boundary between server state, local UI state, and URL state as an architecture decision independent of sta… |
@@ -199,7 +200,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>meta</code> — 5 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `skill-audit` | Audit Claude Code skills against the fleet's reference implementation — a mechanical sweep first, then criterion-by-cri… |
 | `skill-sync` | Sync the skill fleet against its upstreams — mattpocock/skills and lucasmonstrox/utevo-lux — diffing repo vs upstream, … |
@@ -210,7 +211,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>quality</code> — 4 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `code-reviewer` | Stack-specific review checklist for React + TanStack Query + Supabase multi-tenant apps — hook architecture, RLS/tenant… |
 | `e2e-testing` | Guides writing reliable end-to-end tests — programmatic auth fixtures instead of UI login, per-run data isolation, acce… |
@@ -220,7 +221,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>security</code> — 6 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `auth-patterns` | Authentication and authorization patterns — OTP/password/OAuth/OIDC flows, session vs JWT, RBAC/ABAC, MFA, token refres… |
 | `dependency-audit` | Audits third-party dependencies for security and maintainability — lockfile discipline, upgrade cadence (automatic patc… |
@@ -232,7 +233,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>tcc</code> — 6 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `tcc-auditoria-banca` | Simulates the written report an examining board issues on a finished TCC (Brazilian undergraduate thesis) — grade per c… |
 | `tcc-defesa` | Builds the defense presentation for the SyncClass TCC out of the written chapters — narrative arc, slide-by-slide scrip… |
@@ -244,7 +245,7 @@ solta em `skills/` não é descoberta sozinha.
 </details>
 <details><summary><code>vault</code> — 4 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `obsidian-vault` | Creates, searches and links notes in the personal Obsidian vault following the wiki conventions — folder structure, wik… |
 | `project-kickoff` | Orchestrates a project from scratch — idea to spec, design system and implementation plan — invoking each phase's skill… |
@@ -256,63 +257,63 @@ solta em `skills/` não é descoberta sozinha.
 
 **Config:**
 
-- `CLAUDE.md` — regras globais (PT-BR conversa, English code/commits, git rules, security, response style)
-- `STRUCTURE.md` — onde tudo mora: plugin, hooks, MCP, `settings.json`, scripts, setup
-- `WORKFLOWS.md` — receitas: qual skill encadear com qual
-- `GUIDE.md` — cheat sheet de plugin de terceiro e de onde a config mora
-- `.mcp.json` — template de MCP servers de **escopo de projeto** (GitHub, Supabase) com placeholders `${VAR}`. Copiar para a raiz do projeto; `~/.claude/.mcp.json` não é lido
-- `settings.template.json` — settings sanitizado (sem caminhos absolutos meus)
+- `CLAUDE.md` — global rules (English by default, git rules, security, response style)
+- `STRUCTURE.md` — where everything lives: plugin, hooks, MCP, `settings.json`, scripts, setup
+- `WORKFLOWS.md` — recipes: which skill to chain with which
+- `GUIDE.md` — cheat sheet for third-party plugins and where the config lives
+- `.mcp.json` — template of **project-scope** MCP servers (GitHub, Supabase) with `${VAR}` placeholders. Copy it into the project root; `~/.claude/.mcp.json` is never read
+- `settings.template.json` — sanitised settings (without my absolute paths)
 
-### Templates de projeto (`templates/`)
+### Project templates (`templates/`)
 
-Templates pra copiar como arquivo novo em qualquer projeto (não são config do Claude Code):
+Templates to copy as a new file into any project (they are not Claude Code config):
 
-- `CONTEXT.template.md` — glossário de domínio de um contexto só. Formato e regras de uso: a skill `domain-modeling` (`skills/core-loop/domain-modeling/`).
-- `CONTEXT-MAP.template.md` — pra repo com múltiplos contextos (monorepo/DDD), lista os contextos e como se relacionam.
+- `CONTEXT.template.md` — domain glossary for a single context. Format and rules of use: the `domain-modeling` skill (`skills/core-loop/domain-modeling/`).
+- `CONTEXT-MAP.template.md` — for a repo with several contexts (monorepo/DDD); lists the contexts and how they relate.
 
 
 ---
 
-## Como usar
+## How to use it
 
-Isto é um **plugin do Claude Code**. Instalar é registrar o marketplace e instalar:
+This is a **Claude Code plugin**. Installing means registering the marketplace and
+installing:
 
 ```bash
 claude plugin marketplace add jgbriel-io/jgbriel-skills
 claude plugin install jgbriel-skills@jgbriel
 ```
 
-Skills, commands, agents e hooks chegam juntos, e os hooks se conectam sozinhos —
-não há nada para copiar para `~/.claude/` nem `settings.json` para editar à mão.
+Skills, commands, agents and hooks arrive together and the hooks wire themselves —
+there is nothing to copy into `~/.claude/` and no `settings.json` to edit by hand.
 
-### Vindo do layout antigo de symlinks
+### Coming from the old symlink layout
 
-Antes do plugin, `~/.claude/{skills,agents,commands,hooks}` eram symlinks para
-dentro de um clone deste repo. Esses caminhos não existem mais na `main`: depois
-de um `git pull` os links ficam pendurados e o Claude Code abre sem skill, sem
-agent e sem o `guard-dangerous-bash`. No Windows,
-`scripts/migrate-windows.ps1` desfaz os links e instala o plugin — e para quando
-encontra um diretório de verdade em vez de um link, porque ali existe algo que
-nunca esteve no repo.
+Before the plugin, `~/.claude/{skills,agents,commands,hooks}` were symlinks into a
+clone of this repo. Those paths no longer exist on `main`: after a `git pull` the
+links dangle and Claude Code opens with no skills, no agents and no
+`guard-dangerous-bash`. On Windows, `scripts/migrate-windows.ps1` undoes the links
+and installs the plugin — and stops when it finds a real directory instead of a
+link, because something lives there that was never in the repo.
 
-Para desenvolver as skills, aponte o marketplace para o próprio working copy:
+To develop the skills, point the marketplace at the working copy itself:
 
 ```bash
-claude plugin marketplace add /caminho/para/jgbriel-skills
+claude plugin marketplace add /path/to/jgbriel-skills
 ```
 
-Uma marketplace de diretório lê a árvore direto, sem clonar. O runtime continua
-sendo uma cópia versionada: depois de editar, suba o `version` em
-`.claude-plugin/plugin.json` e rode `claude plugin update jgbriel-skills@jgbriel`.
-**Sem o bump, o update não tem o que instalar e a alteração não chega.**
+A directory marketplace reads the tree directly, with no clone. The runtime is
+still a versioned copy: after editing, bump `version` in
+`.claude-plugin/plugin.json` and run `claude plugin update jgbriel-skills@jgbriel`.
+**Without the bump, update has nothing to install and the change never arrives.**
 
-### Setup de secrets
+### Secrets setup
 
-`.mcp.json` usa env vars, e só é lido da **raiz de um projeto** — copie para lá em vez de
-apontar para `~/.claude/`. Servidor de escopo de usuário se registra com
-`claude mcp add -s user <nome> -- <cmd>` e mora em `~/.claude.json`.
+`.mcp.json` uses env vars and is only read from a **project root** — copy it there
+instead of pointing at `~/.claude/`. A user-scope server is registered with
+`claude mcp add -s user <name> -- <cmd>` and lives in `~/.claude.json`.
 
-Defina as vars antes de usar MCP:
+Set the vars before using MCP:
 
 ```powershell
 [System.Environment]::SetEnvironmentVariable('GITHUB_PERSONAL_ACCESS_TOKEN', 'ghp_xxx', 'User')
@@ -320,39 +321,39 @@ Defina as vars antes de usar MCP:
 ```
 
 ```bash
-export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxx   # no ~/.bashrc
+export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxx   # in ~/.bashrc
 export SUPABASE_ACCESS_TOKEN=sbp_xxx
 ```
 
 ---
 
-## O que NÃO tá aqui
+## What is NOT here
 
-- Plugins instalados (`caveman`, `context-mode`, etc) — reinstalar via marketplace
-- Chat history, sessions, caches locais
-- `settings.json` real (com paths absolutos meus) — use `settings.template.json` como base
-- `.credentials.json` e secrets — defina via env vars
-- Scripts de sync entre máquinas — fork e adapte conforme sua stack
-
----
-
-## Plugins recomendados
-
-Instale via marketplace do Claude Code:
-
-```
-/plugin install caveman          # modo de resposta comprimido
-/plugin install ponytail         # YAGNI: a solução mais preguiçosa que funciona
-/plugin install context-mode     # processa output grande fora da conversa
-```
-
-`claude plugin install a b c` instala só o `a` e ignora o resto sem avisar — um
-comando por plugin.
+- Installed plugins (`caveman`, `context-mode`, and so on) — reinstall through the marketplace
+- Chat history, sessions, local caches
+- The real `settings.json` (with my absolute paths) — use `settings.template.json` as the base
+- `.credentials.json` and secrets — set them through env vars
+- Cross-machine sync scripts — fork and adapt to your own stack
 
 ---
 
-## Contato
+## Recommended plugins
 
-Adapte livremente. Melhorias? Abra issue ou PR.
+Install them through the Claude Code marketplace:
+
+```
+/plugin install caveman          # compressed answer mode
+/plugin install ponytail         # YAGNI: the laziest solution that works
+/plugin install context-mode     # processes large output outside the conversation
+```
+
+`claude plugin install a b c` installs only `a` and ignores the rest without
+warning — one command per plugin.
+
+---
+
+## Contact
+
+Adapt it freely. Improvements? Open an issue or a PR.
 
 Email: virtualarrow.dev@gmail.com

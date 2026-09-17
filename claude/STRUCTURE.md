@@ -1,46 +1,47 @@
-# Claude Code — Estrutura e Configuração
+# Claude Code — Structure and Configuration
 
-> Regras de comportamento: [CLAUDE.md](CLAUDE.md) · Receitas: [WORKFLOWS.md](WORKFLOWS.md) · Cheat sheet: [GUIDE.md](GUIDE.md)
-> Este arquivo documenta **onde tudo mora** e **como se conecta**.
+> Behaviour rules: [CLAUDE.md](CLAUDE.md) · Recipes: [WORKFLOWS.md](WORKFLOWS.md) · Cheat sheet: [GUIDE.md](GUIDE.md)
+> This file documents **where everything lives** and **how it connects**.
 
 ---
 
-## 1. Duas máquinas, um plugin
+## 1. Two machines, one plugin
 
-O repo **é** o plugin. Nada dele é copiado à mão para `~/.claude/`: instalar pelo
-marketplace resolve skills, commands, agents e hooks de uma vez, e a instalação é
-uma cópia versionada em `~/.claude/plugins/cache/jgbriel/jgbriel-skills/<versão>/`.
+The repo **is** the plugin. Nothing is hand-copied into `~/.claude/`: installing
+from the marketplace resolves skills, commands, agents and hooks in one go, and
+the installation is a versioned copy under
+`~/.claude/plugins/cache/jgbriel/jgbriel-skills/<version>/`.
 
-Isso vale igual nas duas máquinas — Windows (principal) e Ubuntu (trabalho). O que
-muda entre elas são só os caminhos absolutos.
+This holds on both machines — Windows (main) and Ubuntu (work). The only thing
+that differs between them is the absolute paths.
 
-**O que fica em `~/.claude/` e nunca neste repo** — estado de máquina e segredo:
+**What stays in `~/.claude/` and never in this repo** — machine state and secrets:
 
-| Item | O que é |
+| Item | What it is |
 |---|---|
-| `settings.json` | Config ativa: permissions, model, statusLine, plugins habilitados |
-| `settings.local.json` | Overrides pessoais de permissão |
-| `.credentials.json` | Tokens — **nunca ler nem exibir** |
-| `history.jsonl`, `sessions/`, `projects/`, `shell-snapshots/`, `plans/`, `tasks/` | Estado de runtime e de sessão |
-| `plugins/` | Cache dos plugins instalados, gerenciado pelo CLI |
+| `settings.json` | Active config: permissions, model, statusLine, enabled plugins |
+| `settings.local.json` | Personal permission overrides |
+| `.credentials.json` | Tokens — **never read, never display** |
+| `history.jsonl`, `sessions/`, `projects/`, `shell-snapshots/`, `plans/`, `tasks/` | Runtime and session state |
+| `plugins/` | Cache of installed plugins, managed by the CLI |
 
-**Layout antigo.** Antes do plugin, `~/.claude/{skills,agents,commands,hooks}`
-eram symlinks para dentro de um clone deste repo. Esses caminhos não existem mais:
-um `git pull` deixa os links pendurados e a sessão abre sem nada, inclusive sem o
-`guard-dangerous-bash`. No Windows, `scripts/migrate-windows.ps1` desfaz isso.
+**The old layout.** Before the plugin, `~/.claude/{skills,agents,commands,hooks}`
+were symlinks into a clone of this repo. Those paths are gone: a `git pull` leaves
+the links dangling and the session opens with nothing, `guard-dangerous-bash`
+included. On Windows, `scripts/migrate-windows.ps1` undoes it.
 
 ---
 
 ## 2. Skills
 
-Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mão.
+Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 
 <!-- inventory:skills:start -->
-**84 skills**, em 13 pastas de categoria:
+**84 skills**, across 13 category folders:
 
 <details><summary><code>backend</code> — 6 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `api-design` | Applies stack-agnostic REST API design conventions — resource naming, HTTP verbs, status codes, error envelope, version… |
 | `backend-service-conventions` | Framework-agnostic conventions for backend service structure — layering (controller/service/repository), dependency inj… |
@@ -52,7 +53,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 </details>
 <details><summary><code>career</code> — 3 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `cv-sync` | The resume pipeline — edit the canonical .tex files, recompile, distribute to the site and the vault, commit, and verif… |
 | `job-description-analyzer` | Analyzes a job posting against the user's profile — mandatory requirements separated from nice-to-have, a fit score, ga… |
@@ -61,7 +62,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 </details>
 <details><summary><code>cloudflare</code> — 4 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `cloudflare` | Comprehensive Cloudflare platform skill covering Workers, Pages, storage (KV, D1, R2), AI (Workers AI, Vectorize, Agent… |
 | `cloudflare-email-service` | Send and receive transactional emails with Cloudflare Email Service (Email Sending + Email Routing). |
@@ -71,7 +72,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 </details>
 <details><summary><code>core-loop</code> — 12 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `codebase-design` | Shared vocabulary for designing deep modules. |
 | `codebase-memory` | Use the codebase knowledge graph for structural code queries. |
@@ -89,7 +90,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 </details>
 <details><summary><code>data</code> — 6 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `backup-restore` | Explains backup strategy and restore testing for relational databases — full vs. |
 | `postgres-conventions` | Apply Postgres best practices — schema design, indexes, RLS policies, SQL queries, connection pooling. |
@@ -101,7 +102,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 </details>
 <details><summary><code>delivery</code> — 8 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `docs-writing` | Technical documentation style guide for README, docs/, ADRs, JSDoc/TSDoc, and inline code comments. |
 | `estimation` | Applies effort-estimation technique to any deliverable, technical or not — task decomposition, three-point estimation (… |
@@ -115,7 +116,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 </details>
 <details><summary><code>devops</code> — 11 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `ci-cd-pipeline` | Defines standard CI/CD pipeline stages (lint, type-check, test, build), dependency caching, running migrations in CI, a… |
 | `container-conventions` | Defines multi-stage Docker builds, minimal base images, non-root users, .dockerignore, layer cache ordering, and docker… |
@@ -132,7 +133,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 </details>
 <details><summary><code>frontend</code> — 9 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `accessibility-audit` | Guides accessibility (a11y) auditing — automated tooling (axe-core) wired into CI as a floor not a substitute for manua… |
 | `client-state-management` | Defines the boundary between server state, local UI state, and URL state as an architecture decision independent of sta… |
@@ -147,7 +148,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 </details>
 <details><summary><code>meta</code> — 5 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `skill-audit` | Audit Claude Code skills against the fleet's reference implementation — a mechanical sweep first, then criterion-by-cri… |
 | `skill-sync` | Sync the skill fleet against its upstreams — mattpocock/skills and lucasmonstrox/utevo-lux — diffing repo vs upstream, … |
@@ -158,7 +159,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 </details>
 <details><summary><code>quality</code> — 4 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `code-reviewer` | Stack-specific review checklist for React + TanStack Query + Supabase multi-tenant apps — hook architecture, RLS/tenant… |
 | `e2e-testing` | Guides writing reliable end-to-end tests — programmatic auth fixtures instead of UI login, per-run data isolation, acce… |
@@ -168,7 +169,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 </details>
 <details><summary><code>security</code> — 6 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `auth-patterns` | Authentication and authorization patterns — OTP/password/OAuth/OIDC flows, session vs JWT, RBAC/ABAC, MFA, token refres… |
 | `dependency-audit` | Audits third-party dependencies for security and maintainability — lockfile discipline, upgrade cadence (automatic patc… |
@@ -180,7 +181,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 </details>
 <details><summary><code>tcc</code> — 6 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `tcc-auditoria-banca` | Simulates the written report an examining board issues on a finished TCC (Brazilian undergraduate thesis) — grade per c… |
 | `tcc-defesa` | Builds the defense presentation for the SyncClass TCC out of the written chapters — narrative arc, slide-by-slide scrip… |
@@ -192,7 +193,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 </details>
 <details><summary><code>vault</code> — 4 skills</summary>
 
-| Skill | Uso |
+| Skill | What it is for |
 |---|---|
 | `obsidian-vault` | Creates, searches and links notes in the personal Obsidian vault following the wiki conventions — folder structure, wik… |
 | `project-kickoff` | Orchestrates a project from scratch — idea to spec, design system and implementation plan — invoking each phase's skill… |
@@ -202,19 +203,19 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 </details>
 <!-- inventory:skills:end -->
 
-Uma skill nova só existe depois que o caminho dela entra na lista `skills` do
-`.claude-plugin/plugin.json`. Pasta solta em `skills/` não é descoberta sozinha, e
-`claude plugin validate` passa mesmo assim — quem mostra a verdade é
-`claude plugin details`.
+A new skill only exists once its path enters the `skills` list in
+`.claude-plugin/plugin.json`. A loose folder under `skills/` is never discovered
+on its own, and `claude plugin validate` passes anyway — the one that shows the
+truth is `claude plugin details`.
 
 ---
 
-## 3. Agents e commands
+## 3. Agents and commands
 
 <!-- inventory:agents:start -->
-**3 agents** — rodam em subagent isolado:
+**3 agents** — they run in an isolated subagent:
 
-| Agent | Uso |
+| Agent | What it is for |
 |---|---|
 | `planner` | Breaks a task or feature into an ordered implementation plan with explicit dependencies, risks, and exit criteria. |
 | `researcher` | Read-only code locator and codebase mapper. |
@@ -224,7 +225,7 @@ Uma skill nova só existe depois que o caminho dela entra na lista `skills` do
 <!-- inventory:commands:start -->
 **11 slash commands:**
 
-| Comando | Descrição |
+| Command | Description |
 |---|---|
 | `/branch` | Creates a new branch from an up-to-date main/master and switches to it. |
 | `/commit` | Writes a Conventional Commits message from the staged diff. |
@@ -241,73 +242,146 @@ Uma skill nova só existe depois que o caminho dela entra na lista `skills` do
 
 ---
 
-## 4. Hooks — componentes do plugin
+## 4. Hooks — plugin components
 
-Sem fiação manual em `settings.json`: o `plugin.json` declara os três e instalar
-o plugin conecta. O caminho usa `${CLAUDE_PLUGIN_ROOT}` normalizado (o `/c/...` do
-Git Bash vira `c:/...`), então roda nas duas plataformas.
+No manual wiring in `settings.json`: `plugin.json` declares all three and
+installing the plugin connects them. The path uses a normalised
+`${CLAUDE_PLUGIN_ROOT}` (Git Bash's `/c/...` becomes `c:/...`), so it runs on both
+platforms.
 
-| Hook | Dispara em | Função |
+| Hook | Fires on | Job |
 |---|---|---|
-| `guard-dangerous-bash.mjs` | `PreToolUse` (matcher `Bash`) | Bloqueia comando catastrófico que escaparia do allowlist — `exit 2` + stderr barra a tool call |
-| `context-mode-cache-heal.mjs` | `SessionStart` | Cura o cache do plugin context-mode, que quebra caminho em auto-update |
-| `printf '\a'` | `Stop` | Beep ao terminar. Era um `.ps1` cravado numa máquina só; virou uma linha |
+| `guard-dangerous-bash.mjs` | `PreToolUse` (matcher `Bash`) | Blocks a catastrophic command that would slip past the allowlist — `exit 2` + stderr stops the tool call |
+| `context-mode-cache-heal.mjs` | `SessionStart` | Heals the context-mode plugin cache, which breaks its own path on auto-update |
+| `printf '\a'` | `Stop` | Beep when finished. It used to be a `.ps1` pinned to one machine; now it is one line |
 
 ---
 
-## 5. Plugins de terceiros
+## 5. Third-party plugins
 
-Vêm de marketplaces externas, não deste repo. Ficam em `~/.claude/plugins/`.
+They come from external marketplaces, not from this repo, and live in
+`~/.claude/plugins/`.
 
-| Plugin | Marketplace | O que adiciona |
+| Plugin | Marketplace | What it adds |
 |---|---|---|
-| `caveman` | `juliusbrussee/caveman` | Modo de resposta comprimido + skills `caveman:*` |
-| `ponytail` | `ponytail` | Modo YAGNI: a solução mais preguiçosa que funciona |
-| `context-mode` | `mksglu/context-mode` | Tools `ctx_*` — processa output grande fora da conversa |
+| `caveman` | `JuliusBrussee/caveman` | Compressed answer mode + the `caveman:*` skills and the `cavecrew-*` agents |
+| `ponytail` | `DietrichGebert/ponytail` | YAGNI mode: the laziest solution that works, with `/ponytail-review`, `-audit`, `-debt` |
+| `context-mode` | `mksglu/context-mode` | The `ctx_*` tools — processes large output outside the conversation, into a persistent FTS5 base |
+| `jgbriel-skills` | `jgbriel` (this repo) | The whole fleet |
 
-O namespace no nome (`caveman:cavecrew-builder`) indica que veio de plugin. Os
-comandos de cada um estão em [GUIDE.md](GUIDE.md).
+Registered marketplaces: the three above, `jgbriel` and
+`anthropics/claude-plugins-official`. `claude plugin marketplace list` shows the
+machine's real state.
+
+The namespace in a name (`caveman:cavecrew-builder`) marks it as coming from a
+plugin. Each one's commands are in [GUIDE.md](GUIDE.md).
+
+The first two are **behaviour modes**, not tools: they activate through a
+`SessionStart` hook and hold for the whole session until `stop caveman` /
+`stop ponytail`. Caveman governs how the text comes out, ponytail governs what
+gets built — which is why the two run together without conflict.
 
 ---
 
 ## 6. MCP servers
 
-**`.mcp.json` só é lido da raiz de um projeto.** Não existe `~/.claude/.mcp.json`;
-servidor de escopo de usuário mora em `~/.claude.json`, registrado por
-`claude mcp add -s user <nome> -- <cmd>`.
+**`.mcp.json` is only read from a project's root.** There is no
+`~/.claude/.mcp.json`; a user-scope server lives in `~/.claude.json`, registered
+by `claude mcp add -s user <name> -- <cmd>`.
 
-`claude/.mcp.json` aqui é template de escopo de projeto, com placeholders `${VAR}`
-— copiar para a raiz do projeto que precisar.
+`claude/.mcp.json` here is a project-scope template with `${VAR}` placeholders —
+copy it into the root of whichever project needs it.
 
-| Server | Comando | Uso |
+| Server | Command | What it is for |
 |---|---|---|
-| `github` | `npx @modelcontextprotocol/server-github` | Requer `GITHUB_PERSONAL_ACCESS_TOKEN` no ambiente |
-| `supabase` | `npx @supabase/mcp-server-supabase@latest --read-only` | Requer `SUPABASE_ACCESS_TOKEN`; read-only por flag explícita |
+| `codebase-memory-mcp` | `~/.local/bin/codebase-memory-mcp` | Knowledge graph over the code: `search_graph`, `trace_path`, `query_graph`. User scope, already installed on Linux |
+| `serena` | `serena start-mcp-server --context=claude-code --project-from-cwd` | Retrieval and editing **at the symbol level** through a language server — what grep cannot give. [oraios/serena](https://github.com/oraios/serena) |
+| `github` | `npx @modelcontextprotocol/server-github` | Needs `GITHUB_PERSONAL_ACCESS_TOKEN` in the environment |
+| `supabase` | `npx @supabase/mcp-server-supabase@latest --read-only` | Needs `SUPABASE_ACCESS_TOKEN`; read-only by explicit flag |
+
+`codebase-memory-mcp` and `serena` overlap on purpose: the graph answers "who
+calls what" over an index that was already built, serena answers about the file as
+it is right now through the LSP. When they disagree, the LSP is right.
+
+Installing serena, without piping an installer into the shell (denied by
+`permissions.deny`):
+
+```bash
+uv tool install -p 3.13 serena-agent   # installs serena, serena-agent, serena-hooks
+serena setup claude-code               # registers the MCP at user scope
+```
+
+`serena setup` issues the `claude mcp add --scope user` itself — do not assemble
+that command by hand. `--project-from-cwd` makes the server take the project from
+the directory the session opened in. `uv` itself came from the GitHub release
+tarball, extracted into `~/.local/bin`.
+
+Serena's optional hooks are configured in `~/.claude/settings.json`, all four with
+absolute paths so they do not depend on PATH:
+
+| Event | Command | Job |
+|---|---|---|
+| `SessionStart` | `serena-hooks activate` | prompts the agent to activate the project |
+| `PreToolUse` (matcher `""`) | `serena-hooks remind` | nudges toward the symbolic tools after too many consecutive `grep`/`read_file` calls |
+| `PreToolUse` (matcher `mcp__serena__*`) | `serena-hooks auto-approve` | auto-approves Serena's own tool calls |
+| `SessionEnd` | `serena-hooks cleanup` | clears the session's hook data |
+
+They live in `settings.json`, not in this repo, because that file is machine state
+— see §1. The other machine needs them added by hand, from
+[oraios.github.io/serena](https://oraios.github.io/serena/02-usage/030_clients.html#claude-code).
+
+### Outside Claude Code — CocoIndex
+
+[CocoIndex](https://github.com/cocoindex-io/cocoindex) is not an MCP server: it is
+a Python incremental-indexing library — source, transform, target (file, pgvector,
+graph), reprocessing only the delta. It belongs to a project that needs semantic
+search of its own, not to the agent's configuration. It ships its own agent skill
+in `skills/cocoindex/` of their repo.
+
+```bash
+uv tool install cocoindex        # CLI: init, ls, show, update, drop
+echo "COCOINDEX_DB=./cocoindex.db" > .env
+cocoindex update main.py
+```
+
+**It does not need Postgres.** The 1.0 line uses a local per-app database file
+(`COCOINDEX_DB`); pgvector is a *target* you choose, not a prerequisite.
+
+An app is `coco.App(name, main_fn, **args)`; the function marked
+`@coco.fn(memo=True)` is the unit the engine memoises; `localfs.walk_dir(...)`
+with `coco.mount_each(...)` is the pair that walks the source. Inside the
+function, `file.file_path` is a `FilePath`, not a `pathlib.Path`: calling
+`.read_text()` directly raises `AttributeError`, so `.resolve()` first.
+
+**Memoisation is by content, not by mtime.** Measured over this fleet's 84
+`SKILL.md` files: first run `84 added`; next run with no change `84 unchanged`; a
+`touch` on one file is still `84 unchanged`; a real one-line edit gives
+`1 reprocessed, 83 unchanged`.
 
 ---
 
-## 7. `settings.json` — o que não está em CLAUDE.md
+## 7. `settings.json` — what is not in CLAUDE.md
 
-- `permissions.deny`: `rm -rf` e variantes, `sudo`, `mkfs`/`dd`/`shred`, `curl | sh`, leitura de `.env`/`secrets/**`/`*.pem`/`*.key`/`id_rsa`
-- `permissions.ask`: `rm`/`Remove-Item`, `sed`/`awk`, `git reset`/`push --force`/`clean`, publish de pacote, `docker rm`/`system prune`
-- `skillListingBudgetFraction: 0.06` — fração da janela reservada para listar skills. O default é `0.01`, que dá 8.000 chars: a frota sozinha passa de 30.000, e acima do teto o Claude Code **corta as descrições**, deixando só o nome. Skill sem descrição visível não é escolhida sozinha
-- `statusLine`: `ccstatusline`, refresh 10s
+- `permissions.deny`: `rm -rf` and variants, `sudo`, `mkfs`/`dd`/`shred`, `curl | sh`, reading `.env`/`secrets/**`/`*.pem`/`*.key`/`id_rsa`
+- `permissions.ask`: `rm`/`Remove-Item`, `sed`/`awk`, `git reset`/`push --force`/`clean`, package publish, `docker rm`/`system prune`
+- `skillListingBudgetFraction: 0.06` — the fraction of the window reserved for listing skills. The default is `0.01`, which gives 8,000 chars: the fleet alone passes 30,000, and above the ceiling Claude Code **truncates the descriptions**, leaving only the name. A skill with no visible description is never chosen on its own
+- `statusLine`: `ccstatusline`, 10s refresh
 - `autoUpdatesChannel: "latest"`
 
 ---
 
 ## 8. Scripts
 
-| Script | O que faz |
+| Script | What it does |
 |---|---|
-| `gen-inventory.py` | Regenera as tabelas deste arquivo e do README. `--check` falha se estiverem defasadas |
-| `check-doc-refs.py` | Falha quando a prosa cita comando ou skill que não existe mais |
-| `audit-sweep.py` | Passada mecânica do `/skill-audit`: tamanho contra a referência, frontmatter, link quebrado, resíduo de outra ferramenta |
-| `check-project-skills.sh` | Acha skill de projeto sombreada por skill pessoal de mesmo nome |
-| `migrate-windows.ps1` | Tira a máquina do layout antigo de symlink e instala o plugin |
-| `audit-labels.sh` | Confere os labels dos issues |
+| `gen-inventory.py` | Regenerates the tables in this file and in the README. `--check` fails when they are stale |
+| `check-doc-refs.py` | Fails when the prose names a command or skill that no longer exists |
+| `audit-sweep.py` | The mechanical pass of `/skill-audit`: size against the reference, frontmatter, broken link, residue from another tool |
+| `check-project-skills.sh` | Finds a project skill shadowed by a personal skill of the same name |
+| `migrate-windows.ps1` | Takes the machine out of the old symlink layout and installs the plugin |
+| `audit-labels.sh` | Checks the issue labels |
 
-Os dois primeiros rodam no CI, em push na `main` e em todo PR.
+The first two run in CI, on pushes to `main` and on every PR.
 
 ---
 
@@ -318,16 +392,16 @@ claude plugin marketplace add jgbriel-io/jgbriel-skills
 claude plugin install jgbriel-skills@jgbriel
 ```
 
-Para desenvolver, aponte o marketplace para o working copy. O runtime continua
-sendo cópia versionada: **sem subir o `version` no `plugin.json`, o `update` não
-tem o que instalar e a alteração não chega, sem erro nenhum.**
+For development, point the marketplace at the working copy. The runtime is still
+a versioned copy: **without bumping `version` in `plugin.json`, `update` has
+nothing to install and the change never arrives — with no error at all.**
 
-Secrets dos MCP servers, via env var de usuário:
+MCP server secrets, through a user env var:
 
 ```powershell
 [System.Environment]::SetEnvironmentVariable('GITHUB_PERSONAL_ACCESS_TOKEN', 'ghp_xxx', 'User')
 ```
 
 ```bash
-export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxx   # no ~/.bashrc
+export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxx   # in ~/.bashrc
 ```

@@ -1,75 +1,76 @@
 # Claude Code — Cheat Sheet
 
-Consulta no meio de uma sessão. Só o que **não** está gerado em outro lugar: os
-comandos dos plugins de terceiros e o mapa dos arquivos de configuração.
+For looking things up mid-session. Only what is **not** generated elsewhere: the
+third-party plugin commands and the map of configuration files.
 
-As skills, os commands e os agents deste repo estão na tabela gerada em
-[STRUCTURE.md](STRUCTURE.md) — não são repetidos aqui, porque lista copiada à mão
-é lista que mente depois.
-
----
-
-## Plugins de terceiros
-
-### caveman — modo de resposta comprimido
-
-| Comando | Efeito |
-|---|---|
-| `/caveman lite` | Fragmentos leves, sem artigo |
-| `/caveman full` | Compressão padrão |
-| `/caveman ultra` | Compressão máxima |
-| `stop caveman` | Volta ao normal |
-
-Código, commit, PR e aviso de segurança saem em prosa normal mesmo com o modo
-ativo.
-
-### ponytail — a solução mais preguiçosa que funciona
-
-| Comando | Efeito |
-|---|---|
-| `/ponytail lite\|full\|ultra` | Intensidade do YAGNI |
-| `/ponytail-review` | Revisão caçando só over-engineering |
-| `/ponytail-audit` | Mesma varredura no repo inteiro |
-| `/ponytail-debt` | Coleta os comentários `ponytail:` num balanço |
-
-### context-mode — processa output fora da conversa
-
-| Comando | Efeito |
-|---|---|
-| `/ctx-stats` | Tokens economizados na sessão |
-| `/ctx-doctor` | Diagnóstico do plugin |
-| `/ctx-search` | Busca na base indexada |
-| `/ctx-purge` | Limpa a base — irreversível |
-
-Quando os tools `ctx_*` não conectam, os hooks continuam injetando orientação
-apontando pra eles. Nesse caso, ignore a orientação e use `Bash`/`Read` direto;
-reiniciar resolve.
+This repo's skills, commands and agents are in the generated table in
+[STRUCTURE.md](STRUCTURE.md) — not repeated here, because a hand-copied list is a
+list that lies later.
 
 ---
 
-## Comandos nativos que valem lembrar
+## Third-party plugins
 
-| Comando | Efeito |
+### caveman — compressed answer mode
+
+| Command | Effect |
 |---|---|
-| `/code-review` | Revisão do diff atual — o eixo de defeito |
-| `/simplify` | Aplica limpeza de reuso e simplificação no que mudou |
-| `/security-review` | Auditoria de segurança do branch |
-| `/init` | Gera `CLAUDE.md` para um projeto |
-| `/update-config` | Edita `settings.json` e hooks |
-| `/skills` | Liga e desliga skill por nome |
+| `/caveman lite` | Light fragments, no articles |
+| `/caveman full` | Standard compression |
+| `/caveman ultra` | Maximum compression |
+| `stop caveman` | Back to normal |
+
+Code, commits, PRs and security warnings come out in normal prose even with the
+mode active.
+
+### ponytail — the laziest solution that works
+
+| Command | Effect |
+|---|---|
+| `/ponytail lite\|full\|ultra` | YAGNI intensity |
+| `/ponytail-review` | Review hunting over-engineering only |
+| `/ponytail-audit` | The same sweep across the whole repo |
+| `/ponytail-debt` | Collects the `ponytail:` comments into a ledger |
+
+### context-mode — processes output outside the conversation
+
+| Command | Effect |
+|---|---|
+| `/ctx-stats` | Tokens saved in the session |
+| `/ctx-doctor` | Plugin diagnostics |
+| `/ctx-search` | Search the indexed base |
+| `/ctx-purge` | Wipes the base — irreversible |
+
+When the `ctx_*` tools fail to connect, the hooks keep injecting guidance that
+points at them. In that case ignore the guidance and use `Bash`/`Read` directly;
+a restart fixes it.
 
 ---
 
-## Onde a configuração mora
+## Built-in commands worth remembering
 
-| Arquivo | O que faz |
+| Command | Effect |
 |---|---|
-| `~/.claude/CLAUDE.md` | Regras globais de comportamento |
-| `~/.claude/settings.json` | Modelo, permissões, hooks, plugins habilitados |
-| `~/.claude/settings.local.json` | Overrides pessoais de permissão |
-| `~/.claude/projects/<projeto>/memory/` | Memória persistente entre sessões |
-| `<projeto>/.claude/` | Escopo de projeto: skills, commands e settings próprios |
+| `/code-review` | Review of the current diff — the defect axis |
+| `/simplify` | Applies reuse and simplification cleanups to what changed |
+| `/security-review` | Security audit of the branch |
+| `/init` | Generates a `CLAUDE.md` for a project |
+| `/update-config` | Edits `settings.json` and hooks |
+| `/skills` | Turns a skill on or off by name |
 
-Skill de projeto **não** colide com skill de plugin: a do plugin aparece sob o
-namespace dele (`jgbriel-skills:tdd`) e a do projeto sem prefixo (`tdd`). Quem
-disputa nome é o escopo pessoal, e `scripts/check-project-skills.sh` detecta.
+---
+
+## Where the configuration lives
+
+| File | What it does |
+|---|---|
+| `~/.claude/CLAUDE.md` | Global behaviour rules |
+| `~/.claude/settings.json` | Model, permissions, hooks, enabled plugins |
+| `~/.claude/settings.local.json` | Personal permission overrides |
+| `~/.claude/projects/<project>/memory/` | Memory that persists across sessions |
+| `<project>/.claude/` | Project scope: its own skills, commands and settings |
+
+A project skill does **not** collide with a plugin skill: the plugin's appears
+under its namespace (`jgbriel-skills:tdd`) and the project's without a prefix
+(`tdd`). What competes for a name is the personal scope, and
+`scripts/check-project-skills.sh` detects it.

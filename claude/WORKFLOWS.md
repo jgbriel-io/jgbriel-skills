@@ -1,130 +1,134 @@
 # Claude Code — Workflows
 
-Receitas: quais skills encadear, em que ordem, e por quê. O que cada uma faz está
-na tabela gerada em [STRUCTURE.md](STRUCTURE.md) — aqui só entra a ordem.
+Recipes: which skills to chain, in what order, and why. What each one does is in
+the generated table in [STRUCTURE.md](STRUCTURE.md) — only the order belongs here.
 
-Uma receita é um caminho conhecido, não um trilho. Pular etapa que não paga é
-esperado; o que não se faz é inverter a ordem sem motivo, porque cada passo
-consome a saída do anterior.
+A recipe is a known path, not a rail. Skipping a step that does not pay is
+expected; what you do not do is reverse the order without a reason, because each
+step consumes the output of the previous one.
 
 ---
 
-## Trabalho novo, escopo indefinido
+## New work, undefined scope
 
 ```
-/discuss     → uma decisão por vez, até a direção fechar num brief confirmado
-/research    → só o que ficou como pergunta factual no brief
-/plan        → brief vira passos ordenados, cada um com prova mecânica
-/implement   → slice por slice, verificando pela superfície tocada
+/discuss     → one decision at a time, until the direction closes into a confirmed brief
+/research    → only what the brief left as a factual question
+/plan        → the brief becomes ordered steps, each with a mechanical proof
+/implement   → slice by slice, verifying through the surface being touched
 /commit
 ```
 
-`discuss` é caro de propósito. Ideia já formada, que só precisa de pressão, vai
-pra `grill-me` — mesma árvore de decisão, uma rodada por vez em vez de uma
-pergunta por vez.
+`discuss` is expensive on purpose. An idea that already has shape and only needs
+pressure goes to `grill-me` — the same decision tree, one round at a time instead
+of one question at a time.
 
-## Trabalho já decidido
+## Work already decided
 
 ```
-/plan        → pula direto, quando a decisão já existe em issue, PRD ou conversa
+/plan        → straight here, when the decision already exists in an issue, PRD or conversation
 /implement
-/code-review → nativo do Claude Code, acha defeito no diff
+/code-review → Claude Code's built-in; finds defects in the diff
 /commit
 ```
 
 ## Bug
 
 ```
-/diagnose    → tier 0/1/2 conforme o custo da prova; loop de feedback antes de hipótese
-/where <X>   → localiza definição e usos
-/why         → git blame + log da linha
-  ↓ fix + teste de regressão que falha antes e passa depois
+/diagnose    → tier 0/1/2 by the cost of the proof; feedback loop before any hypothesis
+/where <X>   → locates the definition and its uses
+/why         → git blame + log for the line
+  ↓ fix + regression test that fails before and passes after
 /commit
 ```
 
-`diagnose` exige prova por toggle antes de declarar causa raiz. Sintoma
-remendado sem isso volta.
+`diagnose` demands proof by toggle before declaring a root cause. A symptom
+patched without that comes back.
 
-## Decisão de arquitetura
+## Architecture decision
 
 ```
-/codebase-memory   → mapa estrutural: quem chama o quê, fan-in/fan-out, impacto
-/domain-modeling   → valida contra o modelo de domínio e registra o ADR
-/codebase-design   → onde cortar o seam, interface do módulo
+/codebase-memory   → structural map: who calls what, fan-in/fan-out, impact
+/domain-modeling   → validates against the domain model and records the ADR
+/codebase-design   → where to cut the seam, the module's interface
 ```
 
 ## Refactoring
 
 ```
-/codebase-memory   → escopo real: callers, dead code
-/codebase-design   → decidir a fronteira antes de mexer
-/plan              → slices verificáveis, cada uma com prova
-/tdd               → red-green-refactor onde há lógica
-/implement         → slice por slice
+/codebase-memory   → the real scope: callers, dead code
+/codebase-design   → decide the boundary before touching anything
+/plan              → verifiable slices, each with its proof
+/tdd               → red-green-refactor where there is logic
+/implement         → slice by slice
 ```
 
 ## Pull request
 
 ```
-/pr-acceptance accept   → o PR entrega o que foi pedido? critério a critério
-/code-review            → eixo de correção, nativo; o modo accept já dobra o resultado dentro
-/pr-acceptance resolve  → aplica o que um revisor humano pediu, um commit por mudança
+/pr-acceptance accept   → does the PR deliver what was asked? criterion by criterion
+/code-review            → the correctness axis, built-in; accept mode folds its result in
+/pr-acceptance resolve  → applies what a human reviewer asked for, one commit per change
 ```
 
-Os três eixos são distintos: requisito (`pr-acceptance accept`), defeito
-(`code-review`), resposta ao revisor (`pr-acceptance resolve`). O modo é sempre
-explícito: `accept` não escreve nada, `resolve` faz commit e push.
+The three axes are distinct: requirement (`pr-acceptance accept`), defect
+(`code-review`), answer to the reviewer (`pr-acceptance resolve`). The mode is
+always explicit: `accept` writes nothing, `resolve` commits and pushes.
 
-## TCC — escrever capítulo
+## TCC — writing a chapter
 
-```
-/tcc-fragmentos          → captura matéria-prima bruta
-/tcc-rascunho            → fragmentos viram seção ABNT, parágrafo a parágrafo
-/tcc-revisao-impessoal   → varredura: 1ª pessoa, clichê, citação órfã, figura sem chamada
-/tcc-revisar             → feedback como orientador severo (agent tcc-orientador)
-/tcc-status              → progresso dos capítulos 1-10
-```
-
-## TCC — antes da banca
+The TCC is Brazilian by nature, so its skills speak Portuguese — the triggers
+below are the literal ones.
 
 ```
-/tcc-auditoria-banca   → parecer escrito: conceito por critério, exigências vs sugestões
-/tcc-grill             → interrogatório oral, uma pergunta por vez
-/tcc-defesa            → preparação da apresentação
+/tcc-fragmentos          → captures raw material
+/tcc-rascunho            → fragments become an ABNT section, paragraph by paragraph
+/tcc-revisao-impessoal   → sweep: first person, cliché, orphan citation, uncalled figure
+/tcc-revisar             → feedback as a severe advisor (tcc-orientador agent)
+/tcc-status              → progress across chapters 1-10
 ```
 
-`tcc-auditoria-banca` avalia o documento; `tcc-grill` testa se você defende o que
-escreveu. São coisas diferentes e as duas valem antes da entrega.
-
-## Projeto novo
+## TCC — before the board
 
 ```
-/project-kickoff   → orquestra ideia → spec → design → plano, chamando as skills de cada fase
-/stack-scaffold    → bootstrap técnico com o stack padrão
-/setup-pre-commit  → hooks de qualidade antes do primeiro commit de verdade
+/tcc-auditoria-banca   → written opinion: a grade per criterion, requirements vs suggestions
+/tcc-grill             → oral questioning, one question at a time
+/tcc-defesa            → preparing the presentation
 ```
 
-## Skill nova
+`tcc-auditoria-banca` judges the document; `tcc-grill` tests whether you can
+defend what you wrote. They are different things and both pay off before
+submission.
+
+## New project
 
 ```
-/writing-great-skills   → a teoria: invocação, hierarquia, poda, leading words
-  ↓ escrever a skill nova (a criação em si é anthropic-skills:skill-creator)
-/skill-audit            → rubric contra a referência, blockers, colisão entre irmãs
-/skill-sync             → puxa upstream sem perder a adaptação local
+/project-kickoff   → orchestrates idea → spec → design → plan, calling each phase's skill
+/stack-scaffold    → technical bootstrap with the standard stack
+/setup-pre-commit  → quality hooks before the first real commit
 ```
 
-Publicar é o passo que ninguém lembra: a pasta entra na lista `skills` do
-`plugin.json`, a `version` sobe, e só então `claude plugin update` leva pra
-máquina. Sem o bump a skill nova não existe em lugar nenhum.
+## New skill
+
+```
+/writing-great-skills   → the theory: invocation, hierarchy, pruning, leading words
+  ↓ write the new skill (the creation itself is anthropic-skills:skill-creator)
+/skill-audit            → rubric against the reference, blockers, collisions between siblings
+/skill-sync             → pulls upstream without losing the local adaptation
+```
+
+Publishing is the step nobody remembers: the folder goes into the `skills` list
+in `plugin.json`, `version` goes up, and only then does `claude plugin update`
+carry it to the machine. Without the bump the new skill exists nowhere.
 
 ---
 
 ## Agents
 
-Rodam em contexto isolado: o que eles leem não entra na sessão principal.
+They run in an isolated context: what they read never enters the main session.
 
-| Agent | Quando chamar direto |
+| Agent | When to call it directly |
 |---|---|
-| `researcher` | "onde está X definido?", "quais arquivos usam Y?" |
-| `planner` | plano ordenado antes de uma feature com várias partes |
-| `tcc-orientador` | feedback acadêmico severo de capítulo ou seção |
+| `researcher` | "where is X defined?", "which files use Y?" |
+| `planner` | an ordered plan before a feature with several parts |
+| `tcc-orientador` | severe academic feedback on a chapter or section |
