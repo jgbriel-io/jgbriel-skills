@@ -150,7 +150,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 
 | Skill | Uso |
 |---|---|
-| `skill-audit` | Audit installed Claude Code skills against the C1–C11 quality rubric — per-skill scores, automatic blockers, trigger-co… |
+| `skill-audit` | Audit Claude Code skills against the fleet's reference implementation — a mechanical sweep first, then criterion-by-cri… |
 | `skill-creator` | Create new Claude Code skills from scratch and iteratively improve existing ones. |
 | `skill-sync` | Sync the skill fleet against its upstreams — mattpocock/skills and lucasmonstrox/utevo-lux — diffing repo vs upstream, … |
 | `token-audit` | Audita consumo de token do Claude Code entre sessões e projetos — tendência semanal, sessões e projetos mais pesados, s… |
@@ -304,6 +304,7 @@ servidor de escopo de usuário mora em `~/.claude.json`, registrado por
 |---|---|
 | `gen-inventory.py` | Regenera as tabelas deste arquivo e do README. `--check` falha se estiverem defasadas |
 | `check-doc-refs.py` | Falha quando a prosa cita comando ou skill que não existe mais |
+| `audit-sweep.py` | Passada mecânica do `/skill-audit`: tamanho contra a referência, frontmatter, link quebrado, resíduo de outra ferramenta |
 | `check-project-skills.sh` | Acha skill de projeto sombreada por skill pessoal de mesmo nome |
 | `migrate-windows.ps1` | Tira a máquina do layout antigo de symlink e instala o plugin |
 | `audit-labels.sh` | Confere os labels dos issues |

@@ -64,8 +64,8 @@ def docs():
 def main():
     live, archived = provided()
     if "--list" in sys.argv:
-        print(f"{len(live)} vivos: " + " ".join(sorted(live)))
-        print(f"{len(archived)} arquivados: " + " ".join(sorted(archived)))
+        print(f"{len(live)} live: " + " ".join(sorted(live)))
+        print(f"{len(archived)} archived: " + " ".join(sorted(archived)))
         return 0
 
     known = live | archived | EXTERNAL
@@ -80,12 +80,12 @@ def main():
                     dead.append((rel, n, name, line.strip()[:70]))
 
     if dead:
-        print(f"{len(dead)} referência(s) para algo que não existe:\n")
+        print(f"{len(dead)} reference(s) to something that does not exist:\n")
         for rel, n, name, line in dead:
             print(f"  {rel}:{n}  /{name}\n      {line}")
-        print("\nOu o nome mudou, ou a skill foi arquivada, ou falta em EXTERNAL.")
+        print("\nEither the name changed, the skill was archived, or EXTERNAL is missing it.")
         return 1
-    print("nenhuma referência morta")
+    print("no dead references")
     return 0
 
 
