@@ -1,9 +1,13 @@
 ---
 name: supabase-postgres
-description: Apply Supabase/Postgres best practices — indexes, RLS, schema design, queries, connection pooling. Use when user asks about Supabase schema, RLS policies, migrations, or SQL performance.
+description: Apply Postgres conventions through the Supabase client — column selection, single vs maybeSingle, range pagination, RPCs for multi-table transactions, RLS policies, schema design. Use when the user asks about Supabase schema, RLS policies, or writing queries against Supabase. Plain Postgres without the Supabase client is postgres-conventions; migrations are safe-migrations; a slow query is query-performance; the client hooks around it are supabase-hooks.
 ---
 
 # Supabase Postgres — Boas Práticas
+
+> As mesmas convenções de `postgres-conventions`, escritas no cliente Supabase em
+> vez de SQL puro. Migration é `safe-migrations`, query lenta é
+> `query-performance`, e o hook que consome isto é `supabase-hooks`.
 
 ## Queries
 

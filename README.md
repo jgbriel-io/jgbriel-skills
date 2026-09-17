@@ -149,7 +149,7 @@ solta em `skills/` não é descoberta sozinha.
 | `query-performance` | Diagnoses slow SQL queries by reading execution plans and picking the right index strategy — composite, partial, coveri… |
 | `safe-migrations` | Explains zero-downtime schema migrations for relational databases — expand-contract pattern, batch data backfills, lock… |
 | `seed-data` | Explains reproducible seed data per environment — determinism, idempotency, dependency ordering, and masking real data … |
-| `supabase-postgres` | Apply Supabase/Postgres best practices — indexes, RLS, schema design, queries, connection pooling. |
+| `supabase-postgres` | Apply Postgres conventions through the Supabase client — column selection, single vs maybeSingle, range pagination, RPC… |
 
 </details>
 <details><summary><code>delivery</code> — 8 skills</summary>
