@@ -54,7 +54,7 @@ Gerada a partir da árvore por `scripts/gen-inventory.py` — não editar à mã
 
 | Skill | Uso |
 |---|---|
-| `cv-sync` | Pipeline do currículo: edita os .tex canônicos, recompila, distribui para o site e o vault, commita e confere a produçã… |
+| `cv-sync` | The resume pipeline — edit the canonical .tex files, recompile, distribute to the site and the vault, commit, and verif… |
 | `job-description-analyzer` | Analisa uma vaga contra o perfil do usuário — requisito obrigatório separado do desejável, nota de aderência, lacunas, … |
 | `resume-tailor` | Adapta o currículo para uma vaga específica sem inventar nada — reordena habilidades, reescreve bullets para a linguage… |
 

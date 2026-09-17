@@ -1,92 +1,107 @@
 ---
 name: cv-sync
-description: Pipeline do currículo: edita os .tex canônicos, recompila, distribui para o site e o vault, commita e confere a produção. Use quando o usuário disser "atualiza o cv", "cv-sync", "muda X no currículo", "sobe o cv novo", ou pedir qualquer alteração de conteúdo nos CVs. Otimizar conteúdo para uma vaga é resume-tailor.
+description: The resume pipeline — edit the canonical .tex files, recompile, distribute to the site and the vault, commit, and verify production. Use when the user says "atualiza o cv", "cv-sync", "muda X no currículo", "sobe o cv novo", or asks for any content change to the CVs. Tailoring content to one job posting is resume-tailor.
 ---
 
 # cv-sync
 
-Um comando, ciclo completo: .tex → PDF → pasta pessoal → site → produção → vault.
+One command, the whole cycle: .tex → PDF → personal folder → site → production →
+vault.
 
-**Windows apenas.** O pipeline depende do MiKTeX e dos discos `D:` e `/d/`. Em
-outra máquina, diga isso e pare — não existe meio caminho útil aqui.
+**Windows only.** The pipeline depends on MiKTeX and on the `D:` and `/d/` drives.
+On another machine, say so and stop — there is no useful halfway here.
 
-## Fontes e destinos
+## Sources and destinations
 
-| O quê | Onde |
+| What | Where |
 |---|---|
-| Fonte canônica (.tex) | `D:/Projetos/projetos-pessoais/jgbriel-dev/resumes-src/cv-pt.tex` e `cv-en.tex` |
-| PDF distribuição PT | `Joao-Gabriel-Caetano-CV.pdf` |
-| PDF distribuição EN | `Joao-Gabriel-Caetano-Resume.pdf` |
-| Site (servido pelo botão) | `D:/Projetos/projetos-pessoais/jgbriel-dev/public/resumes/` |
-| Cópia pessoal | `D:/documentos/pessoais/` |
-| Espelho vault | `wiki/Professional/Currículo.md` |
-| Runbook/releases | a página de deployment do site no vault |
+| Canonical source (.tex) | `resumes-src/cv-pt.tex` and `cv-en.tex` in the personal site repo |
+| Distribution PDF, PT | `Joao-Gabriel-Caetano-CV.pdf` |
+| Distribution PDF, EN | `Joao-Gabriel-Caetano-Resume.pdf` |
+| Site (what the download button serves) | `public/resumes/` in the same repo |
+| Personal copy | the documents folder on `D:` |
+| Vault mirror | `wiki/Professional/Currículo.md` |
+| Runbook and releases | the site's deployment page in the vault |
 
-`resumes-src/` fica fora de `public/` de propósito: fonte versionada no git, nunca servida.
+The repo path itself lives in `~/.claude/projects-map.md`, outside this
+repository. `resumes-src/` sits outside `public/` on purpose: the source is
+versioned in git and never served.
 
-## Regras de conteúdo
+## Content rules
 
-Ler a memória `feedback-textos-profissionais` **antes de propor qualquer texto**.
-Ela guarda as regras fixas do usuário para texto sobre ele mesmo: pontuação,
-como nomear a stack, como qualificar métrica volátil, tamanho, e o que vai em
-cada canal. São preferências pessoais dele, não convenção pública, e por isso
-vivem na memória e não neste repositório.
+Read the `feedback-textos-profissionais` memory **before proposing any text**. It
+holds the user's fixed rules for writing about himself: punctuation, how the stack
+is named, how a volatile metric is qualified, length, and what belongs on which
+channel. Those are personal preferences rather than public convention, which is
+why they live in memory and not in this repository.
 
-Mudança de conteúdo aplica nos DOIS .tex (PT e EN espelhados) e no espelho do vault.
+A content change applies to BOTH .tex files — PT and EN are mirrored — and to the
+vault mirror.
 
 ## Pipeline
 
-### 1. Editar
+### 1. Edit
 
-Aplicar a mudança pedida em `cv-pt.tex` e `cv-en.tex`. Se a mudança afeta texto que também existe nas páginas de LinkedIn do vault, avisar o usuário (não editar LinkedIn automaticamente — escopo é CV).
+Apply the requested change to `cv-pt.tex` and `cv-en.tex`. If it also affects text
+living on the vault's LinkedIn pages, tell the user; do not edit LinkedIn
+automatically, since the scope here is the CV.
 
-### 2. Compilar
+### 2. Compile
 
 ```bash
 PDFLATEX="$LOCALAPPDATA/Programs/MiKTeX/miktex/bin/x64/pdflatex.exe"
-cd /d/Projetos/projetos-pessoais/jgbriel-dev/resumes-src
+cd <site repo>/resumes-src
 "$PDFLATEX" -interaction=nonstopmode -enable-installer cv-pt.tex 2>&1 | tail -3
 "$PDFLATEX" -interaction=nonstopmode -enable-installer cv-en.tex 2>&1 | tail -3
 ```
 
-Verificar `(1 page` na saída de ambos. Se sair 2 páginas, parar e cortar conteúdo com o usuário antes de seguir. Limpar auxiliares: `rm -f *.aux *.log *.out`.
+Check for `(1 page` in both outputs. If either runs to two pages, stop and cut
+content with the user before going on. Clean up the auxiliaries:
+`rm -f *.aux *.log *.out`.
 
-### 3. Renomear e distribuir
+### 3. Rename and distribute
 
 ```bash
-cd /d/Projetos/projetos-pessoais/jgbriel-dev/resumes-src
+cd <site repo>/resumes-src
 mv -f cv-pt.pdf Joao-Gabriel-Caetano-CV.pdf
 mv -f cv-en.pdf Joao-Gabriel-Caetano-Resume.pdf
 cp -f Joao-Gabriel-Caetano-*.pdf ../public/resumes/
 mv -f Joao-Gabriel-Caetano-*.pdf /d/documentos/pessoais/
 ```
 
-### 4. Commit e deploy
+### 4. Commit and deploy
 
-Confirmar com o usuário antes do push (produção). Working tree deve estar limpo além dos arquivos do CV.
+Confirm with the user before pushing, because the push is production. The working
+tree must be clean apart from the CV files.
 
 ```bash
-cd /d/Projetos/projetos-pessoais/jgbriel-dev
+cd <site repo>
 git add resumes-src/ public/resumes/
-git commit -m "chore: update resume (<resumo da mudança em 1 frase>)"
+git commit -m "chore: update resume (<one-sentence summary of the change>)"
 git push origin main
 ```
 
-Push em `main` dispara GitHub Actions → Cloudflare Pages. Acompanhar com `gh run watch` em background.
+A push to `main` triggers GitHub Actions and then Cloudflare Pages. Follow it with
+`gh run watch` in the background.
 
-### 5. Verificar produção
+### 5. Verify production
 
-Content-Length de `https://jgbriel.dev/resumes/<nome>.pdf` deve bater com o tamanho do arquivo local (byte a byte). Se context-mode ativo, usar ctx_execute; senão curl -sI. Cache do Cloudflare pode segurar versão velha por alguns minutos — repetir uma vez antes de concluir falha.
+The `Content-Length` of `https://jgbriel.dev/resumes/<name>.pdf` must match the
+local file byte for byte. Use `ctx_execute` when context-mode is available,
+otherwise `curl -sI`. Cloudflare's cache can hold the old version for a few
+minutes, so repeat once before reporting a failure.
 
-### 6. Registrar
+### 6. Record
 
-- Apender linha na tabela `## Releases` do runbook: `| YYYY-MM-DD | <sha curto> | <mudança em 1 frase> |`.
-  Resolver a página por glob no vault em vez de escrever o caminho de memória: o
-  domínio aparece escrito de duas formas nas páginas antigas, e link por caminho
-  errado vira ghost page.
-- Sincronizar `wiki/Professional/Currículo.md` com o novo conteúdo
-- Atualizar `updated:` do frontmatter nas duas páginas
+- Append a row to the runbook's `## Releases` table:
+  `| YYYY-MM-DD | <short sha> | <one-sentence change> |`. Resolve the page by
+  globbing the vault rather than writing the path from memory: the domain is
+  spelled two ways across the older pages, and a wrong path becomes a ghost page.
+- Sync `wiki/Professional/Currículo.md` with the new content.
+- Update the `updated:` frontmatter on both pages.
 
-## Modo rápido
+## Quick mode
 
-"Recompila o cv" sem mudança de conteúdo = pular passo 1, rodar 2→6. Se os .tex não mudaram desde o último commit, avisar que produção já está atual e perguntar se quer forçar.
+"Recompila o cv" with no content change means skipping step 1 and running 2
+through 6. If the .tex files have not changed since the last commit, say that
+production is already current and ask whether to force it anyway.
