@@ -1,37 +1,37 @@
 ---
 name: tcc-revisao-impessoal
-description: Varredura final de capítulo de TCC procurando primeira pessoa, clichês acadêmicos, informalidade, vocabulário fraco, citações órfãs, figuras/tabelas sem chamada no texto, e termos técnicos não explicados na primeira ocorrência. Gera relatório com localizações (linha, trecho, problema, sugestão) e opcionalmente aplica correções. Use quando o usuário diz "revisar capítulo X", "revisão impessoal", "passar o pente fino no TCC", "preparar capítulo pra entrega", ou marca um capítulo como pronto e quer validar antes de enviar ao orientador.
+description: Final sweep of a TCC chapter looking for first person, academic clichés, informality, weak vocabulary, orphan citations, figures and tables never called out in the text, and technical terms not expanded at first occurrence. Produces a report with locations (line, excerpt, problem, suggestion) and optionally applies the fixes. Use when the user says "revisar capítulo X", "revisão impessoal", "passar o pente fino no TCC", "preparar capítulo pra entrega", or marks a chapter as done and wants it validated before sending it to the advisor. The chapter and the report are in Portuguese.
 allowed-tools: Read, Edit, Glob, Grep
 ---
 
 # TCC Revisão Impessoal
 
-Varredura mecânica de capítulo concluído. Encontra violações de normas acadêmicas que escaparam ao drafting. Não é skill criativa — é skill de QA do texto.
+Mechanical sweep of a finished chapter. Finds violations of academic norms that survived drafting. Not a creative skill — a QA skill for the text.
 
-## Quando usar
+## When to use
 
-- Capítulo está em rascunho completo e usuário quer validar antes de marcar como ✅.
-- Antes de enviar capítulo ao orientador.
-- Auditoria periódica de capítulos já finalizados (regressão).
-- Usuário diz: "revisar", "pente fino", "checar voz impessoal", "tá pronto pra enviar?".
+- The chapter is a complete draft and the user wants it validated before marking it ✅.
+- Before sending the chapter to the advisor.
+- Periodic audit of finished chapters (regression).
+- The user says: "revisar", "pente fino", "checar voz impessoal", "tá pronto pra enviar?".
 
-## Quando NÃO usar
+## When NOT to use
 
-- Capítulo ainda em construção → use `tcc-rascunho`.
-- Mudar argumento ou estrutura do texto → não é escopo. Esta skill só cuida de **forma**, não de **conteúdo**.
-- Validar citação contra fonte original → fora de escopo. Só verifica se citação aparece nas Referências.
+- The chapter is still being built → use `tcc-rascunho`.
+- Changing the argument or the structure of the text → out of scope. This skill handles **form**, never **content**.
+- Validating a citation against the original source → out of scope. It only checks that the citation appears in the references.
 
-## Processo
+## Process
 
-### 1. Localizar arquivo a revisar
+### 1. Locate the file to review
 
-Pergunta-padrão se usuário não disse: "Qual capítulo? (ex: `docs/tcc/cap3-metodologia.md`)"
+Default question when the user did not say: "Qual capítulo? (ex: `docs/tcc/cap3-metodologia.md`)"
 
-Ou aceitar argumento direto (número do capítulo ou path completo).
+Or accept a direct argument (chapter number or full path).
 
-### 2. Rodar verificações em ordem
+### 2. Run the checks in order
 
-Para cada verificação abaixo, usar `Grep` ou `Read` no arquivo e construir relatório com formato:
+For each check below, use `Grep` or `Read` on the file and build the report in this format:
 
 ```
 LINHA: N
@@ -40,20 +40,20 @@ PROBLEMA: <descrição curta>
 SUGESTÃO: <correção proposta>
 ```
 
-### Verificação 1 — Primeira pessoa do singular/plural
+### Check 1 — First person, singular and plural
 
-Padrões a buscar (case-insensitive, palavra inteira):
+Patterns to search (case-insensitive, whole word):
 
-- `\beu\b` (pronome)
-- `\bnós\b`, `\bnos\b` (pronome objeto — atenção: "nos" também é contração em+os ("nos sistemas", "nos dias"); reportar apenas quando for pronome reflexivo/objeto, ex. "nos deparamos", "apresenta-nos")
+- `\beu\b` (pronoun)
+- `\bnós\b`, `\bnos\b` (object pronoun — careful: "nos" is also the contraction em+os ("nos sistemas", "nos dias"); report only the reflexive/object pronoun, e.g. "nos deparamos", "apresenta-nos")
 - `\bminha\b`, `\bmeu\b`, `\bminhas\b`, `\bmeus\b`
 - `\bnossa\b`, `\bnosso\b`, `\bnossas\b`, `\bnossos\b`
-- `\bme\b` (em contexto reflexivo: "me parece", "me convém")
-- Verbos em 1ª pessoa: `\bfiz\b`, `\bfizemos\b`, `\bfaço\b`, `\bfazemos\b`, `\bimplementei\b`, `\bimplementamos\b`, `\bescolhi\b`, `\bescolhemos\b`, `\bdesenvolvi\b`, `\bdesenvolvemos\b`, `\bcriei\b`, `\bcriamos\b`, `\bdecidi\b`, `\bdecidimos\b`, `\boptei\b`, `\boptamos\b`, `\bachei\b`, `\bachamos\b`, `\bconsiderei\b`, `\bconsideramos\b`, `\butilizei\b`, `\butilizamos\b`, `\busei\b`, `\busamos\b`, `\bvou\b` (em "vou explicar"), `\bvamos\b` (em "vamos analisar"), `\bpretendo\b`, `\bpretendemos\b`
+- `\bme\b` (reflexive context: "me parece", "me convém")
+- First-person verbs: `\bfiz\b`, `\bfizemos\b`, `\bfaço\b`, `\bfazemos\b`, `\bimplementei\b`, `\bimplementamos\b`, `\bescolhi\b`, `\bescolhemos\b`, `\bdesenvolvi\b`, `\bdesenvolvemos\b`, `\bcriei\b`, `\bcriamos\b`, `\bdecidi\b`, `\bdecidimos\b`, `\boptei\b`, `\boptamos\b`, `\bachei\b`, `\bachamos\b`, `\bconsiderei\b`, `\bconsideramos\b`, `\butilizei\b`, `\butilizamos\b`, `\busei\b`, `\busamos\b`, `\bvou\b` (in "vou explicar"), `\bvamos\b` (in "vamos analisar"), `\bpretendo\b`, `\bpretendemos\b`
 
-**Exceção legítima:** citação direta literal de autor em primeira pessoa — manter dentro das aspas.
+**Legitimate exception:** a literal direct quote from an author in first person — keep it inside the quotation marks.
 
-**Sugestões automáticas:**
+**Automatic suggestions:**
 - "Eu desenvolvi X" → "Desenvolveu-se X" / "X foi desenvolvido"
 - "Nós escolhemos Y" → "Optou-se por Y" / "Y foi adotado"
 - "Achei melhor" → "Considerou-se mais adequado"
@@ -61,12 +61,12 @@ Padrões a buscar (case-insensitive, palavra inteira):
 - "A gente fez" → "Realizou-se" / "O projeto contemplou"
 - "Minha pesquisa" → "A presente pesquisa" / "O presente trabalho"
 
-### Verificação 2 — Clichês acadêmicos
+### Check 2 — Academic clichés
 
-Frases vazias que não adicionam informação:
+Empty phrases that add no information:
 
 - `é importante (notar|destacar|ressaltar|frisar|salientar)`
-- `é (crucial|vital|fundamental|essencial)` (geralmente vazio)
+- `é (crucial|vital|fundamental|essencial)` (usually empty)
 - `atualmente`, `nos dias de hoje`, `no mundo atual`, `na sociedade contemporânea`
 - `cada vez mais`
 - `com o avanço (da tecnologia|tecnológico)`
@@ -75,76 +75,76 @@ Frases vazias que não adicionam informação:
 - `não restam dúvidas (que|de que)`
 - `é sabido que`, `como é sabido`
 
-**Sugestão padrão:** cortar a frase introdutória, ir direto à afirmação.
+**Default suggestion:** cut the introductory phrase, go straight to the claim.
 
 > "É importante notar que o Supabase oferece RLS nativo." → "O Supabase oferece RLS nativo."
 
-### Verificação 3 — Informalidade
+### Check 3 — Informality
 
-- `\btipo\b` (como conector, ex: "tipo assim")
+- `\btipo\b` (as a connector, e.g. "tipo assim")
 - `\ba gente\b`
 - `\brolou\b`, `\brolar\b`
 - `\bdeu certo\b`, `\bdeu errado\b`
-- `\bpra\b`, `\bpro\b`, `\bpros\b`, `\bpras\b` (em prosa formal — em citação literal mantém)
+- `\bpra\b`, `\bpro\b`, `\bpros\b`, `\bpras\b` (in formal prose — keep inside a literal quote)
 - `\btá\b`, `\btô\b`
 - `\bné\b`
-- `\bcoisa\b` (vago — "uma coisa importante")
-- `\bmuito\b` (intensificador — "muito rápido", "muito bom" → usar quantificação)
-- `\bbem\b` (intensificador — "bem rápido" → idem)
+- `\bcoisa\b` (vague — "uma coisa importante")
+- `\bmuito\b` (intensifier — "muito rápido", "muito bom" → quantify instead)
+- `\bbem\b` (intensifier — "bem rápido" → same)
 
-**Exceção:** citação literal.
+**Exception:** a literal quote.
 
-### Verificação 4 — Citações órfãs
+### Check 4 — Orphan citations
 
-Buscar padrão `\([A-Z][A-ZÁÉÍÓÚÂÊÔÃÕÇ]+,?\s*\d{4}` (autor em maiúsculas + ano).
+Search the pattern `\([A-Z][A-ZÁÉÍÓÚÂÊÔÃÕÇ]+,?\s*\d{4}` (uppercase author + year).
 
-Para cada match, **conferir** se o autor aparece em `docs/tcc/tcc-8-periodo/projeto-escrito/Referências Bibliográficas.md` (ou path equivalente — perguntar usuário se não souber).
+For each match, **check** whether the author appears in `docs/tcc/tcc-8-periodo/projeto-escrito/Referências Bibliográficas.md` (or the equivalent path — ask the user if unknown).
 
-Reportar autores citados no corpo **ausentes** das Referências.
+Report authors cited in the body and **missing** from the references.
 
-Também reportar autores **nas Referências** mas **nunca citados** no corpo do capítulo (possíveis referências órfãs).
+Also report authors **in the references** but **never cited** in the chapter body (possible orphan references).
 
-### Verificação 5 — Figuras/tabelas sem chamada prévia
+### Check 5 — Figures and tables with no prior call-out
 
-Buscar `^Figura \d+ – ` e `^Tabela \d+ – ` (início de linha).
+Search `^Figura \d+ – ` and `^Tabela \d+ – ` (start of line).
 
-Para cada figura/tabela `N`:
-- Procurar nos parágrafos **anteriores** ao caption uma menção: `Figura N`, `Tabela N`, `(Figura N)`, `conforme Figura N`, `apresentada na Figura N`, etc.
-- Se não houver menção anterior, reportar: "Figura N aparece sem ter sido citada antes no texto."
+For each figure or table `N`:
+- Look in the paragraphs **before** the caption for a mention: `Figura N`, `Tabela N`, `(Figura N)`, `conforme Figura N`, `apresentada na Figura N`, etc.
+- If there is no earlier mention, report: "Figura N aparece sem ter sido citada antes no texto."
 
-**Regra ABNT:** toda figura/tabela deve ser mencionada **antes** de aparecer.
+**ABNT rule:** every figure and table has to be mentioned **before** it appears.
 
-### Verificação 6 — Glossário técnico (primeira ocorrência)
+### Check 6 — Technical glossary (first occurrence)
 
-Lista de termos técnicos esperados (ajustar conforme o capítulo):
+Expected technical terms (adjust per chapter):
 `SaaS`, `BaaS`, `RLS`, `MVP`, `IA`, `LGPD`, `ODS`, `ISO 25010`, `RNF`, `RF`, `UML`, `DER`, `CRUD`, `JWT`, `API`, `REST`, `JSON`, `SQL`, `CI/CD`, `MVC`, `DDD`, `ORM`, `PWA`, `SPA`, `SSR`, `CSR`.
 
-Para cada termo encontrado no capítulo:
-- Localizar a **primeira ocorrência**.
-- Verificar se há expansão da sigla próxima: padrão `Termo (Expansão)` ou `Expansão (Termo)`.
-- Se a primeira ocorrência é a sigla pura sem expansão, reportar: "Sigla X usada sem expansão na primeira ocorrência (linha N)."
+For each term found in the chapter:
+- Locate the **first occurrence**.
+- Check for an expansion nearby: the pattern `Termo (Expansão)` or `Expansão (Termo)`.
+- If the first occurrence is the bare acronym with no expansion, report: "Sigla X usada sem expansão na primeira ocorrência (linha N)."
 
-**Sugestão:** "SaaS" → "Software como Serviço (SaaS)" ou "SaaS (Software como Serviço)".
+**Suggestion:** "SaaS" → "Software como Serviço (SaaS)" or "SaaS (Software como Serviço)".
 
-### Verificação 7 — Pontuação em títulos
+### Check 7 — Punctuation in headings
 
-Headings markdown (`#`, `##`, `###`).
+Markdown headings (`#`, `##`, `###`).
 
-Regra ABNT: títulos **não levam ponto final**. Interrogação (`?`) é permitida em títulos-pergunta.
+ABNT rule: headings take **no** final period. A question mark (`?`) is allowed in question headings.
 
-Reportar todo heading que termina em `.`, `;`, `:`.
+Report every heading ending in `.`, `;` or `:`.
 
-### Verificação 8 — Alinhamento/formatação semântica
+### Check 8 — Semantic formatting
 
-Esta verificação é leve em markdown (formatação real é Word). Mas conferir:
-- Linha em branco antes/depois de heading.
-- Linha em branco entre parágrafos (não duas).
-- Trecho de código com bloco markdown (` ``` `) e linguagem identificada.
-- Citações longas: bloco de quote (`>`) com `(AUTOR, ano, p. X)` após.
+This check is light in markdown (the real formatting is Word). Still verify:
+- Blank line before and after a heading.
+- One blank line between paragraphs, not two.
+- Code snippets in a markdown block (` ``` `) with the language tagged.
+- Long quotations: a quote block (`>`) with `(AUTOR, ano, p. X)` after it.
 
-### 3. Gerar relatório
+### 3. Produce the report
 
-Formato:
+Format:
 ```markdown
 # Relatório de Revisão — Capítulo N (path)
 
@@ -179,32 +179,32 @@ SUGESTÃO: cortar introdução, ir direto à afirmação.
 (... etc)
 ```
 
-Salvar relatório em `docs/tcc/_revisoes/cap{N}-revisao-{data}.md` ou exibir inline conforme preferência do usuário.
+Save the report to `docs/tcc/_revisoes/cap{N}-revisao-{data}.md` or show it inline, as the user prefers.
 
-### 4. Oferecer aplicação
+### 4. Offer to apply
 
-Após o relatório, perguntar:
-1. **Aplicar todas as sugestões automáticas** (pronomes, clichês, informalidades — correções mecânicas).
-2. **Revisar uma a uma** (mostrar diff, confirmar cada).
-3. **Só relatório, sem aplicar** (usuário corrige manualmente).
+After the report, ask:
+1. **Apply every automatic suggestion** (pronouns, clichés, informality — mechanical fixes).
+2. **Review one by one** (show the diff, confirm each).
+3. **Report only, apply nothing** (the user fixes manually).
 
-**Não aplicar** alterações em:
-- Citações órfãs (não é correção mecânica — exige pesquisar a referência).
-- Figuras sem chamada prévia (não é correção mecânica — exige rescrever o parágrafo).
-- Glossário (exige decisão editorial sobre onde inserir a expansão).
+**Do not apply** changes to:
+- Orphan citations (not a mechanical fix — it means researching the reference).
+- Figures with no prior call-out (not a mechanical fix — it means rewriting the paragraph).
+- Glossary (it takes an editorial decision about where the expansion goes).
 
-Estes ficam só como recomendação.
+These stay as recommendations only.
 
-## Limites desta skill
+## Limits
 
-- **Não** valida o argumento do capítulo (escopo de orientador humano ou skill criativa).
-- **Não** valida se citação reflete fielmente a fonte original (só presença).
-- **Não** mexe em conteúdo — só em forma.
-- **Não** garante aprovação acadêmica — é primeira camada de QA, não substitui revisão humana.
+- Does **not** validate the chapter's argument (that belongs to a human advisor or a creative skill).
+- Does **not** validate whether a citation faithfully reflects the original source (presence only).
+- Does **not** touch content — form only.
+- Does **not** guarantee academic approval — it is the first QA layer, not a replacement for human review.
 
-## Encerramento
+## Closing
 
-Mostrar resumo final:
+Show the final summary:
 ```
 Capítulo N revisado.
 Antes: X ocorrências em 8 categorias.

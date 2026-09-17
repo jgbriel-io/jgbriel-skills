@@ -59,17 +59,17 @@ solta em `skills/` não é descoberta sozinha.
 
 | Comando | Descrição |
 |---|---|
-| `/branch` | Cria branch nova a partir de main/master (atualizado) e faz switch. |
-| `/commit` | Gera commit message Conventional Commits a partir do diff staged. |
-| `/diff` | Diff resumido contra ref (branch, sha, HEAD~N). |
-| `/map` | Mapa de um diretório — listagem por arquivo com responsabilidade detectada. |
-| `/sync` | Sincroniza branch atual com remote — fetch, pull rebase, status final. |
-| `/tcc-revisar` | Revisão acadêmica de capítulo do TCC via agent tcc-orientador. |
-| `/tcc-status` | Snapshot do progresso do TCC SyncClass — status de cada capítulo (1-10), pendências, próximos passos. |
-| `/undo` | Desfaz último commit (soft reset) — mantém mudanças staged, só remove o commit. |
-| `/where` | Localiza onde símbolo, função, classe ou string é definido/usado. |
-| `/why` | Contexto histórico de uma linha ou trecho — git blame + log + último commit que tocou. |
-| `/wip` | Commit rápido WIP pra salvar progresso. |
+| `/branch` | Creates a new branch from an up-to-date main/master and switches to it. |
+| `/commit` | Writes a Conventional Commits message from the staged diff. |
+| `/diff` | Summarized diff against a ref (branch, sha, HEAD~N). |
+| `/map` | Map of a directory — one line per file with its detected responsibility. |
+| `/sync` | Syncs the current branch with its remote — fetch, pull rebase, final status. |
+| `/tcc-revisar` | Academic review of a TCC chapter through the tcc-orientador agent. |
+| `/tcc-status` | Snapshot of SyncClass TCC progress — status of each chapter (1-10), what is pending, next steps. |
+| `/undo` | Undoes the last commit with a soft reset — keeps the changes staged, removes only the commit. |
+| `/where` | Locates where a symbol, function, class or string is defined and used. |
+| `/why` | Historical context for a line or range — git blame + log + the last commit that touched it. |
+| `/wip` | Quick WIP commit to save progress. |
 <!-- inventory:commands:end -->
 
 <!-- inventory:agents:start -->
@@ -79,7 +79,7 @@ solta em `skills/` não é descoberta sozinha.
 |---|---|
 | `planner` | Breaks a task or feature into an ordered implementation plan with explicit dependencies, risks, and exit criteria. |
 | `researcher` | Read-only code locator and codebase mapper. |
-| `tcc-orientador` | Revisor acadêmico no papel de orientador severo de TCC. |
+| `tcc-orientador` | Academic reviewer playing a severe TCC advisor. |
 <!-- inventory:agents:end -->
 
 **Hooks** — conectados pelo próprio plugin, sem fiação em `settings.json`:
@@ -107,8 +107,8 @@ solta em `skills/` não é descoberta sozinha.
 | Skill | Uso |
 |---|---|
 | `cv-sync` | The resume pipeline — edit the canonical .tex files, recompile, distribute to the site and the vault, commit, and verif… |
-| `job-description-analyzer` | Analisa uma vaga contra o perfil do usuário — requisito obrigatório separado do desejável, nota de aderência, lacunas, … |
-| `resume-tailor` | Adapta o currículo para uma vaga específica sem inventar nada — reordena habilidades, reescreve bullets para a linguage… |
+| `job-description-analyzer` | Analyzes a job posting against the user's profile — mandatory requirements separated from nice-to-have, a fit score, ga… |
+| `resume-tailor` | Adapts the resume to a specific posting without inventing anything — reorders skills, rewrites bullets into the languag… |
 
 </details>
 <details><summary><code>cloudflare</code> — 4 skills</summary>
@@ -176,7 +176,7 @@ solta em `skills/` não é descoberta sozinha.
 | `error-tracking` | Apply production error tracking patterns — unhandled exception capture, contextual metadata, release/version tagging, t… |
 | `health-checks-metrics` | Apply health check (readiness vs. |
 | `project-deploy` | Deploys a project by following the runbook documented in the vault — a step-by-step checklist, confirmation before anyt… |
-| `resolving-merge-conflicts` | Resolve os conflitos de um merge ou rebase já em andamento — lê a intenção original de cada lado antes de escolher, pre… |
+| `resolving-merge-conflicts` | Resolves the conflicts of a merge or rebase already in progress — reads the original intent of each side before choosin… |
 | `rollback-runbook` | Defines a deploy-tool-agnostic rollback runbook — reverting a code deploy (blue-green/canary/previous artifact), why re… |
 | `setup-pre-commit` | Set up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. |
 | `stack-scaffold` | Scaffold a new project with the user's standard stack — React 18 + TypeScript + Tailwind + shadcn/ui, on Vite + Supabas… |
@@ -216,7 +216,7 @@ solta em `skills/` não é descoberta sozinha.
 | `code-reviewer` | Stack-specific review checklist for React + TanStack Query + Supabase multi-tenant apps — hook architecture, RLS/tenant… |
 | `e2e-testing` | Guides writing reliable end-to-end tests — programmatic auth fixtures instead of UI login, per-run data isolation, acce… |
 | `integration-testing` | Guides writing integration tests against real dependencies — disposable containers for database/services instead of moc… |
-| `tdd` | O loop red-green-refactor e o que faz um teste sobreviver a refactor — comportamento por interface pública, seam acorda… |
+| `tdd` | The red-green-refactor loop and what makes a test survive a refactor — behavior through the public interface, the seam … |
 
 </details>
 <details><summary><code>security</code> — 6 skills</summary>
@@ -235,19 +235,19 @@ solta em `skills/` não é descoberta sozinha.
 
 | Skill | Uso |
 |---|---|
-| `tcc-auditoria-banca` | Simula o parecer escrito de uma banca avaliadora sobre o TCC já redigido: conceito por critério (normas, problema, refe… |
-| `tcc-defesa` | Monta a apresentação de defesa do TCC SyncClass a partir dos capítulos escritos — arco narrativo, roteiro slide a slide… |
-| `tcc-fragmentos` | Captura matéria-prima bruta de TCC — anotações de leitura, decisões técnicas, citações, ideias soltas — em arquivo de f… |
-| `tcc-grill` | Arguição acadêmica do TCC SyncClass — questiona hipóteses, metodologia, recorte, lacunas bibliográficas e validade dos … |
-| `tcc-rascunho` | Transforma fragmentos brutos em seção formal de TCC, parágrafo a parágrafo, aplicando normas ABNT/FEPI, voz impessoal e… |
-| `tcc-revisao-impessoal` | Varredura final de capítulo de TCC procurando primeira pessoa, clichês acadêmicos, informalidade, vocabulário fraco, ci… |
+| `tcc-auditoria-banca` | Simulates the written report an examining board issues on a finished TCC (Brazilian undergraduate thesis) — grade per c… |
+| `tcc-defesa` | Builds the defense presentation for the SyncClass TCC out of the written chapters — narrative arc, slide-by-slide scrip… |
+| `tcc-fragmentos` | Captures raw TCC material — reading notes, technical decisions, quotations, loose ideas — into a fragments file, before… |
+| `tcc-grill` | Academic interrogation of the SyncClass TCC — challenges hypotheses, methodology, scope, bibliographic gaps and the val… |
+| `tcc-rascunho` | Turns raw fragments into a formal TCC section, paragraph by paragraph, applying ABNT/FEPI norms, impersonal voice and c… |
+| `tcc-revisao-impessoal` | Final sweep of a TCC chapter looking for first person, academic clichés, informality, weak vocabulary, orphan citations… |
 
 </details>
 <details><summary><code>vault</code> — 4 skills</summary>
 
 | Skill | Uso |
 |---|---|
-| `obsidian-vault` | Cria, busca e conecta notas no vault pessoal do Obsidian seguindo as convenções da wiki — estrutura de pastas, wikilink… |
+| `obsidian-vault` | Creates, searches and links notes in the personal Obsidian vault following the wiki conventions — folder structure, wik… |
 | `project-kickoff` | Orchestrates a project from scratch — idea to spec, design system and implementation plan — invoking each phase's skill… |
 | `project-planner` | Scaffolds a project's wiki pages in wiki/Projetos/ — index.md with frontmatter, subpage stubs and ADRs — from a directi… |
 | `project-sync` | Reads a project's `docs/` folder and creates or updates its pages under `wiki/Projetos/` in the Obsidian vault, mirrori… |
