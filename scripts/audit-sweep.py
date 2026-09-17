@@ -25,6 +25,11 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Vendor packs are tracked here but authored upstream. Editing one to satisfy a
+# local rule is what makes the next `skill-sync` a merge conflict, so their
+# findings are reported and never blocking.
+VENDOR = {"cloudflare"}
 HARD_MAX = 750          # Anthropic's ceiling; past this a split is not optional
 BENCHMARK_MAX = 260     # the largest skill in either reference set
 MIN_DESC = 120          # shorter than this has no room for what + when
@@ -48,7 +53,7 @@ def frontmatter(text):
 
 
 def audit(path):
-    """Returns [(severity, message)] for one SKILL.md."""
+    """Returns (line count, [(severity, message)]) for one SKILL.md."""
     text = open(path, encoding="utf-8").read()
     body = frontmatter(text)
     lines = text.count("\n") + 1
@@ -63,17 +68,20 @@ def audit(path):
     elif name.group(1).strip() != folder:
         out.append(("BLOCKER", f"`name: {name.group(1).strip()}` does not match folder `{folder}`"))
 
-    # A slash-only skill is chosen by the user, not matched by the model, so a
-    # short description costs it nothing.
+    # A slash-only skill never enters the model's skill listing, so its
+    # description costs no context and is human-facing by design: a one-line
+    # summary with the trigger list stripped, per `meta/writing-great-skills`.
+    # Nothing about its length is this script's business.
     slash_only = "disable-model-invocation: true" in body
     if not desc:
         out.append(("BLOCKER", "no `description` — the skill is never discovered"))
     else:
         d = desc.group(1).strip().strip('"')
-        if len(d) < MIN_DESC:
-            sev = "WARN" if slash_only else "BLOCKER"
-            out.append((sev, f"description is {len(d)} chars: no room for what it does plus when to use it"))
-        elif not slash_only and not re.search(r"\b(use\b|used\b|usar|use quando|use when)", d, re.I):
+        if slash_only:
+            pass
+        elif len(d) < MIN_DESC:
+            out.append(("BLOCKER", f"description is {len(d)} chars: no room for what it does plus when to use it"))
+        elif not re.search(r"\b(use\b|used\b|usar|use quando|use when)", d, re.I):
             out.append(("WARN", "description never says *when* to reach for it"))
 
     if lines > HARD_MAX:
@@ -124,8 +132,11 @@ def main():
         if not findings:
             continue
         rel = os.path.relpath(path, ROOT)
-        print(f"\n{os.path.dirname(rel)}")
+        vendor = rel.split(os.sep)[1] in VENDOR
+        print(f"\n{os.path.dirname(rel)}" + ("  [vendor]" if vendor else ""))
         for sev, msg in findings:
+            if vendor and sev == "BLOCKER":
+                sev = "VENDOR"
             print(f"  {sev:9} {msg}")
             blocked += sev == "BLOCKER"
 

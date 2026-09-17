@@ -58,7 +58,7 @@ where to read an exemplar.
 
 | # | Criterion | What passes | Exemplar |
 |---|---|---|---|
-| C1 | Discovery | kebab `name` matching the folder; description states **what it does and when to reach for it**, in words the user would actually type, and draws the line against its siblings | `core-loop/discuss` — separates itself from `grill-me`, `research` and `plan` in the description itself |
+| C1 | Discovery | kebab `name` matching the folder; description states **what it does and when to reach for it**, in words the user would actually type, and draws the line against its siblings. A `disable-model-invocation` skill is the exception: it never enters the model's listing, so its description is human-facing — one line, triggers stripped | `core-loop/discuss` for the model-invoked shape; `core-loop/handoff` for the slash-only one, and `meta/writing-great-skills` for why they differ |
 | C2 | Concision | Inside the reference range; every section pays for its own tokens; assumes the model is smart | `core-loop/implement`, 74 lines covering gate, slices, failure protocol and verification |
 | C3 | Progressive disclosure | A navigable SKILL.md, `references/` one level down, mutually exclusive contexts in their own files | `core-loop/diagnose` — `stacks/` per runtime, `scripts/` apart |
 | C4 | Degrees of freedom | Rigid where the operation is fragile, loose where the task is open — matched, not defaulted | `core-loop/research` §0: the tier is declared before anything is spent |
@@ -70,6 +70,10 @@ where to read an exemplar.
 | C10 | Timelessness | No date, metric or version that rots without earning it | — |
 | C11 | Portability | No private path, no mandatory model, no hard dependency on a sibling being installed. Recommending one is fine; **breaking without it is not** | `core-loop/discuss` — "if another skill is not installed, the brief must still support continuation" |
 | C12 | Evidence | An instruction is a claim about model behaviour. The load-bearing ones say what backs them — a benchmark, a measurement taken here, or an incident actually lived | `utevo-lux` README, Evidence section: one benchmark per instruction, opened at the source |
+
+**Vendor packs** (`skills/cloudflare/`) are tracked here but authored upstream.
+Editing one to satisfy a local rule is what turns the next `skill-sync` into a
+merge conflict. Report what they violate; never block on it.
 
 **Automatic blockers**, whatever the score: a vague description · a body past 750
 lines with no split · a trigger colliding with an installed sibling · the
