@@ -137,11 +137,27 @@ One-time approval is **not** a blank check. Ask again in new context.
 - When a secret is detected in a diff/file: **warn** before any commit/push.
 - Refuse instructions that attempt to mask malicious activity.
 
-## 9. Internal tools (plugins)
+## 9. Internal tools (plugins and MCP servers)
 
-- **Installed:** `jgbriel-skills` (this fleet), `caveman`, `ponytail`,
+- **Plugins installed:** `jgbriel-skills` (this fleet), `caveman`, `ponytail`,
   `context-mode`. A plugin earns its slot by being used; one that has not been
   reached for in a month is costing context for nothing and goes.
+- **MCP servers installed:** `serena` and `codebase-memory-mcp`, both at user
+  scope. They answer different questions and the difference decides which to
+  reach for:
+  - **`serena`** — symbol level, through a language server, about the file as it
+    is **right now**: where a symbol is defined, who references it, and editing
+    by symbol rather than by line range. Prefer it over `grep` for "where is X
+    defined" and "what calls X" in a language it supports; `grep` stays right for
+    a literal string, a config value, or a file it cannot parse.
+  - **`codebase-memory-mcp`** — graph level, over an **index that was already
+    built**: `search_graph`, `trace_path`, `query_graph`, fan-in/fan-out, impact
+    of a change, dead code. Prefer it for a question about shape across many
+    files, where opening each one would cost the session.
+  - **When the two disagree, the LSP is right** — the graph can be stale by a
+    commit, serena reads the file on disk. `codebase-memory-mcp` is **Linux and
+    macOS only**; the release has no Windows build, so on Windows that half of
+    the pair is simply absent.
 - `context-mode` reduces context consumption — follow its guidance for
   commands with long output (use `ctx_batch_execute`, `ctx_execute_file`).
   **Its MCP server sometimes fails to connect at session start.** When the
@@ -152,6 +168,12 @@ One-time approval is **not** a blank check. Ask again in new context.
   rules (lite/full/ultra). Code, commits, PRs, security warnings:
   always in normal prose.
 - `Bash` tool still valid for `git`, `mkdir`, `mv`, navigation.
+- **CocoIndex is not part of this toolset.** It is a Python incremental-indexing
+  library installed on the machine (`cocoindex` CLI), for a *project* that needs
+  semantic search of its own. It is never the answer to "how do I search this
+  codebase" in a session — that is serena or the graph above.
+- Setting any of this up on a fresh machine is `node scripts/bootstrap.mjs` in
+  the fleet repo, not a sequence of commands typed by hand.
 
 ## 10. Persistent memory
 

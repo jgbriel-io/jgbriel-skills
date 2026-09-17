@@ -47,6 +47,24 @@ a restart fixes it.
 
 ---
 
+## MCP servers and local tools
+
+Not plugins — they have no slash commands. What matters is which one answers which
+question.
+
+| Tool | Reach for it when | Notes |
+|---|---|---|
+| `serena` | "where is X defined", "what calls X", editing by symbol | Language server, sees the file as it is now. Beats `grep` wherever it parses the language |
+| `codebase-memory-mcp` | shape across many files: callers, fan-in/out, impact, dead code | Answers over a built index, so it can lag a commit. **No Windows build** |
+| `cocoindex` | a *project* needs its own incremental index (pgvector, graph) | A Python library, not a session tool. No Postgres required — 1.0 uses a local DB file |
+
+When serena and the graph disagree, the LSP is right.
+
+Install or repair all of it — plugins included — with `node scripts/bootstrap.mjs`
+in the fleet repo. It skips whatever is already there.
+
+---
+
 ## Built-in commands worth remembering
 
 | Command | Effect |
