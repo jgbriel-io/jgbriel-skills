@@ -10,45 +10,41 @@ hooks, MCP config e skills customizadas (engineering, TCC, productivity, etc).
 
 ## Estrutura
 
+O repositório **é** o plugin: a raiz tem o manifesto, e cada componente fica na
+pasta que o Claude Code espera.
+
 ```
-jgabriel-skills/
-├── README.md
-├── .gitignore
+jgbriel-skills/
+├── .claude-plugin/
+│   ├── plugin.json           # manifesto: hooks + os 87 caminhos de skill declarados
+│   └── marketplace.json      # 1 plugin, source "./"
 │
-├── claude/                           # Claude Code global config (~/.claude)
-│   ├── README.md                     # ordem de leitura dos docs abaixo
-│   ├── CLAUDE.md                     # regras globais (idioma, git, response style)
-│   ├── STRUCTURE.md                  # onde tudo mora, settings.json, MCP, hooks, plugins
-│   ├── COMMANDS.md                   # tabela de slash commands
-│   ├── WORKFLOWS.md                  # receitas combinando commands + skills + agents
-│   ├── GUIDE.md                      # cheat sheet condensado
-│   ├── .mcp.json                     # template MCP de escopo de PROJETO (placeholders ${VAR})
-│   ├── settings.template.json        # settings.json sanitizado
-│   ├── agents/                       # 3 agents (planner, researcher, tcc-orientador)
-│   ├── commands/                     # 12 slash commands custom
-│   ├── hooks/                        # SessionStart / PreToolUse hooks (3 scripts)
-│   ├── skills/                       # 82 skills, pasta flat (sem subpastas por categoria)
-│   └── skills-archived/              # skills fora de circulação (29)
+├── skills/<categoria>/<nome>/SKILL.md    # 87 skills em 13 categorias
+├── agents/*.md                           # 3 subagents
+├── commands/*.md                         # 11 slash commands
+├── hooks/*.mjs                           # 2 hooks, conectados pelo manifesto
 │
-├── templates/                        # templates de projeto, pra copiar em qualquer repo
-│   ├── CONTEXT.template.md           # glossário de domínio (1 contexto)
-│   └── CONTEXT-MAP.template.md       # glossário pra repo com múltiplos contextos
+├── scripts/
+│   ├── gen-inventory.py          # regenera os inventários deste README e do STRUCTURE
+│   ├── check-project-skills.sh   # acha skill de projeto sombreada pelo fleet
+│   └── audit-labels.sh
 │
-    ├── COMMANDS.md                   # quick reference de steering/agents/skills/powers
-    ├── GUIDE.md                      # guia rápido de setup
-    ├── agents/                       # 4 agents JSON (planner, researcher, reviewer, tcc-orientador)
-    ├── powers/installed/             # supabase-hosted power
-    ├── settings/                     # cli.json, mcp.json
-    ├── skills/                       # caveman, find-skills
-    └── steering/
-        ├── global/                   # sempre ativos (inclusion: always) — 10 guias
-        ├── tech/                     # expertise técnica (inclusion: manual/fileMatch)
-        ├── engineering/              # workflows de engenharia (inclusion: manual)
-        ├── misc/                     # utilitários (inclusion: manual)
-        ├── personal/                 # edit-article, obsidian-vault (inclusion: manual)
-        ├── productivity/             # grill-me, handoff (inclusion: manual)
-        └── tcc/                      # TCC SyncClass (inclusion: manual)
+├── templates/                    # templates de projeto, pra copiar em qualquer repo
+│   ├── CONTEXT.template.md
+│   └── CONTEXT-MAP.template.md
+│
+└── claude/                       # documentação e config de referência
+    ├── CLAUDE.md                 # regras globais (idioma, git, response style)
+    ├── STRUCTURE.md              # onde tudo mora, settings, MCP, hooks
+    ├── COMMANDS.md · WORKFLOWS.md · GUIDE.md
+    ├── settings.template.json    # settings.json sanitizado
+    ├── config/                   # referência de formatos
+    └── skills-archived/          # fora de circulação, não entram no plugin
 ```
+
+**A nomenclatura de skill importa**: o `plugin.json` lista cada caminho
+explicitamente. Uma skill nova só existe depois de entrar nessa lista — pasta
+solta em `skills/` não é descoberta sozinha.
 
 ---
 
@@ -56,43 +52,208 @@ jgabriel-skills/
 
 ### Claude Code (`claude/`)
 
-**Slash commands (`commands/`)** — 15 atalhos:
+<!-- inventory:commands:start -->
+**11 slash commands:**
 
 | Comando | Descrição |
-|---------|-----------|
-| `/branch` | Cria branch nova a partir de main atualizado |
-| `/commit` | Gera commit Conventional Commits a partir do diff staged |
-| `/diff` | Diff resumido contra ref + categorização |
-| `/map` | Mapa de diretório via agent researcher |
-| `/plan` | Quebra tarefa em plano ordenado via agent planner |
-| `/review` | Code review do diff atual via agent reviewer |
-| `/scope` | Quebra tarefa em vertical slices independentes |
-| `/status` | Snapshot do estado do repo |
-| `/sync` | fetch + pull rebase + status final |
-| `/tcc-revisar` | Revisão acadêmica de capítulo TCC |
-| `/tcc-status` | Snapshot do progresso do TCC |
-| `/undo` | Soft reset do último commit |
-| `/where` | Localiza símbolo/função/string |
-| `/why` | git blame + log da linha |
-| `/wip` | Commit WIP rápido |
+|---|---|
+| `/branch` | Cria branch nova a partir de main/master (atualizado) e faz switch. |
+| `/commit` | Gera commit message Conventional Commits a partir do diff staged. |
+| `/diff` | Diff resumido contra ref (branch, sha, HEAD~N). |
+| `/map` | Mapa de um diretório — listagem por arquivo com responsabilidade detectada. |
+| `/sync` | Sincroniza branch atual com remote — fetch, pull rebase, status final. |
+| `/tcc-revisar` | Revisão acadêmica de capítulo do TCC via agent tcc-orientador. |
+| `/tcc-status` | Snapshot do progresso do TCC SyncClass — status de cada capítulo (1-10), pendências, próximos passos. |
+| `/undo` | Desfaz último commit (soft reset) — mantém mudanças staged, só remove o commit. |
+| `/where` | Localiza onde símbolo, função, classe ou string é definido/usado. |
+| `/why` | Contexto histórico de uma linha ou trecho — git blame + log + último commit que tocou. |
+| `/wip` | Commit rápido WIP pra salvar progresso. |
+<!-- inventory:commands:end -->
 
-**Agents (`agents/`)** — 4 subagents customizados:
+<!-- inventory:agents:start -->
+**3 agents** — rodam em subagent isolado:
 
-- `planner` — quebra tarefas em plano ordenado com deps e riscos
-- `researcher` — localizador read-only de código
-- `reviewer` — code review severity-tagged, sem fluff
-- `tcc-orientador` — orientador severo de TCC, feedback acadêmico
+| Agent | Uso |
+|---|---|
+| `planner` | Breaks a task or feature into an ordered implementation plan with explicit dependencies, risks, and exit criteria. |
+| `researcher` | Read-only code locator and codebase mapper. |
+| `tcc-orientador` | Revisor acadêmico no papel de orientador severo de TCC. |
+<!-- inventory:agents:end -->
 
-**Hooks (`hooks/`):**
+**Hooks** — conectados pelo próprio plugin, sem fiação em `settings.json`:
 
-- `guard-dangerous-bash.mjs` — bloqueia comandos destrutivos (`rm -rf`, `git push --force`, etc)
-- `context-mode-cache-heal.mjs` — auto-cura cache do plugin context-mode
+- `guard-dangerous-bash.mjs` — bloqueia comandos destrutivos (`rm -rf`, `git push --force`) no `PreToolUse`
+- `context-mode-cache-heal.mjs` — auto-cura o cache do plugin context-mode no `SessionStart`
 
-**Skills (`skills/`)** — 33 pastas, flat (sem subpastas por categoria):
+<!-- inventory:skills:start -->
+**87 skills**, em 13 pastas de categoria:
 
-`code-reviewer`, `design-direction`, `diagnose`, `docs-writing`, `edit-article`, `grill-me`, `grill-me-tcc`, `grill-with-docs`, `handoff`, `high-end-visual-design`, `image-to-code`, `improve-codebase-architecture`, `minimalist-ui`, `obsidian-vault`, `prototype`, `react-best-practices`, `redesign-existing-projects`, `senior-backend`, `senior-frontend`, `seo-optimizer`, `setup-pre-commit`, `skill-creator`, `supabase-postgres`, `tcc-auditoria-banca`, `tcc-fragmentos`, `tcc-rascunho`, `tcc-revisao-impessoal`, `tdd`, `to-issues`, `to-prd`, `triage`, `ui-ux-pro-max`
+<details><summary><code>backend</code> — 8 skills</summary>
 
-Lista com descrição completa: `claude/STRUCTURE.md`.
+| Skill | Uso |
+|---|---|
+| `api-design` | Applies stack-agnostic REST API design conventions — resource naming, HTTP verbs, status codes, error envelope, version… |
+| `backend-service-conventions` | Framework-agnostic conventions for backend service structure — layering (controller/service/repository), dependency inj… |
+| `background-jobs` | Designs asynchronous background work — job queues, retry/backoff policies, idempotency keys, dead-letter handling — ind… |
+| `caching-strategy` | Applies stack-agnostic caching strategy — layers (client, server, CDN), invalidation policy, cache-aside vs write-throu… |
+| `input-validation` | Validates untrusted input at every system boundary — API requests, queue messages, uploads, CLI args — via schema defin… |
+| `rate-limiting` | Stack-agnostic rate limiting and throttling — token bucket vs sliding/fixed window algorithms, where to enforce limits … |
+| `supabase-hooks` | Data-layer patterns for Supabase + TanStack Query — custom hooks, mutations, queries, real-time subscriptions, error ha… |
+| `tanstack-query-patterns` | Frontend data layer patterns with TanStack Query 5 + Axios — service pattern, module-prefixed query keys, mutations, ca… |
+
+</details>
+<details><summary><code>career</code> — 3 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `cv-sync` | Pipeline de atualização do currículo — edita os .tex canônicos, recompila com pdflatex, renomeia para os nomes de distr… |
+| `job-description-analyzer` | Analyze job postings, calculate match scores, identify gaps, and create application strategy. |
+| `resume-tailor` | Customize resume for specific job postings while maintaining truthfulness. |
+
+</details>
+<details><summary><code>cloudflare</code> — 4 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `cloudflare` | Comprehensive Cloudflare platform skill covering Workers, Pages, storage (KV, D1, R2), AI (Workers AI, Vectorize, Agent… |
+| `cloudflare-email-service` | Send and receive transactional emails with Cloudflare Email Service (Email Sending + Email Routing). |
+| `workers-best-practices` | Reviews and authors Cloudflare Workers code against production best practices. |
+| `wrangler` | Cloudflare Workers CLI for deploying, developing, and managing Workers, KV, R2, D1, Vectorize, Hyperdrive, Workers AI, … |
+
+</details>
+<details><summary><code>core-loop</code> — 13 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `codebase-design` | Shared vocabulary for designing deep modules. |
+| `codebase-memory` | Use the codebase knowledge graph for structural code queries. |
+| `diagnose` | Diagnosis loop for hard bugs and performance regressions. |
+| `discuss` | Develop an idea through structured discussion — one decision at a time, down a decision tree, until intent, audience, s… |
+| `domain-modeling` | Build and sharpen a project's domain model and ubiquitous language. |
+| `fable-method` | A step-by-step problem-solving loop (classify the ask, define done, gather evidence, decide, act surgically, verify by … |
+| `grill-me` | Grill the user relentlessly about a plan, decision or idea that already exists, working the design tree in rounds until… |
+| `handoff` | Compact the current conversation into a handoff document for another agent to pick up. |
+| `implement` | Implement planned work — a plan, PRD, issue or agreed task. |
+| `plan` | Produce an implementation plan — ordered steps, explicit dependencies, mechanical proofs, risks and exit criteria. |
+| `pr-acceptance` | Judge whether a PR delivers what was asked — loads the originating issue/spec, the PR description and its discussions, … |
+| `research` | Investigate a question or topic against primary sources and the repo's own history, then capture verified findings as a… |
+| `resolve-review` | Address the change requests a human reviewer left on a PR — read the full description, issues, reviews and discussions,… |
+
+</details>
+<details><summary><code>data</code> — 6 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `backup-restore` | Explains backup strategy and restore testing for relational databases — full vs. |
+| `postgres-conventions` | Apply Postgres best practices — schema design, indexes, RLS policies, SQL queries, connection pooling. |
+| `query-performance` | Diagnoses slow SQL queries by reading execution plans and picking the right index strategy — composite, partial, coveri… |
+| `safe-migrations` | Explains zero-downtime schema migrations for relational databases — expand-contract pattern, batch data backfills, lock… |
+| `seed-data` | Explains reproducible seed data per environment — determinism, idempotency, dependency ordering, and masking real data … |
+| `supabase-postgres` | Apply Supabase/Postgres best practices — indexes, RLS, schema design, queries, connection pooling. |
+
+</details>
+<details><summary><code>delivery</code> — 8 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `docs-writing` | Technical documentation style guide for README, docs/, ADRs, JSDoc/TSDoc, and inline code comments. |
+| `estimation` | Applies effort-estimation technique to any deliverable, technical or not — task decomposition, three-point estimation (… |
+| `incident-postmortem` | Runs a blameless incident postmortem — timeline with timestamps, impact, root cause (5 whys), and corrective actions wi… |
+| `proposta-comercial` | Transforma um briefing de cliente em proposta comercial de freela — escopo fechado (incluído/excluído), entregáveis, cr… |
+| `to-issues` | Break a plan, spec, or PRD into independently-grabbable issues on the project issue tracker using tracer-bullet vertica… |
+| `to-prd` | Turn the current conversation into a PRD and publish it to the project issue tracker — no interview, just synthesis of … |
+| `triage` | Move issues and external PRs through a state machine of triage roles — categorise, verify, grill if needed, and write a… |
+| `wish` | Capture, enrich and organise future ideas in a project's wishlist file, before they become tracked work. |
+
+</details>
+<details><summary><code>devops</code> — 11 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `ci-cd-pipeline` | Defines standard CI/CD pipeline stages (lint, type-check, test, build), dependency caching, running migrations in CI, a… |
+| `container-conventions` | Defines multi-stage Docker builds, minimal base images, non-root users, .dockerignore, layer cache ordering, and docker… |
+| `environment-config` | Environment-based configuration conventions — .env.example, startup-time env validation (fail fast, not mid-request), a… |
+| `error-tracking` | Apply production error tracking patterns — unhandled exception capture, contextual metadata, release/version tagging, t… |
+| `health-checks-metrics` | Apply health check (readiness vs. |
+| `project-deploy` | Executa o deploy de um projeto do usuário seguindo o runbook documentado no vault — checklist passo a passo, confirmaçã… |
+| `resolving-merge-conflicts` | Use when you need to resolve an in-progress git merge/rebase conflict. |
+| `rollback-runbook` | Defines a deploy-tool-agnostic rollback runbook — reverting a code deploy (blue-green/canary/previous artifact), why re… |
+| `setup-pre-commit` | Set up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. |
+| `stack-scaffold` | Scaffold a new project with the user's standard stack — React 18 + TypeScript + Tailwind + shadcn/ui, on Vite + Supabas… |
+| `structured-logging` | Apply structured (JSON) logging practices — log levels, request/tenant correlation IDs, context propagation, and what m… |
+
+</details>
+<details><summary><code>frontend</code> — 8 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `accessibility-audit` | Guides accessibility (a11y) auditing — automated tooling (axe-core) wired into CI as a floor not a substitute for manua… |
+| `client-state-management` | Defines the boundary between server state, local UI state, and URL state as an architecture decision independent of sta… |
+| `error-ux` | Defines client-side error handling — render error boundaries that isolate failure without crashing the whole tree, the … |
+| `forms-validation` | Defines form validation as a single schema shared between client and server, with Brazilian document masks (CPF, CNPJ, … |
+| `frontend-conventions` | Conventions for WRITING new frontend code — component structure and extraction, page files that only compose components… |
+| `image-to-code` | Elite website image-to-code skill for Codex. |
+| `react-best-practices` | React 18 + Vite performance rules — bundle size, re-renders, waterfalls, subscriptions. |
+| `web-perf` | Analyzes web performance using Chrome DevTools MCP. |
+
+</details>
+<details><summary><code>meta</code> — 6 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `skill-audit` | Audit installed Claude Code skills against the C1–C11 quality rubric — per-skill scores, automatic blockers, trigger-co… |
+| `skill-creator` | Create new Claude Code skills from scratch and iteratively improve existing ones. |
+| `skill-sync` | Sync the skill fleet against its upstreams — mattpocock/skills and lucasmonstrox/utevo-lux — diffing repo vs upstream, … |
+| `token-audit` | Audit Claude Code token consumption across all sessions and projects — weekly trend, heaviest sessions/projects, marath… |
+| `wizard` | Generates an interactive bash wizard for setup steps only a human can do — dashboards, credentials, CI secrets, one-off… |
+| `writing-great-skills` | Reference for writing and editing skills well — the vocabulary and principles that make a skill predictable. |
+
+</details>
+<details><summary><code>quality</code> — 4 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `code-reviewer` | Stack-specific review checklist for React + TanStack Query + Supabase multi-tenant apps — hook architecture, RLS/tenant… |
+| `e2e-testing` | Guides writing reliable end-to-end tests — programmatic auth fixtures instead of UI login, per-run data isolation, acce… |
+| `integration-testing` | Guides writing integration tests against real dependencies — disposable containers for database/services instead of moc… |
+| `tdd` | Test-driven development. |
+
+</details>
+<details><summary><code>security</code> — 6 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `auth-patterns` | Authentication and authorization patterns — OTP/password/OAuth/OIDC flows, session vs JWT, RBAC/ABAC, MFA, token refres… |
+| `dependency-audit` | Audits third-party dependencies for security and maintainability — lockfile discipline, upgrade cadence (automatic patc… |
+| `lgpd-checklist` | LGPD compliance checklist for projects handling personal data — data inventory, legal basis, retention/anonymization, d… |
+| `multi-tenant-isolation-audit` | Audits multi-tenant systems for cross-tenant data leakage — missing isolation filters, privileged-role bypass (service_… |
+| `secrets-management` | Manage secrets and sensitive config across environments and CI — classify sensitive vs. |
+| `security-review-checklist` | Broad OWASP-style security sweep of a PR or release — injection, XSS, SSRF, IDOR/broken access control, CSRF, insecure … |
+
+</details>
+<details><summary><code>tcc</code> — 6 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `tcc-auditoria-banca` | Simula o parecer escrito de uma banca avaliadora de TCC sobre o documento já redigido. |
+| `tcc-defesa` | Monta a apresentação de defesa do TCC SyncClass a partir dos capítulos escritos — arco narrativo, roteiro slide a slide… |
+| `tcc-fragmentos` | Captura matéria-prima bruta de TCC acadêmico — anotações de leitura, observações sobre código do projeto, decisões técn… |
+| `tcc-grill` | Arguição acadêmica do TCC SyncClass — questiona hipóteses, metodologia, recorte, lacunas bibliográficas e validade dos … |
+| `tcc-rascunho` | Transforma arquivo de fragmentos brutos em seção formal de TCC parágrafo a parágrafo, aplicando normas ABNT/FEPI, voz i… |
+| `tcc-revisao-impessoal` | Varredura final de capítulo de TCC procurando primeira pessoa, clichês acadêmicos, informalidade, vocabulário fraco, ci… |
+
+</details>
+<details><summary><code>vault</code> — 4 skills</summary>
+
+| Skill | Uso |
+|---|---|
+| `obsidian-vault` | Create, search, and link notes in jgabriel's personal Obsidian vault (C:\Users\jgabriel\Documents\Obsidian Vault) follo… |
+| `project-kickoff` | Orchestrates the full workflow for starting a project from scratch — idea to production-ready spec, design system, and … |
+| `project-planner` | Scaffolds a project's wiki pages in wiki/Projetos/ — index.md with frontmatter, subpage stubs and ADRs — from a directi… |
+| `project-sync` | Reads docs/ from a project on D:/Projetos and creates or updates wiki/Projetos/<name>/ pages in the Obsidian vault. |
+
+</details>
+<!-- inventory:skills:end -->
 
 **Config:**
 
@@ -114,28 +275,26 @@ Templates pra copiar como arquivo novo em qualquer projeto (não são config do 
 
 ## Como usar
 
-### Opção 1: Clone direto pra home
-
-```powershell
-git clone https://github.com/jgbriel-io/jgbriel-skills.git
-# Linka conteúdo no home (cuidado, sobrescreve seu config)
-robocopy jgbriel-skills\claude $env:USERPROFILE\.claude /E
-```
-
-### Opção 2: Copiar arquivos seletivos
-
-```powershell
-git clone https://github.com/jgbriel-io/jgbriel-skills.git
-# Pega só o que interessa
-Copy-Item jgbriel-skills\claude\CLAUDE.md $env:USERPROFILE\.claude\
-```
-
-### Opção 3: Submódulo
+Isto é um **plugin do Claude Code**. Instalar é registrar o marketplace e instalar:
 
 ```bash
-git submodule add https://github.com/jgbriel-io/jgbriel-skills.git .jgbriel-skills
-# Symlink ou copia seletiva conforme sua stack
+claude plugin marketplace add jgbriel-io/jgbriel-skills
+claude plugin install jgbriel-skills@jgbriel
 ```
+
+Skills, commands, agents e hooks chegam juntos, e os hooks se conectam sozinhos —
+não há nada para copiar para `~/.claude/` nem `settings.json` para editar à mão.
+
+Para desenvolver as skills, aponte o marketplace para o próprio working copy:
+
+```bash
+claude plugin marketplace add /caminho/para/jgbriel-skills
+```
+
+Uma marketplace de diretório lê a árvore direto, sem clonar. O runtime continua
+sendo uma cópia versionada: depois de editar, suba o `version` em
+`.claude-plugin/plugin.json` e rode `claude plugin update jgbriel-skills@jgbriel`.
+**Sem o bump, o update não tem o que instalar e a alteração não chega.**
 
 ### Setup de secrets
 
