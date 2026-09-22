@@ -12,10 +12,11 @@ them creates ghost pages.
 
 ## Location and structure
 
-The vault lives on the Windows machine, under the user's `Documents`. Resolve the
-real path from the environment rather than hardcoding one — a path written here
-is wrong on every other machine, and this skill does nothing useful without the
-vault mounted. Say so and stop, instead of writing notes somewhere else.
+The vault can be open on more than one machine — Windows, under the user's
+`Documents`, or Linux, cloned under a projects directory. Resolve the real path
+from the environment rather than hardcoding one — a path written here is wrong
+on every other machine, and this skill does nothing useful without the vault
+mounted. Say so and stop, instead of writing notes somewhere else.
 
 Inside it, `WIKI.md` is the real root and is never touched. Everything else lives
 under `wiki/<domain>/`, one folder per domain (learning, clients, college,
