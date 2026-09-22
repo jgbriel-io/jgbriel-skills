@@ -54,6 +54,20 @@ function have(cmd) {
   return r.status === 0 || existsSync(join(BIN, EXE(cmd)));
 }
 
+/** Parsed JSON file, or null when it is absent or unreadable. */
+function readJson(path) {
+  try {
+    return JSON.parse(readFileSync(path, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+/** State read from disk, so --dry-run reports what is really missing. */
+const pluginInstalled = (plugin, market) =>
+  Boolean(readJson(join(HOME, ".claude", "plugins", "installed_plugins.json"))?.plugins?.[`${plugin}@${market}`]);
+const mcpRegistered = (name) => Boolean(readJson(join(HOME, ".claude.json"))?.mcpServers?.[name]);
+
 /** Release asset for this OS+CPU, or null when the project does not ship one. */
 export function assetFor(project, os = platform(), cpu = arch()) {
   if (project === "uv") {
@@ -178,6 +192,10 @@ async function main() {
 
   console.log("plugins");
   for (const [market, repo, plugin] of PLUGINS) {
+    if (pluginInstalled(plugin, market)) {
+      say(plugin, "skip", "already installed");
+      continue;
+    }
     try {
       run("claude", ["plugin", "marketplace", "add", repo]);
     } catch {
@@ -226,7 +244,9 @@ async function main() {
   }
 
   console.log("\nmcp servers");
-  if (have("serena")) {
+  if (have("serena") && mcpRegistered("serena")) {
+    say("serena mcp", "skip", "already registered");
+  } else if (have("serena")) {
     try {
       run("serena", ["setup", "claude-code"]);
       say("serena mcp", "ok", "registered at user scope");
@@ -234,7 +254,9 @@ async function main() {
       say("serena mcp", "fail", e.message);
     }
   }
-  if (have("codebase-memory-mcp")) {
+  if (have("codebase-memory-mcp") && mcpRegistered("codebase-memory-mcp")) {
+    say("codebase-memory mcp", "skip", "already registered");
+  } else if (have("codebase-memory-mcp")) {
     try {
       run("claude", ["mcp", "add", "-s", "user", "codebase-memory-mcp", "--", join(BIN, EXE("codebase-memory-mcp"))]);
       say("codebase-memory mcp", "ok", "registered at user scope");
@@ -248,13 +270,12 @@ async function main() {
   console.log("\nhooks");
   if (!have("serena")) {
     say("serena hooks", "skip", "serena not installed");
-  } else if (DRY) {
-    say("serena hooks", "ok", "would merge 4 entries into settings.json");
   } else {
     try {
       const settings = existsSync(SETTINGS) ? JSON.parse(readFileSync(SETTINGS, "utf8")) : {};
       const added = mergeHooks(settings, SERENA_HOOKS(join(BIN, EXE("serena-hooks"))));
       if (!added.length) say("serena hooks", "skip", "all 4 already present");
+      else if (DRY) say("serena hooks", "ok", `would add ${added.length} entries to settings.json`);
       else {
         mkdirSync(join(HOME, ".claude"), { recursive: true });
         writeFileSync(SETTINGS, JSON.stringify(settings, null, 2));
