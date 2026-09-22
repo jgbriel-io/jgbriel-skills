@@ -51,6 +51,20 @@ export function isShallowAbsolutePath(target) {
 }
 
 /**
+ * True when the last command on `line` is a shell, so the heredoc that follows
+ * is a script rather than data: `bash <<EOF`, `cat f | sh -s <<EOF`,
+ * `/bin/zsh <<EOF`, `LC_ALL=C bash <<EOF`.
+ */
+export function isShellCommand(line) {
+  const segment = line.split(/\|\||&&|[|;&]|\$\(|\(/).pop();
+  const word = segment
+    .trim()
+    .split(/\s+/)
+    .find((w) => !/^[A-Za-z_][A-Za-z0-9_]*=/.test(w));
+  return /^(ba|z|k|da)?sh$/i.test((word ?? "").replace(/^.*\//, ""));
+}
+
+/**
  * Removes heredoc bodies that are data rather than code.
  *
  * The hook matches the command's text, so writing documentation THAT MENTIONS
@@ -68,7 +82,10 @@ export function stripDataHeredocs(cmd) {
     const lineStart = cmd.lastIndexOf("\n", m.index) + 1;
     const line = cmd.slice(lineStart, m.index);
     // `bash <<EOF` / `sh -s <<EOF` run what follows: keep it under inspection.
-    if (/(^|[\s|;&(])(ba|z|k|da)?sh\b/i.test(line)) continue;
+    // Only the command RECEIVING the heredoc counts. Matching `sh` anywhere on
+    // the line also matched a mention of one, so a PR body went unstripped
+    // behind `gh pr create --title "fix: bash guard" --body-file - <<'EOF'`.
+    if (isShellCommand(line)) continue;
     const bodyStart = cmd.indexOf("\n", start.lastIndex);
     if (bodyStart === -1) break;
     const end = new RegExp(`^\\s*${tag}\\s*$`, "m");
