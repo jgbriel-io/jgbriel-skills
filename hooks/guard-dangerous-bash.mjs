@@ -27,7 +27,9 @@ const DENY_PATTERNS = [
   /\bgit\s+push\s+(-f|--force|--force-with-lease)/i,
   /\bgit\s+reset\s+--hard\b/i,
   /\bgit\s+clean\s+-[a-z]*f/i,
-  /\bgit\s+branch\s+-D\b/i,
+  // Case-sensitive: `-D` force-deletes, `-d` refuses to drop an unmerged
+  // branch and is how a merged branch is cleaned up.
+  /\bgit\s+branch\s+-D\b/,
   /\bgit\s+checkout\s+\.\s*$/i,
   /\bgit\s+restore\s+\.\s*$/i,
 ];
