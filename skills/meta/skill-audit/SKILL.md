@@ -96,7 +96,6 @@ addressed, another project's data — an imported skill is never ready as it cam
 
 **On "tested in real use":** not a scorable criterion, a state. A skill imported
 today has no usage, and saying so is worth more than inventing a score.
-`/token-audit` is what answers it, with session data.
 
 ## 3. A category is a set
 

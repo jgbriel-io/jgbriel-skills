@@ -1,6 +1,5 @@
 {
   "name": "jgbriel-skills",
-<<<<<<< HEAD
   "version": "1.0.5",
   "description": "The complete Claude Code fleet — skills, agents, commands and hooks: the work loop, per-stack conventions, security, DevOps, the TCC and personal tooling.",
   "author": {
@@ -101,7 +100,6 @@
     "./skills/frontend/web-perf",
     "./skills/meta/skill-audit",
     "./skills/meta/skill-sync",
-    "./skills/meta/token-audit",
     "./skills/meta/wizard",
     "./skills/meta/writing-great-skills",
     "./skills/quality/code-reviewer",
