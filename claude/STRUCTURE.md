@@ -202,17 +202,18 @@ truth is `claude plugin details`.
 ## 3. Agents and commands
 
 <!-- inventory:agents:start -->
-**3 agents** — they run in an isolated subagent:
+**4 agents** — they run in an isolated subagent:
 
 | Agent | What it is for |
 |---|---|
 | `planner` | Breaks a task or feature into an ordered implementation plan with explicit dependencies, risks, and exit criteria. |
 | `researcher` | Read-only code locator and codebase mapper. |
+| `reviewer` | Diff and code reviewer. |
 | `tcc-orientador` | Academic reviewer playing a severe TCC advisor. |
 <!-- inventory:agents:end -->
 
 <!-- inventory:commands:start -->
-**11 slash commands:**
+**14 slash commands:**
 
 | Command | Description |
 |---|---|
@@ -220,6 +221,9 @@ truth is `claude plugin details`.
 | `/commit` | Writes a Conventional Commits message from the staged diff. |
 | `/diff` | Summarized diff against a ref (branch, sha, HEAD~N). |
 | `/map` | Map of a directory — one line per file with its detected responsibility. |
+| `/review` | Code review of the current diff via the reviewer agent. |
+| `/scope` | Breaks a task into independent vertical slices — each slice demoable end-to-end. |
+| `/status` | Quick snapshot of repo state — branch, ahead/behind, staged, unstaged, untracked, last commit. |
 | `/sync` | Syncs the current branch with its remote — fetch, pull rebase, final status. |
 | `/tcc-revisar` | Academic review of a TCC chapter through the tcc-orientador agent. |
 | `/tcc-status` | Snapshot of SyncClass TCC progress — status of each chapter (1-10), what is pending, next steps. |
