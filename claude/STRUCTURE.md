@@ -37,7 +37,7 @@ by deleting them and running `node scripts/bootstrap.mjs`.
 Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 
 <!-- inventory:skills:start -->
-**84 skills**, across 13 category folders:
+**79 skills**, across 12 category folders:
 
 <details><summary><code>backend</code> — 6 skills</summary>
 
@@ -60,17 +60,7 @@ Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 | `resume-tailor` | Adapts the resume to a specific posting without inventing anything — reorders skills, rewrites bullets into the languag… |
 
 </details>
-<details><summary><code>cloudflare</code> — 4 skills</summary>
-
-| Skill | What it is for |
-|---|---|
-| `cloudflare` | Comprehensive Cloudflare platform skill covering Workers, Pages, storage (KV, D1, R2), AI (Workers AI, Vectorize, Agent… |
-| `cloudflare-email-service` | Send and receive transactional emails with Cloudflare Email Service (Email Sending + Email Routing). |
-| `workers-best-practices` | Reviews and authors Cloudflare Workers code against production best practices. |
-| `wrangler` | Cloudflare Workers CLI for deploying, developing, and managing Workers, KV, R2, D1, Vectorize, Hyperdrive, Workers AI, … |
-
-</details>
-<details><summary><code>core-loop</code> — 12 skills</summary>
+<details><summary><code>core-loop</code> — 11 skills</summary>
 
 | Skill | What it is for |
 |---|---|
@@ -79,7 +69,6 @@ Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 | `diagnose` | Diagnosis loop for hard bugs and performance regressions. |
 | `discuss` | Develop an idea through structured discussion — one decision at a time, down a decision tree, until intent, audience, s… |
 | `domain-modeling` | Build and sharpen a project's domain model and ubiquitous language. |
-| `fable-method` | An evidence-first problem-solving loop for work outside code — money and pricing decisions, marketing and content, rese… |
 | `grill-me` | Grill the user relentlessly about a plan, decision or idea that already exists, working the design tree in rounds until… |
 | `handoff` | Compact the current conversation into a handoff document for another agent to pick up. |
 | `implement` | Implement planned work — a plan, PRD, issue or agreed task. |

@@ -1,5 +1,6 @@
 {
   "name": "jgbriel-skills",
+<<<<<<< HEAD
   "version": "1.0.5",
   "description": "The complete Claude Code fleet — skills, agents, commands and hooks: the work loop, per-stack conventions, security, DevOps, the TCC and personal tooling.",
   "author": {
@@ -53,16 +54,11 @@
     "./skills/career/cv-sync",
     "./skills/career/job-description-analyzer",
     "./skills/career/resume-tailor",
-    "./skills/cloudflare/cloudflare",
-    "./skills/cloudflare/cloudflare-email-service",
-    "./skills/cloudflare/workers-best-practices",
-    "./skills/cloudflare/wrangler",
     "./skills/core-loop/codebase-design",
     "./skills/core-loop/codebase-memory",
     "./skills/core-loop/diagnose",
     "./skills/core-loop/discuss",
     "./skills/core-loop/domain-modeling",
-    "./skills/core-loop/fable-method",
     "./skills/core-loop/grill-me",
     "./skills/core-loop/handoff",
     "./skills/core-loop/implement",

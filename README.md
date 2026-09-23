@@ -88,7 +88,7 @@ discovered on its own.
 - `context-mode-cache-heal.mjs` — self-heals the context-mode plugin cache on `SessionStart`
 
 <!-- inventory:skills:start -->
-**84 skills**, across 13 category folders:
+**79 skills**, across 12 category folders:
 
 <details><summary><code>backend</code> — 6 skills</summary>
 
@@ -111,17 +111,7 @@ discovered on its own.
 | `resume-tailor` | Adapts the resume to a specific posting without inventing anything — reorders skills, rewrites bullets into the languag… |
 
 </details>
-<details><summary><code>cloudflare</code> — 4 skills</summary>
-
-| Skill | What it is for |
-|---|---|
-| `cloudflare` | Comprehensive Cloudflare platform skill covering Workers, Pages, storage (KV, D1, R2), AI (Workers AI, Vectorize, Agent… |
-| `cloudflare-email-service` | Send and receive transactional emails with Cloudflare Email Service (Email Sending + Email Routing). |
-| `workers-best-practices` | Reviews and authors Cloudflare Workers code against production best practices. |
-| `wrangler` | Cloudflare Workers CLI for deploying, developing, and managing Workers, KV, R2, D1, Vectorize, Hyperdrive, Workers AI, … |
-
-</details>
-<details><summary><code>core-loop</code> — 12 skills</summary>
+<details><summary><code>core-loop</code> — 11 skills</summary>
 
 | Skill | What it is for |
 |---|---|
@@ -130,7 +120,6 @@ discovered on its own.
 | `diagnose` | Diagnosis loop for hard bugs and performance regressions. |
 | `discuss` | Develop an idea through structured discussion — one decision at a time, down a decision tree, until intent, audience, s… |
 | `domain-modeling` | Build and sharpen a project's domain model and ubiquitous language. |
-| `fable-method` | An evidence-first problem-solving loop for work outside code — money and pricing decisions, marketing and content, rese… |
 | `grill-me` | Grill the user relentlessly about a plan, decision or idea that already exists, working the design tree in rounds until… |
 | `handoff` | Compact the current conversation into a handoff document for another agent to pick up. |
 | `implement` | Implement planned work — a plan, PRD, issue or agreed task. |
@@ -317,7 +306,7 @@ two scripts drift the moment one is edited.
 
 | Step | What it does |
 |---|---|
-| Plugins | `jgbriel-skills`, `caveman`, `ponytail`, `context-mode` — marketplace + install |
+| Plugins | `jgbriel-skills`, `caveman`, `ponytail`, `context-mode`, `cloudflare` — marketplace + install |
 | `uv` | Downloaded from the GitHub release for this OS/CPU into `~/.local/bin` |
 | `serena` | `uv tool install -p 3.13 serena-agent`, then `serena setup claude-code` |
 | `cocoindex` | `uv tool install cocoindex` |
@@ -327,6 +316,18 @@ two scripts drift the moment one is edited.
 Every step is idempotent: it checks before it installs, and the hook merge adds
 only entries whose command is not already in the file, so nothing is duplicated
 and an unrelated hook is left alone.
+
+### Third-party skills
+
+Some categories this fleet used to vendor a copy of are better installed as
+their own plugin instead — a copy here just goes stale between their releases
+and this repo's. None are `skills/` entries; bootstrap installs the first,
+the second is a manual per-project step:
+
+| Name | Source | Install |
+|---|---|---|
+| `cloudflare` | [cloudflare/skills](https://github.com/cloudflare/skills), via the official marketplace | `claude plugin install cloudflare@claude-plugins-official` (in `PLUGINS`, bootstrap covers it) |
+| `impeccable` | [pbakaus/impeccable](https://github.com/pbakaus/impeccable) | `npx impeccable` inside the target project |
 
 **`codebase-memory-mcp` has no Windows build** — the release ships linux and
 darwin only. On Windows that step is skipped with the reason printed, not failed.

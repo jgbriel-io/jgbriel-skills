@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Brings a machine from "Claude Code installed" to this whole setup: the four
+ * Brings a machine from "Claude Code installed" to this whole setup: the five
  * plugins, uv, serena with its hooks, cocoindex, and the codebase-memory MCP.
  *
  * Node, not bash + PowerShell, because the repo's hooks are already `.mjs`:
@@ -180,6 +180,8 @@ const PLUGINS = [
   ["caveman", "JuliusBrussee/caveman", "caveman"],
   ["ponytail", "DietrichGebert/ponytail", "ponytail"],
   ["context-mode", "mksglu/context-mode", "context-mode"],
+  // Cloudflare's own skills, not vendored here — see README's "Third-party skills".
+  ["claude-plugins-official", "anthropics/claude-plugins-official", "cloudflare"],
 ];
 
 async function main() {

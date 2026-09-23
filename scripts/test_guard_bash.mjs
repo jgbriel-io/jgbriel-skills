@@ -26,6 +26,15 @@ blocks("git reset --hard origin/main");
 blocks("dd if=/dev/zero of=/dev/sda");
 blocks("git branch -D fix/some-branch");
 
+// Windows equivalents — same shallow-path reasoning as the rm cases above.
+blocks("Remove-Item -Recurse -Force C:\\");
+blocks("Remove-Item -Recurse -Force C:\\Users");
+blocks("Remove-Item -Recurse -Force C:\\Users\\jgabriel");
+blocks("Remove-Item -Recurse -Force ~");
+blocks("Remove-Item -Recurse -Force $env:USERPROFILE");
+blocks("Remove-Item -Recurse -Force $env:USERPROFILE\\projects");
+blocks("rm -rf C:/Users");
+
 // A heredoc fed to a shell IS executed, so its body stays under inspection.
 blocks("bash <<'EOF'\nsudo rm -rf /\nEOF");
 blocks("sh -s <<EOF\nsudo whoami\nEOF");
@@ -38,6 +47,8 @@ blocks("LC_ALL=C bash <<'EOF'\nsudo whoami\nEOF");
 allows("rm -rf /home/b2ml/.claude/plugins/cache/jgbriel/jgbriel-skills/1.0.29");
 allows("rm -rf ./build");
 allows("rm -rf node_modules");
+allows("Remove-Item -Recurse -Force C:\\Users\\jgabriel\\Projetos\\app\\build");
+allows("rm -rf C:/Users/jgabriel/Projetos/app/build");
 
 // `-d` refuses to delete an unmerged branch on its own — blocking it only
 // teaches people to reach for `-D`.
@@ -59,6 +70,11 @@ assert.equal(isShallowAbsolutePath("/"), true);
 assert.equal(isShallowAbsolutePath("/usr"), true);
 assert.equal(isShallowAbsolutePath("/home/b2ml"), true);
 assert.equal(isShallowAbsolutePath("/home/b2ml/projects/app"), false);
+assert.equal(isShallowAbsolutePath("C:\\"), true);
+assert.equal(isShallowAbsolutePath("C:\\Users"), true);
+assert.equal(isShallowAbsolutePath("C:\\Users\\jgabriel"), true);
+assert.equal(isShallowAbsolutePath("C:\\Users\\jgabriel\\Projetos"), false);
+assert.equal(isShallowAbsolutePath("~"), true);
 
 assert.equal(isShellCommand("bash "), true);
 assert.equal(isShellCommand("cat f | sh -s "), true);

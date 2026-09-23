@@ -140,8 +140,12 @@ One-time approval is **not** a blank check. Ask again in new context.
 ## 9. Internal tools (plugins and MCP servers)
 
 - **Plugins installed:** `jgbriel-skills` (this fleet), `caveman`, `ponytail`,
-  `context-mode`. A plugin earns its slot by being used; one that has not been
-  reached for in a month is costing context for nothing and goes.
+  `context-mode`, `claude-obsidian`, `i-have-adhd`, `cloudflare`. A plugin earns
+  its slot by being used; one that has not been reached for in a month is
+  costing context for nothing and goes.
+- **`cloudflare` is a companion plugin, not part of this fleet's `skills/`.**
+  Vendoring a copy here just goes stale between its releases and this repo's —
+  see the fleet README's "Third-party skills" table for the pattern.
 - **MCP servers installed:** `serena` and `codebase-memory-mcp`, both at user
   scope. They answer different questions and the difference decides which to
   reach for:
@@ -222,10 +226,19 @@ everything before it at the new higher rate.
 
 ## 12. UI and frontend
 
-- UI testing is the **user's responsibility**. Do not start the dev server
-  or claim to validate UI — `tsc --noEmit` + type-check is the sign-off.
-- `tsc --noEmit` or a test suite verifies code correctness,
-  **not** feature correctness. After type-check passes, report done.
+- **A screen is not done until a browser has driven it** (changed 2026-09-16).
+  Where the project has a browser tier, a change that adds or alters a screen
+  carries a spec that renders it, clicks it and asserts what the user sees —
+  and you start whatever local stack that spec needs to run it. `tsc --noEmit`
+  is not sign-off for UI: it never opens the page, so a component that renders
+  nothing passes it. Where the project has **no** browser tier, say so instead
+  of reporting done, and offer to add one.
+- Query by **role and accessible name**, never by class or test id. A spec that
+  breaks on a copy change is reporting that the copy moved.
+- **Running it is not the same as the feature being right.** A passing spec
+  proves the screen renders, reacts and reaches its API. Whether the feature is
+  what the user wanted is still their call — report what the spec asserted, not
+  that the feature works.
 - **Always apply `frontend-conventions`** before writing or editing any
   `.tsx`/`.jsx`/`.vue`/`.svelte` file, even a small edit — not just when
   the task reads as "create/refactor a component". Covers: componentize
@@ -330,7 +343,13 @@ not listed here: this repo is public and those repos are not. The live list live
 
 ---
 
-_Last revised: 2026-09-08 — added a sixth `state:` value, `blocked-by-module`, for an issue waiting
+_Last revised: 2026-09-16 — rewrote §12's first rule: UI testing is no longer the user's
+sole responsibility. Where a browser tier exists, a screen change carries a Playwright spec and
+Claude starts the local stack to run it; `tsc --noEmit` is explicitly not sign-off for a screen.
+Prompted by whitelabel-crm having shipped two modules of UI with no test that ever rendered a page
+(decision 270, issue #203)._
+
+_Previously revised: 2026-09-08 — added a sixth `state:` value, `blocked-by-module`, for an issue waiting
 on another module of the same project landing as code — distinct from `needs-info` (third party)
 and from a bare `depends_on` (frontmatter, invisible on a `state:`-filtered board). Prompted by
 whitelabel-crm issue #72 (decision 256)._

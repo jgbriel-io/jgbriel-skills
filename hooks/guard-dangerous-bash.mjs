@@ -20,7 +20,8 @@ const DENY_PATTERNS = [
   /\b:\(\)\s*\{\s*:\|:&\s*\}\s*;:/,
   /\bcurl\s+[^|]*\|\s*(sh|bash|zsh)\b/i,
   /\bwget\s+[^|]*\|\s*(sh|bash|zsh)\b/i,
-  /\bRemove-Item\s+-Recurse\s+-Force\s+[Cc]:\\?$/,
+  // $env:USERPROFILE/$env:HOME are opaque like $HOME below — any subpath, not just the root, is denied.
+  /\bRemove-Item\s+(?:-\S+\s+)*-Recurse\s+(?:-\S+\s+)*-Force\s+(?:-Path\s+)?\$env:(USERPROFILE|HOME)\b/i,
   />\s*\/dev\/sd[a-z]/i,
 
   // Git destructive
@@ -37,16 +38,28 @@ const DENY_PATTERNS = [
 // `rm -rf` against an absolute path used to be blocked outright, which caught
 // every ordinary deletion under a home directory. What must not be deleted is
 // the root, a system directory, or a whole home: all of those are one or two
-// segments deep. Anything deeper is a normal path and stays allowed.
+// segments deep. Anything deeper is a normal path and stays allowed. The same
+// reasoning applies verbatim to Windows: `C:\`, `C:\Users`, `C:\Users\name`
+// are the drive-letter equivalents of `/`, `/etc`, `/home/user`.
 const SHALLOW_RM =
-  /\brm\s+(?:-[a-z]+\s+)*-[a-z]*(?:rf|fr)[a-z]*\s+(?:-[a-z]+\s+)*(\/[^\s;|&]*)/i;
+  /\brm\s+(?:-[a-z]+\s+)*-[a-z]*(?:rf|fr)[a-z]*\s+(?:-[a-z]+\s+)*(\/[^\s;|&]*|[A-Za-z]:[\\/][^\s;|&]*)/i;
+
+// PowerShell's equivalent of `rm -rf`, reached when a command shells out to
+// `powershell`/`pwsh` from inside the Bash tool (which is Git Bash even on
+// Windows). Same shallow-path check as SHALLOW_RM, via isShallowAbsolutePath.
+const SHALLOW_REMOVE_ITEM =
+  /\bRemove-Item\s+(?:-\S+\s+)*-Recurse\s+(?:-\S+\s+)*-Force\s+(?:-Path\s+)?([A-Za-z]:[\\/][^\s;|&]*|~(?=\s|$))/i;
 
 /**
- * True when an absolute `rm -rf` target is the root or shallow enough to be a
- * system directory or a home: `/`, `/etc`, `/home/user`. Deeper is fine.
+ * True when an absolute `rm -rf` / `Remove-Item -Recurse -Force` target is
+ * the root or shallow enough to be a system directory or a home: `/`, `/etc`,
+ * `/home/user`, `C:\`, `C:\Users`, `C:\Users\name`, or bare `~`. Deeper is fine.
  */
 export function isShallowAbsolutePath(target) {
-  const segments = target.replace(/\/+$/, "").split("/").filter(Boolean);
+  if (target === "~") return true;
+  const isWindows = /^[A-Za-z]:[\\/]/.test(target);
+  const body = isWindows ? target.slice(2) : target;
+  const segments = body.replace(/[\\/]+$/, "").split(/[\\/]+/).filter(Boolean);
   return segments.length <= 2;
 }
 
@@ -104,8 +117,11 @@ export function dangerousPattern(command) {
   const norm = stripDataHeredocs(String(command)).replace(/\s+/g, " ").trim();
   if (!norm) return null;
 
-  const shallow = SHALLOW_RM.exec(norm);
-  if (shallow && isShallowAbsolutePath(shallow[1])) return SHALLOW_RM;
+  const shallowRm = SHALLOW_RM.exec(norm);
+  if (shallowRm && isShallowAbsolutePath(shallowRm[1])) return SHALLOW_RM;
+
+  const shallowRi = SHALLOW_REMOVE_ITEM.exec(norm);
+  if (shallowRi && isShallowAbsolutePath(shallowRi[1])) return SHALLOW_REMOVE_ITEM;
 
   return DENY_PATTERNS.find((re) => re.test(norm)) ?? null;
 }
