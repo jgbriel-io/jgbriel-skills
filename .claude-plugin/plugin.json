@@ -100,7 +100,6 @@
     "./skills/frontend/web-perf",
     "./skills/meta/skill-audit",
     "./skills/meta/skill-sync",
-    "./skills/meta/token-audit",
     "./skills/meta/wizard",
     "./skills/meta/writing-great-skills",
     "./skills/quality/code-reviewer",

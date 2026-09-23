@@ -92,7 +92,7 @@ discovered on its own.
 - `context-mode-cache-heal.mjs` — self-heals the context-mode plugin cache on `SessionStart`
 
 <!-- inventory:skills:start -->
-**79 skills**, across 12 category folders:
+**78 skills**, across 12 category folders:
 
 <details><summary><code>backend</code> — 6 skills</summary>
 
@@ -190,13 +190,12 @@ discovered on its own.
 | `web-perf` | Measures web performance on a running page through the Chrome DevTools MCP — Core Web Vitals (LCP, INP, CLS), FCP, TBT … |
 
 </details>
-<details><summary><code>meta</code> — 5 skills</summary>
+<details><summary><code>meta</code> — 4 skills</summary>
 
 | Skill | What it is for |
 |---|---|
 | `skill-audit` | Audit Claude Code skills against the fleet's reference implementation — a mechanical sweep first, then criterion-by-cri… |
 | `skill-sync` | Sync the skill fleet against its upstreams — mattpocock/skills and lucasmonstrox/utevo-lux — diffing repo vs upstream, … |
-| `token-audit` | Audit Claude Code token consumption across sessions and projects — weekly trend, heaviest sessions and projects, marath… |
 | `wizard` | Generates an interactive bash wizard for setup steps only a human can do — dashboards, credentials, CI secrets, one-off… |
 | `writing-great-skills` | Reference for writing and editing skills well — the vocabulary and principles that make a skill predictable. |
 
