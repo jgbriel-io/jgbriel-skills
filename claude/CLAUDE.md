@@ -285,7 +285,7 @@ prefixed — a bare label name is a leftover, not a valid value.
 | `state:` | `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`, `blocked-by-module` | **exactly 1** on every open issue |
 | `type:` | `bug`, `enhancement`, `docs` | 0 or 1 |
 | `model:` | `opus`, `sonnet`, `haiku` | **exactly 1** on every open issue |
-| `domain:` | varies per repo | 0..n |
+| `domain:` | varies per repo — labels, or milestones where the repo opts in | 0..n labels, or **exactly 1** milestone |
 
 The first five `state:` values are the `triage` skill's canonical roles, one-to-one — that skill
 needs no translation layer here. Its `needs-triage → needs-info → …` transitions apply as written.
@@ -322,15 +322,22 @@ The sixth, `blocked-by-module`, sits outside that mapping — see below.
 - **Tier mismatch is a stop, not a switch.** Picking up an issue labelled above the session's
   current model: say so and wait, per §3 — never switch on your own. Working below it (Opus on a
   `model:haiku` issue) needs no ceremony.
-- **`domain:` is declared per repository**, in that repo's own `CLAUDE.md`, and only once it is
-  actually needed. A repo with no declared domains runs on the universal axes alone.
+- **`domain:` is declared per repository**, in that repo's own `CLAUDE.md` or `AGENTS.md`, and
+  only once it is actually needed. A repo with no declared domains runs on the universal axes alone.
+- **A repo may carry `domain:` as milestones instead of labels** — a milestone shows a progress bar
+  a label cannot. It opts in with the phrase `Domain axis: milestones` in that file, followed by the
+  list of milestone titles. There, every open issue belongs to **exactly one** milestone from that
+  list and no new issue gets a `domain:` label; the old `domain:` label definitions stay, so closed
+  issues keep their history. Every other repo keeps labels.
 
 ### Mechanics
 
 - **`to-issues` and `to-prd` provision what is missing.** Before publishing, create any absent
   label with `gh label create` (idempotent — ignore "already exists"): the universal axes above,
   and the `domain:` vocabulary from the repo's `CLAUDE.md`. A new repository needs no manual
-  setup; its first issue provisions it.
+  setup; its first issue provisions it. In a milestone repo they create no `domain:` label: a
+  missing declared milestone is created with `gh api repos/{owner}/{repo}/milestones -f
+  title="<title>"` (ignore "already_exists"), and the issue is published with `--milestone "<title>"`.
 - **Never invent a value** outside the table or the repo's declared `domain:` list. Renaming a
   label preserves its links; creating a near-duplicate silently splits them.
 - **Audit:** `D:\Projetos\projetos-pessoais\jgabriel-skills\scripts\audit-labels.sh` sweeps every
@@ -343,7 +350,11 @@ not listed here: this repo is public and those repos are not. The live list live
 
 ---
 
-_Last revised: 2026-09-16 — rewrote §12's first rule: UI testing is no longer the user's
+_Last revised: 2026-09-25 — §16's `domain:` axis may be milestones instead of labels, opted into per
+repository with `Domain axis: milestones`; exactly one milestone per open issue, old labels kept for
+closed-issue history. Prompted by whitelabel-crm decision 331._
+
+_Previously revised: 2026-09-16 — rewrote §12's first rule: UI testing is no longer the user's
 sole responsibility. Where a browser tier exists, a screen change carries a Playwright spec and
 Claude starts the local stack to run it; `tsc --noEmit` is explicitly not sign-off for a screen.
 Prompted by whitelabel-crm having shipped two modules of UI with no test that ever rendered a page

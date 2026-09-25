@@ -10,7 +10,7 @@ Break a plan into independently-grabbable issues using vertical slices (tracer b
 
 The issue tracker and label vocabulary should be configured in the project's `CLAUDE.md` or equivalent context file before using this skill.
 
-Before publishing, provision the labels: create any missing value with `gh label create` (idempotent — ignore "already exists"), taking the universal axes from the label taxonomy in the user's global `CLAUDE.md` and the `domain:` vocabulary from the project's own. Never invent a value outside those two lists.
+Before publishing, provision the labels: create any missing value with `gh label create` (idempotent — ignore "already exists"), taking the universal axes from the label taxonomy in the user's global `CLAUDE.md` and the `domain:` vocabulary from the project's own. Never invent a value outside those two lists. If the project's context file declares `Domain axis: milestones`, create no `domain:` label: create any missing declared milestone with `gh api repos/{owner}/{repo}/milestones -f title="<title>"` (ignore "already_exists") and publish each issue with `--milestone "<title>"` — exactly one, from that list.
 
 ## Process
 
