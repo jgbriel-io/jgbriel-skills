@@ -17,6 +17,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, readdirSync } from "node:fs";
 import { homedir, platform, arch, tmpdir } from "node:os";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const DRY = process.argv.includes("--dry-run");
 const WIN = platform() === "win32";
@@ -296,4 +297,4 @@ async function main() {
   process.exit(failed.length ? 1 : 0);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) await main();
+if (import.meta.url === pathToFileURL(process.argv[1]).href) await main();

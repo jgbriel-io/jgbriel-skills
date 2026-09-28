@@ -5,6 +5,7 @@
 // Exit code 2 + stderr message -> Claude Code blocks the tool call.
 
 import { readFileSync } from "node:fs";
+import { pathToFileURL } from "node:url";
 
 const DENY_PATTERNS = [
   // Filesystem catastrophic
@@ -156,4 +157,4 @@ function main() {
   process.exit(0);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) main();
+if (import.meta.url === pathToFileURL(process.argv[1]).href) main();
