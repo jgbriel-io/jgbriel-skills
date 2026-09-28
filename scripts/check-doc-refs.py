@@ -71,10 +71,19 @@ def main():
     known = live | archived | EXTERNAL
     dead = []
     for rel, path in docs():
+        in_span = False
         for n, line in enumerate(open(path, encoding="utf-8"), 1):
             line = re.sub(r"<[^>]*>", " ", line)  # </details> is not a reference
             hits = re.findall(r"`/([a-z][a-z0-9-]{2,})[ `]", line)
-            hits += re.findall(r"(?<![\w:/`.-])/([a-z][a-z0-9-]{2,})(?![\w/.-])", line)
+            if not line.strip() or line.lstrip().startswith("```"):
+                in_span = False
+                continue
+            outside = []
+            for i, part in enumerate(line.split("`")):
+                in_span = in_span != (i > 0)
+                if not in_span:
+                    outside.append(part)
+            hits += re.findall(r"(?<![\w:/`.-])/([a-z][a-z0-9-]{2,})(?![\w/.-])", " ".join(outside))
             for name in dict.fromkeys(hits):
                 if name not in known and name not in NOT_A_NAME:
                     dead.append((rel, n, name, line.strip()[:70]))
