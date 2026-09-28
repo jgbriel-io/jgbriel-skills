@@ -1,0 +1,19 @@
+{
+  "name": "project-standard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared check and agent-config generator for repos that follow the project standard",
+  "type": "module",
+  "bin": {
+    "project-standard": "project-standard/cli.mjs"
+  },
+  "files": [
+    "project-standard/"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node project-standard/test.mjs"
+  }
+}

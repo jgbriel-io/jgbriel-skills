@@ -1,0 +1,3 @@
+{exec} lint-staged
+{pm} run typecheck
+project-standard check --staged

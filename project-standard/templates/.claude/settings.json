@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash({pm} run dev)",
+      "Bash({pm} run build)",
+      "Bash({pm} run lint)",
+      "Bash({pm} run lint:*)",
+      "Bash({pm} run format)",
+      "Bash({pm} run typecheck)",
+      "Bash({pm} run test)",
+      "Bash({pm} run test:*)",
+      "Bash({exec} project-standard check:*)",
+      "Bash({exec} project-standard sync)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.local)",
+      "Read(./.env.production)",
+      "Read(./.env.production.local)",
+      "Read(./.dev.vars)",
+      "Edit(./.env)",
+      "Edit(./.env.local)",
+      "Edit(./.env.production)",
+      "Edit(./.env.production.local)",
+      "Edit(./.dev.vars)"
+    ]
+  }
+}
