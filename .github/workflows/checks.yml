@@ -31,3 +31,6 @@ jobs:
 
       - name: guard blocks the catastrophic and allows the ordinary
         run: node scripts/test_guard_bash.mjs
+
+      - name: project-standard check and generator
+        run: node project-standard/test.mjs

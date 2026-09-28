@@ -1,0 +1,2 @@
+      - name: project standard
+        run: {exec} project-standard check --base ${{ github.event_name == 'pull_request' && 'HEAD^1' || github.event.before || 'HEAD^' }}
