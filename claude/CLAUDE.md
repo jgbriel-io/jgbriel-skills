@@ -61,6 +61,10 @@ line and carry on — never turn the task into a language lesson.
   model. Downshifting a mechanical subagent to `haiku` is fine without asking
   (pure cost saving, no risk). Running a subagent on a tier ABOVE the session
   model: ask first.
+- Tell every subagent to write its report file first and fill it as it goes.
+  A subagent that dies on the rate limit mid-run otherwise leaves nothing.
+- A subagent's security finding is a claim, not a fact. Confirm it with
+  `git ls-files`, `git log -- <file>` and `git check-ignore` before repeating it.
 
 ## 4. Response style
 
@@ -146,22 +150,32 @@ One-time approval is **not** a blank check. Ask again in new context.
 - **`cloudflare` is a companion plugin, not part of this fleet's `skills/`.**
   Vendoring a copy here just goes stale between its releases and this repo's —
   see the fleet README's "Third-party skills" table for the pattern.
-- **MCP servers installed:** `serena` and `codebase-memory-mcp`, both at user
-  scope. They answer different questions and the difference decides which to
-  reach for:
+- **MCP servers installed:** `serena` and `socraticode`, both at user scope.
+  They answer different questions and the difference decides which to reach
+  for:
   - **`serena`** — symbol level, through a language server, about the file as it
     is **right now**: where a symbol is defined, who references it, and editing
     by symbol rather than by line range. Prefer it over `grep` for "where is X
     defined" and "what calls X" in a language it supports; `grep` stays right for
     a literal string, a config value, or a file it cannot parse.
-  - **`codebase-memory-mcp`** — graph level, over an **index that was already
-    built**: `search_graph`, `trace_path`, `query_graph`, fan-in/fan-out, impact
-    of a change, dead code. Prefer it for a question about shape across many
-    files, where opening each one would cost the session.
+  - **`socraticode`** — graph level, over an **index that was already built**:
+    `codebase_search`, `codebase_graph_query`, `codebase_impact`, `codebase_flow`
+    — hybrid semantic + BM25 search, dependency graph, symbol-level blast
+    radius. Prefer it for a question about shape across many files, where
+    opening each one would cost the session.
   - **When the two disagree, the LSP is right** — the graph can be stale by a
-    commit, serena reads the file on disk. `codebase-memory-mcp` is **Linux and
-    macOS only**; the release has no Windows build, so on Windows that half of
-    the pair is simply absent.
+    commit, serena reads the file on disk.
+  - **Infra (2026-09-22 swap, native, zero Docker):** Ollama runs natively
+    (CUDA, RTX 2060) with `qwen3-embedding:0.6b` (1024 dims) on port 11434;
+    Qdrant runs natively (`qdrant.exe`, no Docker — Windows ships an official
+    binary) on port 6333. Configured via `env` in `~/.claude/settings.json`:
+    `OLLAMA_MODE=external`, `OLLAMA_URL`, `EMBEDDING_MODEL`,
+    `EMBEDDING_DIMENSIONS`, `QDRANT_MODE=external`, `QDRANT_URL`. Neither
+    process autostarts on login yet — start `ollama serve` and `qdrant.exe`
+    manually after a reboot until that's wired up. Replaces
+    `codebase-memory-mcp` (removed — MCP entry, its 3 `cbm-*` hooks, and both
+    binary copies), which had no Windows build and forced Docker containers
+    with no GPU passthrough.
 - `context-mode` reduces context consumption — follow its guidance for
   commands with long output (use `ctx_batch_execute`, `ctx_execute_file`).
   **Its MCP server sometimes fails to connect at session start.** When the
@@ -285,7 +299,7 @@ prefixed — a bare label name is a leftover, not a valid value.
 | `state:` | `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`, `blocked-by-module` | **exactly 1** on every open issue |
 | `type:` | `bug`, `enhancement`, `docs` | 0 or 1 |
 | `model:` | `opus`, `sonnet`, `haiku` | **exactly 1** on every open issue |
-| `domain:` | varies per repo | 0..n |
+| `domain:` | varies per repo — labels, or milestones where the repo opts in | 0..n labels, or **exactly 1** milestone |
 
 The first five `state:` values are the `triage` skill's canonical roles, one-to-one — that skill
 needs no translation layer here. Its `needs-triage → needs-info → …` transitions apply as written.
@@ -322,15 +336,22 @@ The sixth, `blocked-by-module`, sits outside that mapping — see below.
 - **Tier mismatch is a stop, not a switch.** Picking up an issue labelled above the session's
   current model: say so and wait, per §3 — never switch on your own. Working below it (Opus on a
   `model:haiku` issue) needs no ceremony.
-- **`domain:` is declared per repository**, in that repo's own `CLAUDE.md`, and only once it is
-  actually needed. A repo with no declared domains runs on the universal axes alone.
+- **`domain:` is declared per repository**, in that repo's own `CLAUDE.md` or `AGENTS.md`, and
+  only once it is actually needed. A repo with no declared domains runs on the universal axes alone.
+- **A repo may carry `domain:` as milestones instead of labels** — a milestone shows a progress bar
+  a label cannot. It opts in with the phrase `Domain axis: milestones` in that file, followed by the
+  list of milestone titles. There, every open issue belongs to **exactly one** milestone from that
+  list and no new issue gets a `domain:` label; the old `domain:` label definitions stay, so closed
+  issues keep their history. Every other repo keeps labels.
 
 ### Mechanics
 
 - **`to-issues` and `to-prd` provision what is missing.** Before publishing, create any absent
   label with `gh label create` (idempotent — ignore "already exists"): the universal axes above,
   and the `domain:` vocabulary from the repo's `CLAUDE.md`. A new repository needs no manual
-  setup; its first issue provisions it.
+  setup; its first issue provisions it. In a milestone repo they create no `domain:` label: a
+  missing declared milestone is created with `gh api repos/{owner}/{repo}/milestones -f
+  title="<title>"` (ignore "already_exists"), and the issue is published with `--milestone "<title>"`.
 - **Never invent a value** outside the table or the repo's declared `domain:` list. Renaming a
   label preserves its links; creating a near-duplicate silently splits them.
 - **Audit:** `D:\Projetos\projetos-pessoais\jgabriel-skills\scripts\audit-labels.sh` sweeps every
@@ -343,7 +364,15 @@ not listed here: this repo is public and those repos are not. The live list live
 
 ---
 
-_Last revised: 2026-09-16 — rewrote §12's first rule: UI testing is no longer the user's
+_Last revised: 2026-09-27 — §3: two subagent rules, report file written first and security findings
+confirmed with git before being repeated. Prompted by a fan-out where two subagents died on the rate
+limit leaving nothing, and one reported a committed secret that was gitignored and in no commit._
+
+_Previously revised: 2026-09-25 — §16's `domain:` axis may be milestones instead of labels, opted into per
+repository with `Domain axis: milestones`; exactly one milestone per open issue, old labels kept for
+closed-issue history. Prompted by a pipeline repo's decision._
+
+_Previously revised: 2026-09-16 — rewrote §12's first rule: UI testing is no longer the user's
 sole responsibility. Where a browser tier exists, a screen change carries a Playwright spec and
 Claude starts the local stack to run it; `tsc --noEmit` is explicitly not sign-off for a screen.
 Prompted by whitelabel-crm having shipped two modules of UI with no test that ever rendered a page
