@@ -1,6 +1,6 @@
 ---
 name: environment-config
-description: Environment-based configuration conventions — .env.example, startup-time env validation (fail fast, not mid-request), and dev/staging/prod parity, applicable to any language or framework. Use when user asks about env vars, .env files, config setup, or "works on my machine" environment drift. Vault/rotation is secrets-management, not this skill.
+description: Environment-based configuration conventions — .env.example, startup-time env validation (fail fast, not mid-request; t3-env with zod in TypeScript apps), server/client variable separation, and dev/staging/prod parity, applicable to any language or framework. Use when user asks about env vars, .env files, config setup, or "works on my machine" environment drift. Vault/rotation is secrets-management, not this skill.
 ---
 
 # Environment Config
@@ -70,6 +70,11 @@ const schema = {
 const config = validate(process.env, schema); // throws and kills the process when invalid
 ```
 
+In a TypeScript app the validator is **t3-env with zod**, one schema per app
+(see By stack). It adds what a hand-rolled schema usually misses: server and
+client variables are declared apart, and importing a server secret into browser
+code throws instead of shipping the secret in the bundle.
+
 The validator's checklist:
 
 - [ ] Fails the process (non-zero exit) when a required variable is missing or empty
@@ -77,6 +82,7 @@ The validator's checklist:
 - [ ] The error message names the missing key, rather than showing a generic stack trace
 - [ ] Validation runs once, at boot, before the app accepts connections — never per request
 - [ ] One config module owns the parsing; the rest of the code imports the validated config and never reads `process.env` (or its equivalent) directly
+- [ ] Every variable in the schema is in `.env.example`, and nothing in `.env.example` is missing from the schema
 
 ## Dev, staging and production parity
 
@@ -123,26 +129,31 @@ behaviour, that is a new config key or a feature flag, never an
 
 ## By stack
 
-**Vite/React** (validated with Zod at boot):
+**TypeScript** (`@t3-oss/env-core` + zod; `@t3-oss/env-nextjs` in Next):
 ```ts
+import { createEnv } from '@t3-oss/env-core';
 import { z } from 'zod';
-const envSchema = z.object({
-  VITE_SUPABASE_URL: z.string().url(),
-  VITE_SUPABASE_ANON_KEY: z.string().min(1),
+
+export const env = createEnv({
+  server: {
+    DATABASE_URL: z.url(),
+    API_PORT: z.coerce.number().default(3000),
+  },
+  clientPrefix: 'VITE_',
+  client: {
+    VITE_API_URL: z.url(),
+  },
+  runtimeEnv: import.meta.env,
+  emptyStringAsUndefined: true,
 });
-export const config = envSchema.parse(import.meta.env); // throws when invalid
 ```
 
-**Node.js/NestJS** (validated with Zod):
-```ts
-import { z } from 'zod';
-const envSchema = z.object({
-  DATABASE_URL: z.string().url(),
-  API_PORT: z.coerce.number().default(3000),
-  JWT_SECRET: z.string().min(16),
-});
-export const config = envSchema.parse(process.env); // throws and kills the boot
-```
+- `runtimeEnv` is `process.env` on Node and Bun. On Cloudflare Workers there is
+  no `process.env` at module scope: pass `env` from `cloudflare:workers`.
+- `emptyStringAsUndefined` makes `KEY=` in a `.env` count as missing, which is
+  what a copied `.env.example` with blank values should do.
+- In Next, list client variables in `experimental__runtimeEnv`: Next inlines
+  only `process.env.NEXT_PUBLIC_*` references it can see literally.
 
 **Python** (Pydantic Settings):
 ```python
