@@ -1,32 +1,39 @@
-# ADR Format
+# Decision Format
 
-ADRs live in `docs/adr/` and use sequential numbering: `0001-slug.md`, `0002-slug.md`, etc.
+Decisions live in `docs/decisions/` as `NNNN-slug.md`, four digits, numbered contiguously from `0001`, with one row each in `docs/decisions/README.md`.
 
-Create the `docs/adr/` directory lazily — only when the first ADR is needed.
+Create `docs/decisions/` lazily — only when the first decision is needed.
 
 ## Template
 
 ```md
-# {Short title of the decision}
+---
+type: decision
+status: accepted
+number: 12
+date: 2026-09-27
+superseded_by:
+---
+# 0012 {Short title of the decision}
 
-{1-3 sentences: what's the context, what did we decide, and why.}
+## Context
+## Decision
+## Consequences
+## Rejected alternatives
 ```
 
-That's it. An ADR can be a single paragraph. The value is in recording *that* a decision was made and *why* — not in filling out sections.
+Each section can be a single sentence. The value is in recording *that* a decision was made and *why* — not in filling out sections.
 
-## Optional sections
-
-Only include these when they add genuine value. Most ADRs won't need them.
-
-- **Status** frontmatter (`proposed | accepted | deprecated | superseded by ADR-NNNN`) — useful when decisions are revisited
-- **Considered Options** — only when the rejected alternatives are worth remembering
-- **Consequences** — only when non-obvious downstream effects need to be called out
+- `status`: `proposed`, `accepted`, `rejected` or `superseded`.
+- Add the index row (`| 0012 | 2026-09-27 | [Title](0012-slug.md) | accepted |`) in the same commit.
+- A decision is recorded only when every doc it contradicts is updated in that commit too.
+- **Superseded, never rewritten.** The old file gets `status: superseded` and `superseded_by: <new number>`; its index row changes status.
 
 ## Numbering
 
-Scan `docs/adr/` for the highest existing number and increment by one.
+Scan `docs/decisions/` for the highest existing number and increment by one. A gap or a missing index row fails the repo's docs check.
 
-## When to offer an ADR
+## When to record a decision
 
 All three of these must be true:
 

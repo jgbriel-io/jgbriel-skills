@@ -65,7 +65,7 @@ frontmatter.
 
 Each project has its own runbook under `wiki/Projetos/<name>/deployment/` in the
 vault. Resolve the name through the map in `~/.claude/projects-map.md` — a machine
-file outside this repo, the same one `project-sync` reads. For a project that is
+file outside this repo. For a project that is
 not there, ask for the host and the path, and offer to append the line.
 
 Never write a client project's name here: this repository is public, and a table

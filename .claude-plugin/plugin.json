@@ -120,7 +120,6 @@
     "./skills/tcc/tcc-revisao-impessoal",
     "./skills/vault/obsidian-vault",
     "./skills/vault/project-kickoff",
-    "./skills/vault/project-planner",
-    "./skills/vault/project-sync"
+    "./skills/vault/project-planner"
   ]
 }

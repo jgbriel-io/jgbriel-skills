@@ -3,6 +3,10 @@
 ## Structure
 
 ```md
+---
+type: product
+status: current
+---
 # {Context Name}
 
 {One or two sentence description of what this context is and why it exists.}
@@ -31,18 +35,22 @@ _Avoid_: Client, buyer, account
 
 ## Single vs multi-context repos
 
-**Single context (most repos):** One `CONTEXT.md` at the repo root.
+**Single context (most repos):** One `docs/product/CONTEXT.md`.
 
-**Multiple contexts:** A `CONTEXT-MAP.md` at the repo root lists the contexts, where they live, and how they relate to each other:
+**Multiple contexts:** `docs/product/CONTEXT-MAP.md` lists the contexts, where they live, and how they relate to each other:
 
 ```md
+---
+type: product
+status: current
+---
 # Context Map
 
 ## Contexts
 
-- [Ordering](./src/ordering/CONTEXT.md) — receives and tracks customer orders
-- [Billing](./src/billing/CONTEXT.md) — generates invoices and processes payments
-- [Fulfillment](./src/fulfillment/CONTEXT.md) — manages warehouse picking and shipping
+- [Ordering](ordering/CONTEXT.md) — receives and tracks customer orders
+- [Billing](billing/CONTEXT.md) — generates invoices and processes payments
+- [Fulfillment](fulfillment/CONTEXT.md) — manages warehouse picking and shipping
 
 ## Relationships
 
@@ -54,7 +62,7 @@ _Avoid_: Client, buyer, account
 The skill infers which structure applies:
 
 - If `CONTEXT-MAP.md` exists, read it to find contexts
-- If only a root `CONTEXT.md` exists, single context
-- If neither exists, create a root `CONTEXT.md` lazily when the first term is resolved
+- If only `docs/product/CONTEXT.md` exists (or a root `CONTEXT.md` in a repo not yet migrated), single context
+- If neither exists, create `docs/product/CONTEXT.md` lazily when the first term is resolved
 
 When multiple contexts exist, infer which one the current topic relates to. If unclear, ask.

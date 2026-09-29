@@ -155,7 +155,10 @@ Invoke `/setup-pre-commit` — lint, type-check and tests on pre-commit. Not lat
 
 **Goal:** keep the wiki in sync with the real code.
 
-- Invoke `/project-sync` whenever the project's `docs/` changes.
+- Once the repo exists, its `docs/` is the only source. The vault folder keeps
+  `index.md` plus a `docs/` junction to the repo's `docs/` (Windows:
+  `mklink /J`), never copied pages, so there is nothing to sync and nothing to
+  drift. Never `rm -rf` the junction: it deletes the target.
 - Move `status:` in the index frontmatter along as the project matures
   (`seed` → `developing` → `evergreen`).
 - Record non-obvious architectural decisions in the wiki — why X became Y.
@@ -188,7 +191,7 @@ Phase 4 — Implementation
   [ ] Feature by feature, end to end
 
 Phase 5 — Maintenance
-  [ ] /project-sync in place
+  [ ] vault docs/ junction to the repo in place
   [ ] status: current in the wiki
 ```
 
@@ -207,6 +210,6 @@ Phase 5 — Maintenance
 
 - A one-day or throwaway project → skip phases 3 and 5
 - A project with no UI → skip phase 3
-- A project that already has docs on disk → replace phase 1 with `/project-sync`
-- Refactoring something that exists → start at phase 4, and use `/project-sync` to
-  bring the wiki up to date
+- A project that already has docs in its repo → replace phase 1 with the vault
+  `index.md` and the `docs/` junction (phase 5)
+- Refactoring something that exists → start at phase 4
