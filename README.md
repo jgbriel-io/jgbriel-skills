@@ -136,7 +136,7 @@ discovered on its own.
 
 | Skill | What it is for |
 |---|---|
-| `backup-restore` | Explains backup strategy and restore testing for relational databases — full vs. |
+| `backup-restore` | Explains backup strategy and restore testing for relational databases — the daily encrypted off-provider dump, RPO/RTO,… |
 | `postgres-conventions` | Apply Postgres best practices — schema design, indexes, RLS policies, SQL queries, connection pooling. |
 | `query-performance` | Diagnoses slow SQL queries by reading execution plans and picking the right index strategy — composite, partial, coveri… |
 | `safe-migrations` | Explains zero-downtime schema migrations for relational databases — expand-contract pattern, batch data backfills, lock… |
@@ -164,14 +164,14 @@ discovered on its own.
 |---|---|
 | `ci-cd-pipeline` | Defines the CI jobs (checks, tests, browser, sonar, mutation), where they run (self-hosted runner for private repos, Gi… |
 | `container-conventions` | Defines multi-stage Docker builds, minimal base images, non-root users, .dockerignore, layer cache ordering, and docker… |
-| `environment-config` | Environment-based configuration conventions — .env.example, startup-time env validation (fail fast, not mid-request), a… |
+| `environment-config` | Environment-based configuration conventions — .env.example, startup-time env validation (fail fast, not mid-request; t3… |
 | `error-tracking` | Apply production error tracking patterns — unhandled exception capture, contextual metadata, release/version tagging, t… |
 | `health-checks-metrics` | Apply health check (readiness vs. |
 | `project-deploy` | Deploys a project by following the runbook documented in the vault — a step-by-step checklist, confirmation before anyt… |
 | `resolving-merge-conflicts` | Resolves the conflicts of a merge or rebase already in progress — reads the original intent of each side before choosin… |
 | `rollback-runbook` | Defines a deploy-tool-agnostic rollback runbook — reverting a code deploy (blue-green/canary/previous artifact), why re… |
 | `setup-pre-commit` | Set up a repo's git hooks with Husky — lint-staged running Oxlint and Oxfmt plus a typecheck on pre-commit, the full te… |
-| `stack-scaffold` | Scaffold a new project with the user's standard stack — React 18 + TypeScript + Tailwind + shadcn/ui, on Vite + Supabas… |
+| `stack-scaffold` | Scaffold a new project on the user's default stack — a system (Bun + Turborepo, Next 16 on Cloudflare via OpenNext, an … |
 | `structured-logging` | Apply structured (JSON) logging practices — log levels, request/tenant correlation IDs, context propagation, and what m… |
 
 </details>

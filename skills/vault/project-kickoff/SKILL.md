@@ -124,10 +124,9 @@ Create a `## Design system` section in the spec, or its own file:
 **Goal:** build on a solid foundation, one feature at a time.
 
 ### 4.1 Scaffold, with quality gates from day one
-```bash
-# scaffold the project (Next, Astro, etc.), then:
-```
-Invoke `/setup-pre-commit` — lint, type-check and tests on pre-commit. Not later.
+Invoke `/stack-scaffold`. It wires in the hooks (lint-staged and typecheck on
+pre-commit, the full test run on pre-push), CI, docs and agent config from the
+first commit. Not later.
 
 ### 4.2 Order of work
 1. **Database schema first.** Migrations change and break everything downstream,
@@ -139,14 +138,15 @@ Invoke `/setup-pre-commit` — lint, type-check and tests on pre-commit. Not lat
 4. **Edge cases last.** A working MVP beats rare cases handled early.
 
 ### 4.3 Skills during implementation
-- `/supabase-hooks` — Supabase/TanStack hooks, mutations, queries
-- `/supabase-postgres` — schema, RLS, indexes, migrations
+- `/tanstack-query-patterns` — hooks, mutations, queries (`/supabase-hooks` when the project deviates to Supabase)
+- `/postgres-conventions` — schema, indexes (`/supabase-postgres` on Supabase)
+- `/safe-migrations` — migrations that only add or widen
 - `/react-best-practices` — performance, bundle, re-renders
 - `/tdd` — when a feature carries real logic
 
 **Phase 4 deliverables:**
 - The project running locally
-- Pre-commit configured
+- Hooks and CI configured
 - The database schema in versioned migrations
 
 ---
@@ -186,7 +186,7 @@ Phase 3 — Design
   [ ] Design tokens documented
 
 Phase 4 — Implementation
-  [ ] /setup-pre-commit configured
+  [ ] /stack-scaffold run, hooks and CI green
   [ ] Schema settled before any query
   [ ] Feature by feature, end to end
 

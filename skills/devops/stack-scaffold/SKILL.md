@@ -1,122 +1,166 @@
 ---
 name: stack-scaffold
-description: Scaffold a new project with the user's standard stack — React 18 + TypeScript + Tailwind + shadcn/ui, on Vite + Supabase by default (personal projects) or Next.js / NestJS when a client project calls for it — pre-wired with his conventions (hooks-only data layer, folder structure, pre-commit hooks, RLS-first schema). Use when the user says "cria o projeto com meu stack", "scaffold do projeto", "monta o boilerplate", or when project-kickoff reaches Phase 4. Not the planning workflow — that is project-kickoff; this is the technical bootstrap only.
+description: Scaffold a new project on the user's default stack — a system (Bun + Turborepo, Next 16 on Cloudflare via OpenNext, an Elysia API in a Worker, Neon + Drizzle, Clerk, R2) or a content site (Astro on Cloudflare) — with the engineering standard wired in from the first commit: Oxlint and Oxfmt, TypeScript 7 strict, a pinned runtime, t3-env, the docs/ tree and AGENTS.md, test levels and hooks, CI on the right runner, deploy through the host. Use when the user says "cria o projeto com meu stack", "scaffold do projeto", "monta o boilerplate", "novo repo", or when project-kickoff reaches Phase 4. Not the planning workflow — that is project-kickoff. Never used to move an existing project to another stack.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # Stack Scaffold
 
-Technical bootstrap of the user's standard stack. Invoked standalone or by
-`project-kickoff` Phase 4.1. The point: day-1 codebase already obeys the
-conventions the review skills check later — no retrofit.
+Technical bootstrap of a **new** project. The point: the first commit already
+obeys the rules the hooks, CI and review skills check later — no retrofit.
+Existing projects never change stack because of this skill; they adopt the
+tooling at their own migration.
 
-## Before scaffolding
+## 1. Ask (one at a time, skip what is known)
 
-Ask (one at a time, skip what's already known from context):
+1. **Type** — a system (data, login, business rules) or a content site (almost
+   pure content).
+2. **Name, target folder, owning GitHub org, private or public.** Visibility
+   decides the CI runner.
+3. **Deviations from the default below.** Do not walk the stack layer by layer:
+   the default holds unless the user or the client names a constraint. Each
+   deviation becomes a decision in `docs/decisions/`, with its reason.
 
-1. **Stack** — default to Vite + Supabase for personal/side projects; ask
-   explicitly for freela/client work since the client's constraints decide it:
-   - **Vite + React + Supabase** (default) — SPA/painel, side projects, quick freelas
-   - **Next.js** (App Router) — sites institucionais, landing pages, apps fullstack leves pra cliente
-   - **NestJS** — backend/API dedicado (cliente já tem frontend, ou precisa de serviço separado)
-2. Project name + target dir — ask for it. The personal default lives in `~/.claude/projects-map.md`, outside this repo; freelance work goes wherever that client's folder is.
-3. Package manager (default pnpm; detect global availability first)
-4. Data layer: Supabase (new via `supabase init` or existing project ref), plain PostgreSQL, or client already has a backend/API?
-5. Frontend only: router needed? (React Router vs single-page — Vite only; Next.js has file-based routing)
+## 2. The default stack
 
-## Steps
+### System
 
-### 1. Base scaffold (per stack)
+**Logic lives in an API, in git, with tests; the database is plain managed
+Postgres; the browser never talks to the database.** The failure this prevents
+was lived: a v1 system with 73 functions and 18 triggers applied straight to
+production with no tracked migration, and 107 RLS policies that were never the
+real enforcement point because its automation ran with the service role.
+
+| Layer | Default | Options already in use |
+|---|---|---|
+| Package manager, monorepo | Bun workspaces + Turborepo | npm, pnpm; no monorepo |
+| Web | Next 16 + React 19 on Cloudflare via OpenNext | React + Vite, Astro, TanStack Start |
+| UI | Tailwind + Radix, lucide icons | |
+| Data fetching, forms | TanStack Query + Eden client; react-hook-form + zod in a shared package | Supabase client hooks |
+| API | Elysia on Bun, in a Cloudflare Worker | NestJS, Next API routes, Express |
+| Database | Neon Postgres | Supabase as managed Postgres, self-hosted Postgres, SQLite |
+| ORM, driver | Drizzle + drizzle-kit, `postgres.js` | Prisma, MikroORM |
+| Auth | Clerk | Supabase Auth, next-auth |
+| File storage | Cloudflare R2 | Supabase Storage |
+| Hosting | Cloudflare Workers | Hostinger, Netlify, Render |
+| Tests | Bun test (unit, integration, e2e) + Playwright (`.browser.ts`) | Vitest, `node --test` |
+
+### Content site
+
+| Layer | Default | Options already in use |
+|---|---|---|
+| Framework | Astro, React islands only where there is interactivity | Next.js static export |
+| Hosting | Cloudflare; Hostinger when the client requires it | Netlify |
+| Package manager | Bun | npm, pnpm |
+
+Astro because a static page ships about 9 KB of JavaScript against about 463 KB
+with Next.js. Bun here follows the system default; it was not chosen on
+separate evidence.
+
+## 3. Base scaffold
+
+Check each command's output before the next: scaffolder prompts and flags change
+between versions.
+
+**System:**
 
 ```bash
-# Vite + React + Supabase (default)
-pnpm create vite <name> --template react-ts
-cd <name>
-pnpm add @tanstack/react-query @supabase/supabase-js
-pnpm add -D tailwindcss @tailwindcss/vite
-npx shadcn@latest init
-
-# Next.js
-pnpm create next-app <name> --typescript --tailwind --app
-cd <name> && pnpm add @tanstack/react-query
-npx shadcn@latest init
-
-# NestJS
-pnpm dlx @nestjs/cli new <name> --package-manager pnpm
-cd <name>   # add ORM/client conforme data layer escolhido
+mkdir {name} && cd {name} && git init -b main
+bun init -y
+bun add -d turbo
+bun create cloudflare@latest apps/web --framework=next --no-git --no-deploy
+bun create elysia apps/api
+mkdir -p packages/shared
 ```
 
-Adjust for the chosen package manager. Check each command's output before the
-next — scaffolder prompts change between versions; don't assume flags.
+Root `package.json`: `"private": true`, `"workspaces": ["apps/*", "packages/*"]`,
+and root scripts that call `turbo run <script>`; each package defines the ones it
+has.
 
-### 2. Folder structure (frontend stacks — the conventions the stack skills expect)
+- `apps/api` — Elysia on the Worker adapter, exporting its type for Eden:
+  ```ts
+  import { Elysia } from 'elysia'
+  import { CloudflareAdapter } from 'elysia/adapter/cloudflare-worker'
 
-Supabase data layer (default):
+  export const app = new Elysia({ adapter: CloudflareAdapter })
+    .get('/health', () => ({ ok: true }))
+    .compile()
 
-```
-src/
-├── components/        (UI only — no data fetching)
-│   └── ui/            (shadcn)
-├── hooks/             (ALL data access lives here, use* prefix)
-├── integrations/
-│   └── supabase/
-│       └── client.ts  (singleton — the only place the client is created)
-├── lib/
-└── types/             (domain types; DB types from codegen)
-```
+  export type App = typeof app
+  export default app
+  ```
+  Drizzle schema and migrations live here (the API is the only database
+  client). `wrangler.jsonc` gets `nodejs_compat` for `postgres.js` and an R2
+  binding when storage is needed.
+- `apps/web` — hooks call the Eden client (`treaty<App>(apiUrl)`) through
+  TanStack Query; components never fetch. Page files only compose components and
+  UI text lives in `*.content.ts` (see `frontend-conventions`). Clerk on both
+  sides: the web signs in, the API verifies the token.
+- `packages/shared` — the zod schemas both sides validate with, so a form and
+  its endpoint cannot disagree (see `forms-validation`).
 
-Rule wired in from day 1: components render, hooks fetch, the Supabase client
-is imported only inside `src/integrations/` (see the supabase-hooks skill —
-this structure is what its patterns assume).
+**Content site:**
 
-Non-Supabase data layer (client has own API, or plain Postgres via REST):
-
-```
-src/
-├── components/        (UI only — no data fetching)
-│   └── ui/            (shadcn)
-├── hooks/             (hooks call services, use* prefix)
-├── services/          (services call apiClient — all data access starts here)
-├── lib/
-│   └── api-client.ts  (Axios singleton — the only place the client is created)
-└── types/             (domain types; DB types from codegen when an ORM is used)
+```bash
+bun create astro@latest {name}
+cd {name} && bunx astro add cloudflare
+bunx astro add react
 ```
 
-Use the tanstack-query-patterns skill for this variant's hook/service pattern.
+The last line only when an island needs it.
 
-For NestJS, use the standard module-per-domain layout (`src/<domain>/`
-with module, controller, service) and validation at the boundary
-(class-validator DTOs or Zod pipes).
+## 4. The engineering standard, wired in
 
-### 3. Database
+Generate each item; the detail lives in the skill named, not here. When the
+fleet's `project-standard/templates/` carries a template for an item, copy it
+instead of writing one.
 
-- Supabase: `supabase init` + first migration with the base conventions from
-  the supabase-postgres skill: UUID PKs (`gen_random_uuid()`), `created_at`/
-  `updated_at TIMESTAMPTZ`, RLS enabled on every table from the start.
-- Plain Postgres (no Supabase): same conventions, see the postgres-conventions
-  skill.
-- `.env.example` with placeholders only — never real keys (`VITE_SUPABASE_URL`
-  / `VITE_SUPABASE_ANON_KEY` or `DATABASE_URL` depending on data layer);
-  `.env` in `.gitignore`.
-- Generate DB types when a schema exists:
-  `supabase gen types typescript --local > src/types/database.ts` (Supabase)
-  or ORM codegen (e.g. `prisma generate`) otherwise.
+| Item | What goes in | Detail |
+|---|---|---|
+| Runtime pin | Exact `packageManager` (`bun@1.x.y`) and `engines` in `package.json`; no version manager to install | — |
+| TypeScript | TypeScript 7 for `typecheck`; `@typescript/typescript6` alongside for tools that still need the compiler API (Astro, MDX). `strict` plus `noUncheckedIndexedAccess` and `noImplicitOverride`; not `exactOptionalPropertyTypes` (fights zod and react-hook-form types), not `noUnused*` (Oxlint covers them) | Confirm `next build` and `astro check` pass with both installed |
+| Lint, format, hooks | Oxlint + Oxfmt pinned exactly; lint-staged + typecheck on pre-commit, `test:coverage` on pre-push | `setup-pre-commit` |
+| Env | t3-env with zod, one schema per app; `.env.example` with every key | `environment-config` |
+| Tests | Level suffixes, the standard script names, 80% coverage from day one (`coverageThreshold` in `bunfig.toml`), Playwright on `.browser.ts` | `integration-testing`, `e2e-testing` |
+| Docs and agent config | `docs/README.md` and only the folders with content, `AGENTS.md`, the `CLAUDE.md` stub, `.mcp.json`, `.claude/settings.json`, `.socraticodeignore`, `.github/pull_request_template.md` from `project-standard/templates/`; `project-standard` pinned as a dev dependency to its `standard-vX.Y.Z` tag, then `project-standard sync` | `docs-writing` |
+| CI | `checks`, `tests`, `browser` on `self-hosted` when private, `ubuntu-latest` when public; `sonar` on `main` only; no deploy job | `ci-cd-pipeline` |
+| Dependencies | `.github/dependabot.yml`, grouped monthly plus security updates | `dependency-audit` |
+| Secrets | Gitleaks through `project-standard check`; deny rules name secret files exactly (`.env`, `.env.local`), never `.env*`, which would block `.env.example` | `secrets-management` |
+| Database | Drizzle migrations that only add or widen; `db:migrate` runs only in the production deploy command | `safe-migrations` |
 
-### 4. Query client + providers
+**Git and GitHub.** `main` is the only long-lived branch; work goes on
+`type/slug` branches. Squash merge only, with the squash message set to the PR
+title and description, merge commits and rebase merges off, branches deleted on
+merge. These are repository settings on GitHub — show the command and ask before
+running it:
 
-`QueryClientProvider` wrapping the app (`src/main.tsx`, or a `"use client"`
-provider component in Next.js); sensible default `staleTime` (2 min). One
-example hook in `src/hooks/` (Supabase: supabase-hooks pattern; non-Supabase:
-tanstack-query-patterns service + hook pattern) as the template to copy.
+```bash
+gh repo edit --enable-squash-merge --enable-merge-commit=false --enable-rebase-merge=false --delete-branch-on-merge
+gh api -X PATCH repos/{owner}/{repo} -f squash_merge_commit_title=PR_TITLE -f squash_merge_commit_message=PR_BODY
+```
 
-### 5. Quality gates
+**Deploy.** A merge to `main` deploys through the host's git integration
+(Workers Builds or Pages), connected in the host's dashboard by the user. The
+system's production deploy command is `bun run db:migrate && npx wrangler deploy`;
+the build command never migrates, because it also runs for previews. Previews
+stay behind an access gate with synthetic data.
 
-- Invoke `/setup-pre-commit` (husky + lint-staged + typecheck + tests).
-- `pnpm build` + `tsc --noEmit` must pass before declaring done — that is the
-  sign-off (UI validation is the user's).
+**Before the first real user** (not at scaffold time; a stub file now would be
+empty): `docs/engineering/runbook.md`, the backup and weekly restore check, the
+uptime monitor and the error tracker — `rollback-runbook`, `backup-restore`,
+`error-tracking`. A content site with no database carries only rollback, the
+uptime monitor, Dependabot and Gitleaks.
 
-### 6. Hand back
+## 5. Done
 
-Report: created structure, commands to run (`pnpm dev` / `pnpm start:dev`),
-what's stubbed (keys pending), and the next step — if inside project-kickoff,
-back to Phase 4.2 (schema first, then feature-by-feature).
+- [ ] A fresh `bun install` then `lint`, `typecheck`, `test` and `build` are green
+- [ ] `project-standard check --all` is green
+- [ ] The first commit went through the pre-commit hook, not around it
+- [ ] The first screen has a browser spec that renders it — a type check never
+      opens the page (`e2e-testing`)
+- [ ] Every deviation from the default is a decision in `docs/decisions/`
+
+Report what was created, what waits on the user (connecting the host, creating
+the Neon project and the Clerk instance, the host's secrets), and the next step
+— inside project-kickoff, back to Phase 4.2 (schema first, then feature by
+feature).
