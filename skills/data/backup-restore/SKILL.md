@@ -1,14 +1,14 @@
 ---
 name: backup-restore
-description: Explains backup strategy and restore testing for relational databases — full vs. incremental vs. PITR, RPO/RTO, retention, and the periodic restore drill that proves a backup is actually usable. Database/tool-agnostic. Use when user asks about backup, disaster recovery, RPO, RTO, PITR, restore, or snapshot.
+description: Explains backup strategy and restore testing for relational databases — the daily encrypted off-provider dump, RPO/RTO, retention bounded by LGPD, PITR, and the weekly automatic restore check that proves a backup is usable, with its alert outside the backup host. Database/tool-agnostic. Use when user asks about backup, disaster recovery, RPO, RTO, PITR, restore, snapshot, or how long to keep backups.
 ---
 
 # Backup & Restore
 
 A backup that has never been restored is not a backup — it is an untested bet.
-The question that matters is not "do we have backups?" but "when did we last
-restore one, and how long did it take?". This holds for any relational database
-and any tool: `pg_dump`, `mysqldump`, native PITR, a managed cloud snapshot.
+The question that matters is not "do we have backups?" but "when did the last
+restore pass, and how long did it take?". This holds for any relational database
+and any tool: `pg_dump`, `mysqldump`, native PITR, a managed snapshot.
 
 ## RPO and RTO — decide before picking a tool
 
@@ -17,130 +17,136 @@ and any tool: `pg_dump`, `mysqldump`, native PITR, a managed cloud snapshot.
 | RPO (Recovery Point Objective) | How much data can we afford to lose? | Backup frequency, whether PITR is required |
 | RTO (Recovery Time Objective) | How long can we be down? | Restore strategy, database size, automation |
 
-Without RPO and RTO, "do backups" is a task with no success criterion. A 5-minute
-RPO demands PITR (WAL/binlog replay); a nightly dump cannot meet it. A 15-minute
-RTO demands a tested, automated restore, not a 40-step manual runbook.
+Without RPO and RTO, "do backups" has no success criterion. A 5-minute RPO
+demands PITR (WAL/binlog replay); a nightly dump cannot meet it. Write the
+accepted data-loss window at the top of the runbook and tell the client — it is
+discovered during the incident otherwise.
+
+## The default: a daily encrypted dump, off-provider, 30 days
+
+On managed free plans the provider keeps nothing usable (Supabase has no backups
+below Pro; Neon's free plan restores only the last 6 hours). The floor that
+costs nothing:
+
+- **A daily `pg_dump`.** It accepts losing up to 24 hours. A tighter window is
+  paid (PITR) and is offered when the client pays for it.
+- **Off-provider**, in storage owned by whoever owns the repo. A copy inside the
+  same project dies with the project, the account or a leaked admin key.
+- **Encrypted before it leaves the job, with a public key** (`age -r`). The job
+  holds only the public key; the private key lives with the restore check and in
+  a password manager, so a leaked storage credential exposes nothing readable.
+- **30 days, then deleted automatically** by a lifecycle rule, plus a 30-day
+  bucket lock so whoever holds the credential cannot delete early. 14 days misses
+  corruption noticed at a monthly close; 90 keeps deleted people's data for three
+  months, and LGPD does not allow keeping personal data in backups indefinitely.
+  State the period in `docs/legal/lgpd.md` (see `lgpd-checklist`).
+- **The backup credential and the private key never sit in CI secrets, and the
+  app never holds them.** Anyone who can push a branch can read CI secrets. Run
+  the dump from a host you control.
+- At contract end, the client's dumps are handed to the client and deleted from
+  the operator's account.
+- A free Supabase project pauses after a week without database activity; the
+  daily dump counts as activity and keeps it awake.
 
 ## Backup types
 
 | Type | What it is | When to use |
 |---|---|---|
-| Logical (dump) | Exports data as SQL or a portable format (`pg_dump`, `mysqldump`) | Migrating across versions or engines, small backups, portability |
-| Physical (snapshot) | Copies the raw data files from disk | Large databases, fast restore, same engine and version |
-| Full | A complete copy at one instant | The base of any strategy; most expensive in space and time |
-| Incremental | Only what changed since the last backup | Smaller window and cost, but chains dependencies — lose one link and the chain breaks |
-| PITR | A full backup plus a continuous transaction log (WAL/binlog) | Restoring to a specific second, not just to whenever the backup ran |
+| Logical (dump) | Exports data as SQL or a portable format (`pg_dump`, `mysqldump`) | The default above; migrating across versions or engines |
+| Physical (snapshot) | Copies the raw data files | Large databases, fast restore, same engine and version |
+| Incremental | Only what changed since the last backup | Smaller cost, but chained — lose one link and the chain breaks |
+| PITR | A base backup plus the continuous transaction log | Restoring to a specific second, not just to when the backup ran |
 
 Logical is portable but slow to restore at size: it rebuilds indexes and
-re-checks constraints. Physical restores fast but usually demands the same engine
-version and architecture.
+re-checks constraints. `pg_dump`'s major version must be at least the server's.
 
-## Retention and storage
+## The restore check is the product, not the backup
 
-```
-# ❌ backup on the same instance and disk as the production database
-/var/lib/postgresql/backups/dump.sql
+A green backup job proves a file was produced. It does not prove the file
+restores, that the data is intact, or that the RTO is reachable.
 
-# ✅ replicated to storage outside the original database's blast radius
-# (another region, another account or project, immutable storage where available)
-```
+**Weekly and automatic.** A calendar drill is the one that gets skipped. The
+check restores the newest dump into a throwaway Postgres, checks the schema and
+a few row counts on key tables, and alerts when the restore fails or the newest
+dump is more than a day old.
 
-- 3-2-1 as the floor: 3 copies, 2 different media or storage systems, 1 off-site
-  or in another region.
-- Layered retention: daily (7–14 days) plus weekly (4–8 weeks) plus monthly
-  (6–12 months), adjusted to whatever the client's contract or regulator demands.
-- Encrypted at rest and in transit. A backup is the same data in another format,
-  so it deserves the same protection as the live database.
-- Retention or immutability policy (WORM, object lock) where the threat model
-  includes ransomware or malicious deletion: a backup that whoever holds database
-  access can also delete does not cover that case.
-- A multi-tenant backup carries every client's data, so access to it must be at
-  least as restricted as access to the live database — see
-  `multi-tenant-isolation-audit`.
+- **The alert never runs on the machine that makes the dump.** If that host goes
+  down, the backup and its alarm go silent together. Each job pings an external
+  heartbeat (healthchecks.io's free plan does this) — period 1 day for the
+  backup, 7 days for the restore check — and a missed ping alerts.
+- What it catches: a key rotation that broke storage access, a scheduled CI
+  workflow GitHub disabled after 60 days without commits, a free project paused
+  a week after that.
 
-## The restore drill is the product, not the backup
+## A real restore
 
-A green backup job proves the dump was produced. It does not prove the dump
-restores, that the data is intact, or that the agreed RTO is reachable.
+1. **Throwaway database first**, never straight into production. Production is
+   restored only in a real disaster, after the throwaway copy checked out.
+2. Validate content: row counts on key tables and one business query whose
+   answer you can predict (last month's order total).
+3. **Re-apply deletions before it goes live**: every deletion request received
+   after the dump's date, from the written request trail (email or ticket).
+   Otherwise the restore resurrects people who asked to be erased.
+4. Measure download plus restore plus validation against the RTO.
+5. Record date, result, elapsed time and the dump restored.
+6. A failure is an incident, not a retry-later: its cause probably affects the
+   next backup too.
 
-```
-# ❌ "the backup runs nightly and has never failed" — with no restore ever performed
-# ✅ a real restore, in an isolated environment, with content validation, on a fixed cadence
-```
-
-Minimum drill runbook:
-
-1. Provision an isolated environment — not the same instance and not the same
-   network as production.
-2. Restore the most recent backup, or a random point inside the retention window,
-   so the drill does not always exercise the easiest path.
-3. Validate content: row counts on key tables, a checksum, and one known business
-   query whose answer you can predict (last month's order total, say).
-4. Measure the whole thing — download plus restore plus validation — and compare
-   it against the agreed RTO.
-5. Record the result: date, success or failure, elapsed time, version restored.
-   The history of drills is the evidence that the backup is trustworthy; the
-   existence of a file is not.
-6. On failure, treat it as an incident rather than something to retry later. The
-   cause — a corrupt dump, an expired credential, unreachable storage — probably
-   affects the next backup too.
-
-Cadence: quarterly at a minimum, monthly for critical or regulated data, and
-always after a relevant infrastructure change (engine upgrade, storage migration,
-replication topology change).
+Run one by hand after any relevant infrastructure change (engine upgrade,
+storage move), on top of the weekly check.
 
 ## Signs the backup is not trustworthy
 
 | Sign | Risk |
 |---|---|
-| Only ever generated, never restored | The dump may be corrupt or incomplete and nobody would know |
-| Restore only ever tested against a small, empty dev database | The real RTO is unknown; production volume changes everything |
-| Access to backup storage untested for months | A key rotation may have broken the job silently |
-| Backup and production in the same account and region, unisolated | One compromised account or regional outage takes both |
-| No alert on backup job failure | The job can be broken for weeks unnoticed |
-| PITR with no replay test to a specific point | "A full backup exists" is not "I can restore to 14:32 on Tuesday" |
+| Only ever generated, never restored | The dump may be corrupt and nobody would know |
+| The failure alert runs on the backup host | Host down means backup and alarm silent together |
+| Backup and production in the same account or provider | One compromised account takes both |
+| The backup credential or private key in CI secrets | Anyone who can push a branch can read or delete the backups |
+| Retention "forever" or a round number nobody checked | Deleted people's data kept past what LGPD allows |
+| PITR never replayed to a specific point | "A base backup exists" is not "I can restore to 14:32 on Tuesday" |
 
 ## Checklist
 
-- [ ] RPO and RTO defined and written down per system or client, not one generic number for everything
-- [ ] Backup automated, with an active alert when the job fails
-- [ ] Backup replicated to storage separate from the production instance (3-2-1 as the floor)
-- [ ] Layered retention configured and matched to contractual or regulatory demands (see `lgpd-checklist`)
-- [ ] Encrypted at rest and in transit
-- [ ] Restore drilled in an isolated environment on a fixed cadence, with content validation — not just "the command exited zero"
-- [ ] Restore time measured and compared against the agreed RTO
-- [ ] Every drill recorded: date, success or failure, elapsed time
-- [ ] Backup access restricted as strictly as live database access — critical in multi-tenant
-- [ ] PITR, where used, tested by replaying to a specific point rather than by the log's existence
+- [ ] RPO and RTO written down per system; the data-loss window at the top of the runbook, told to the client
+- [ ] A daily dump, encrypted with a public key before it leaves the job, stored off-provider
+- [ ] 30-day lifecycle rule and bucket lock; the period stated in `docs/legal/lgpd.md`
+- [ ] Backup credential and private key outside CI and outside the app
+- [ ] A weekly automatic restore check into a throwaway database, validating schema and row counts
+- [ ] Heartbeats for backup and restore check, alerting from outside the backup host
+- [ ] Deletion requests after the dump's date re-applied before any restored database goes live
+- [ ] Backup access restricted as strictly as live database access — critical in multi-tenant (see `multi-tenant-isolation-audit`)
 
 ## By stack
 
-**Supabase** — daily automated backups on every plan; PITR from Pro up. The
-restore drill is still manual: restore into a fresh, isolated Supabase project,
-run the content validation, measure the time. Managed backups do not remove the
-need to test the restore.
+**PostgreSQL (any host, including Supabase and Neon)** — the dump, encrypted on
+the way out, and its restore into a throwaway database:
+```bash
+pg_dump -Fc "$DATABASE_URL" | age -r "$AGE_PUBLIC_KEY" > "db-$(date -u +%F).dump.age"
+age -d -i restore-key.txt db-2026-09-28.dump.age | pg_restore --no-owner -d "$THROWAWAY_URL"
+```
+PITR on self-managed Postgres: `pg_basebackup` plus WAL archiving
+(`archive_command`), restored via `restore_command` and `recovery_target_time`.
 
-**PostgreSQL (self-managed)** — logical with `pg_dump -Fc` (custom format,
-restored by `pg_restore`, supports parallel and per-table restore); PITR with
-`pg_basebackup` plus continuous WAL archiving (`archive_command`), restored via
-`restore_command` and `recovery_target_time`.
+**Supabase** — no backups on the free plan; daily backups from Pro, PITR as a
+paid add-on. Take the off-provider dump either way: a provider backup inside the
+same project does not survive losing the project.
 
-**RDS / Cloud SQL (managed snapshots)** — automated backups and native PITR. The
-drill is still manual: restore the snapshot or PITR target into a fresh, isolated
-instance, validate, measure.
+**Neon** — the free plan's restore window is 6 hours of history; paid plans
+extend it. It covers "undo the last hour", not "the account is gone".
 
-**MySQL/MariaDB** — logical with `mysqldump --single-transaction`, which avoids
-locking InnoDB; PITR by combining a full snapshot with binlog replay
-(`mysqlbinlog --start-datetime`) up to the chosen point.
+**RDS / Cloud SQL** — automated snapshots and native PITR. The restore check is
+still yours: restore into a fresh, isolated instance, validate, measure.
+
+**MySQL/MariaDB** — `mysqldump --single-transaction` avoids locking InnoDB; PITR
+by a full snapshot plus binlog replay (`mysqlbinlog --start-datetime`).
 
 ## Anti-patterns
 
-- ❌ Trusting "the backup job has never failed" without ever having restored
-- ❌ Drilling only against an empty dev database, never at production volume
-- ❌ Backup in the same account, region or instance as the original, with no isolated copy
-- ❌ No alert for a silently failing backup job
-- ❌ A generic retention window (7 days, say) chosen without checking the client's contractual or regulatory requirement
-- ❌ Unencrypted backups, or backups with looser access control than the live database
-- ❌ RPO and RTO never discussed with the client, and discovered during the incident
-- ❌ PITR configured but never replayed to a specific point in time
-- ❌ A multi-tenant backup reachable by someone who could not reach every tenant in the live database
+- ❌ Trusting "the backup job has never failed" without a passing restore
+- ❌ The only copy inside the same provider project as the database
+- ❌ A dump uploaded unencrypted, or encrypted with a key the backup job also holds
+- ❌ The backup alert running on the machine that makes the backup
+- ❌ Restoring straight into production, or going live before deletions are re-applied
+- ❌ Backup credentials in CI secrets
+- ❌ Keeping backups with personal data indefinitely

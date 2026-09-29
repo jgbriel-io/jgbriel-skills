@@ -54,7 +54,10 @@ Without context, a stack trace is noise. Every reported event carries:
 - **A request or trace id** — the same one used in structured logs, so log and
   error correlate
 - **Tenant or owner** — the id, never a name or domain if that is personal data
-- **User** — the internal id, never an email, name, CPF or phone number
+- **No user fields and no request bodies.** Who was affected is found by
+  following the request id into the logs, which already hold it under their own
+  access control. The tracker is a third party (a sub-processor under LGPD), so
+  what it never receives it can never leak
 - **Environment and release** — production or staging, and the deployed version
 - **Route or operation** — the endpoint, the job's name, the command
 - **Breadcrumbs** — the steps before the error: queries, external calls, state
@@ -66,15 +69,14 @@ on_request_start:
   tracker.set_context({
     request_id: req.id,          # the same id the structured log uses
     tenant_id: req.tenant.id,
-    user_id: req.user.id,        # never req.user.email
-    route: req.route,
+    route: req.route,            # no user fields, no body
   })
 ```
 
-The PII rule: what cannot appear in a structured log cannot appear in error
-context. Same policy, same scrubber. Tracking tools offer a sanitisation hook
-before sending (`beforeSend`, `before_send`, `ScrubData`) — use it, rather than
-trusting scattered manual care.
+The PII rule: the event leaves the app **without request bodies or user
+fields**, stripped in the SDK's sanitisation hook before sending (`beforeSend`,
+`before_send`, `ScrubData`) rather than by scattered manual care. List the
+tracker as a sub-processor in `docs/legal/lgpd.md` (see `lgpd-checklist`).
 
 ## 3. Release and version tagging
 
@@ -82,12 +84,12 @@ Every event must point at exactly which build it came from, or triage becomes
 archaeology.
 
 - [ ] `release` is a short commit SHA, or `semver+build`. Never "latest", never empty
-- [ ] The deploy pipeline injects the release into the tracker, through a build or deploy environment variable rather than hardcoding it
-- [ ] Source maps and debug symbols are uploaded in the same deploy step, tied to the same release; without them a minified frontend stack trace is unreadable
+- [ ] The production build injects the release into the tracker, through a build environment variable rather than hardcoding it
+- [ ] Source maps and debug symbols are uploaded by that same build, tied to the same release; without them a minified frontend stack trace is unreadable. When the host deploys from git, that is the host's build command, and the tracker's upload token is a host build secret, not a CI secret
 - [ ] Each deploy marks the release's start in the tracker, so error rates before and after can be compared
 
 ```
-# A CI/CD step — the same shape in any stack
+# The production build — the same shape in any stack
 export RELEASE_ID=$(git rev-parse --short HEAD)
 tracker-cli releases new "$RELEASE_ID"
 tracker-cli releases set-commits "$RELEASE_ID" --auto
@@ -133,6 +135,17 @@ Periodic triage checklist:
 - [ ] Known errors with no immediate fix carry a linked ticket and an "accepted" status rather than reopening alerts
 - [ ] Error rate per release compared against the previous one, separating a regression from background noise
 
+## Where alerts go, and what the tracker cannot see
+
+- **An uptime monitor on every production project** (UptimeRobot's free plan,
+  for one): a tracker sees nothing when the app is not running at all.
+- One alert channel per team or org, with phone push on, for site-down and
+  backup failures. Route the tracker there too once the route is verified;
+  until then, email.
+- A free tracker plan (Sentry's Developer plan: one user, 5K errors a month) is
+  enough for a small production app when grouping and the noise rules below
+  keep the volume down.
+
 ## Correlation with logging
 
 The `request_id`/`trace_id` is the one the logs use; its format and propagation are
@@ -151,8 +164,10 @@ Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   environment: import.meta.env.MODE,
   release: import.meta.env.VITE_RELEASE_ID,
+  sendDefaultPii: false,
   beforeSend(event) {
-    delete event.user?.email; // scrub PII, keep user.id
+    delete event.user;
+    if (event.request) delete event.request.data;
     return event;
   },
 });
@@ -180,14 +195,15 @@ rollbar.init(access_token, environment="production",
 try:
     process_job()
 except Exception:
-    rollbar.report_exc_info(extra_data={"tenant_id": tenant.id})
+    rollbar.report_exc_info(extra_data={"tenant_id": tenant.id, "request_id": request_id})
     raise
 ```
 
 ## Anti-patterns
 
 - ❌ An empty catch, or a `console.log` with nothing reported to the tracker
-- ❌ Context carrying raw PII (email, name, CPF) instead of ids
+- ❌ User fields or request bodies sent to the tracker
+- ❌ No uptime monitor, trusting the tracker to notice a site that is down
 - ❌ A release tag that is missing, empty or pinned to "latest"
 - ❌ A deploy with no source maps or debug symbols tied to the release
 - ❌ Grouping by literal message instead of a normalised fingerprint

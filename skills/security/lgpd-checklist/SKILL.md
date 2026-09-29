@@ -15,6 +15,11 @@ The Brazilian legal terms stay in Portuguese throughout: *titular*, *controlador
 and *operador* are defined in the law, not translations of data subject,
 controller and processor.
 
+**Roles in client work:** the client is the *controlador*; whoever builds and
+operates the system for them is the *operador*. The *operador* runs the
+backups, alerts and runbook; the *controlador* decides and notifies. Each
+project records its answers in `docs/legal/lgpd.md` (Portuguese allowed).
+
 ## When to use this skill
 
 - A new project or feature collecting data about a natural person — a customer,
@@ -55,7 +60,9 @@ controller and processor.
 - [ ] Every data type has a retention period tied to its purpose or to a legal obligation — never "keep it forever, just in case"
 - [ ] A routine exists that actually performs the deletion or anonymisation when the period ends: a scheduled job, a trigger, or a documented manual process
 - [ ] Anonymisation is genuinely irreversible. Pseudonymisation — a reversible hash, an id swapped for a token — is not anonymisation and remains personal data
-- [ ] Backups follow the same retention period as live data, or there is a process to purge personal data from old backups
+- [ ] Backups have a bounded retention (30 days by default), deleted automatically and stated in `docs/legal/lgpd.md`. A deleted person stays in the dumps until they expire; say so there
+- [ ] A restored backup goes live only after every deletion request received since the dump's date is re-applied, from the written request trail (see `backup-restore`)
+- [ ] At contract end, the client's dumps are handed to the client and deleted from the *operador*'s account
 - [ ] Test and staging environments never use a production dump with real data unless it was anonymised first
 - [ ] Deleting an account propagates to derived data: cache, search index, data warehouse, analytics and marketing tools
 
@@ -74,8 +81,10 @@ controller and processor.
 - [ ] Sensitive personal data is encrypted at rest, not only in transit
 - [ ] Access control by role: only those who need the data for their job can reach it (least privilege)
 - [ ] Access to sensitive data is logged and auditable — who read what, and when
-- [ ] An incident response plan covers containment, assessing the risk to the *titular*, and notifying the authority and the affected people where the risk is material (see `secrets-management` for the technical leak-response checklist)
-- [ ] Third-party providers — hosting, transactional email, analytics, CRM — are listed and carry a data protection clause
+- [ ] **A *suspected* personal-data incident is told to the client in writing within 24 hours**, with whatever is known. The *controlador* has three business days from its own knowledge to notify ANPD and the *titulares* (Resolução CD/ANPD 15/2024, articles 6 and 9); an *operador* who waits to confirm spends that deadline before the client knows it runs
+- [ ] The incident plan covers containment and the risk to the *titular*, and sits in the runbook's Incident section with the client's contact (see `secrets-management` for the technical leak response)
+- [ ] Third-party providers — hosting, transactional email, analytics, error tracking — are listed as sub-processors in `docs/legal/lgpd.md` and carry a data protection clause
+- [ ] Error events reach the tracker without request bodies or user fields (see `error-tracking`)
 
 ## Anti-patterns
 
@@ -84,7 +93,8 @@ controller and processor.
 - ❌ Personal data in application logs with no masking: CPF, passwords, card numbers in plain text
 - ❌ Confusing pseudonymisation with anonymisation
 - ❌ Retaining data indefinitely because "it might be useful later"
-- ❌ Copying a production dump into a test environment without anonymising it
+- ❌ Copying a production dump into a test or preview environment — preview data is synthetic, never a copy
+- ❌ Waiting to confirm an incident before telling the client
 - ❌ Deciding the legal basis after the client or the *titular* asks, rather than before collecting
 - ❌ A deletion flow that clears the main table but forgets the cache, the backups and the data warehouse
 - ❌ Treating sensitive data (health, biometrics) with the same controls as an ordinary contact record

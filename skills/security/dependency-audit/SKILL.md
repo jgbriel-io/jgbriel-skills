@@ -36,15 +36,22 @@ changes.
 
 | Change | Automation | Cadence |
 |---|---|---|
-| Patch (`x.y.Z`) — bugfix, no new API | Automatic (bot or scheduled job), merged on green CI | Continuous |
-| Minor (`x.Y.0`) — new feature, backwards compatible | Automatic PR, human review before merge | Weekly or fortnightly |
-| Major (`X.0.0`) — breaking change | Manual and dedicated, changelog read, regression tests | Planned, with time set aside |
+| Security update | Dependabot security updates, grouped | As advisories land |
+| Patch and minor | One grouped Dependabot version-update PR | Monthly |
+| Major (`X.0.0`) — breaking change | Its own PR, changelog read, regression tests | Planned, with time set aside |
+
+- **Grouped and monthly, because every PR costs a CI run.** On a runner that
+  takes one job at a time, a PR per package per week is a queue that delays real
+  work; one grouped PR a month plus security updates as they come keeps the
+  cost bounded.
+- Each Dependabot PR gets the same review and green CI as any other PR before a
+  human merges it.
 
 - Automatic patching is only safe with a real test suite covering the critical
   path. Without tests, every upgrade is a leap in the dark, patch or not.
-- Never batch minors and majors silently: one PR per dependency, or per related
-  group. A mass upgrade with no isolation makes it impossible to tell which
-  package broke what.
+- Never batch majors into the monthly group: a major gets its own PR. A mass
+  upgrade with a breaking change inside makes it impossible to tell which package
+  broke what.
 - A dependency pinned to an old version out of fear accumulates security debt. An
   unpatched CVE in an old version does not go away; it stays invisible until it is
   an incident.
@@ -90,8 +97,8 @@ Before running `install`, check:
 
 - [ ] Lockfile committed and updated alongside the manifest in every PR
 - [ ] CI installs with the command that pins to the lockfile (`ci`, not `install`/`update`)
-- [ ] Automatic patching configured, with green CI as the merge criterion
-- [ ] Minor and major upgrades reviewed in isolated PRs, per package or group
+- [ ] Dependabot security updates on, grouped; one grouped version-update PR a month for patch and minor
+- [ ] Majors upgraded in their own PRs
 - [ ] Vulnerability scanning on PRs and on a schedule, gated by severity
 - [ ] New packages evaluated (maintenance, tree, licence, CVEs) before being added
 - [ ] Deprecated or unmaintained dependencies identified, with a replacement plan
@@ -110,7 +117,30 @@ Before running `install`, check:
 
 ## By stack
 
-**npm/pnpm** — `npm ci` or `pnpm install --frozen-lockfile` in CI;
+**Dependabot (`.github/dependabot.yml`)** — free on private repos, and its jobs
+spend no Actions minutes on GitHub-hosted runners. Leave "Dependabot on
+self-hosted runners" off: once on, its jobs queue until a runner labelled
+`dependabot` exists.
+```yaml
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: monthly }
+    groups:
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
+      dependencies:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: [minor, patch]
+```
+`package-ecosystem: bun` for a Bun lockfile; add a `github-actions` entry to keep
+workflow actions current too.
+
+**npm/pnpm/bun** — `npm ci`, `pnpm install --frozen-lockfile` or
+`bun install --frozen-lockfile` in CI;
 `npm audit --audit-level=high` or `pnpm audit` for scanning; `npm outdated` to see
 what is behind.
 
