@@ -1,6 +1,6 @@
 ---
 name: integration-testing
-description: Guides writing integration tests against real dependencies — disposable containers for database/services instead of mocks, test data setup/teardown, and automated multi-tenant isolation checks. Framework-agnostic. Use when user asks about integration tests, testing against a real database, mocking vs. real dependencies, testcontainers, or test data isolation.
+description: Guides writing integration and API end-to-end tests against real dependencies — a disposable database instead of mocks (the local Supabase database for Supabase repos), pgTAP for SQL and RLS, factories for test data, automated multi-tenant isolation checks, and the file names that keep each level separate. Use when user asks about integration tests, testing against a real database, mocking vs. real dependencies, testcontainers, pgTAP, RLS tests, or test data isolation. The browser tier (Playwright) is e2e-testing.
 ---
 
 # Integration Testing
@@ -8,140 +8,138 @@ description: Guides writing integration tests against real dependencies — disp
 An integration test exercises the boundary between the code and a real dependency
 — database, queue, cache, external API — without mocking it. The point is to prove
 the contract holds: the query, the constraint, the serialization, the transaction.
-Not that internal logic is correct in isolation (that is a unit test), and not
-that a whole journey works through the UI (that is E2E — see `e2e-testing`).
+
+## Levels and file names
+
+The level is the **highest** thing a file touches. A file that seeds through the
+database and then calls the API is `e2e`: seeding is setup, not what is under test.
+
+| File | Level | Runs against | Script |
+|---|---|---|---|
+| `x.test.ts` | unit | nothing outside the module | `test:unit` |
+| `x.integration.test.ts` | integration | one real dependency | `test:integration` |
+| `x.e2e.test.ts` | end-to-end | the API through the app (`app.handle()`, supertest) | `test:e2e` |
+| `supabase/tests/x.test.sql` | database | SQL and RLS inside Supabase | `test:db` |
+| `x.browser.ts` | browser | the served app in a real browser | `test:browser` — see `e2e-testing` |
+
+- Tests sit **next to the code they test**, never in a mirrored `test/` tree: an
+  untested file must be visible from its own folder.
+- Qualifiers go between subject and level: `order.rls.integration.test.ts`,
+  `payment.live.integration.test.ts` (`.live.` calls a real external service and
+  is excluded from the default run).
+- **Separate the levels by subtraction**: unit is "every test file minus the
+  other levels", so no file is left unclaimed. In Vitest, `test.projects` with
+  `unit` excluding `**/*.integration.test.ts` and `**/*.e2e.test.ts`. In Bun, one
+  script per level, and the database preload passed with `--preload` only in the
+  integration and e2e scripts, never in `bunfig.toml`, which would make every
+  unit run need Docker.
+- Titles are behavior sentences, present tense, no "should":
+  `it('rejects a duplicate email')`.
 
 ## Why not mock the data layer
 
 A mocked repository or ORM tests your assumption about how the database behaves,
 not the database. A badly written query, a violated constraint, an incompatible
-type, an encoding problem, a transaction that never commits — all of it passes
-clean against the mock and explodes in production.
+type, a transaction that never commits — all of it passes clean against the mock
+and explodes in production.
 
 ```
 // ❌ mocked repository — only proves the service called the right method
-const repo = { findByEmail: jest.fn().mockResolvedValue(null) };
-const service = new UserService(repo);
-await service.create({ email: "a@b.com" });
+const repo = { findByEmail: vi.fn().mockResolvedValue(null) };
+await new UserService(repo).create({ email: "a@b.com" });
 expect(repo.create).toHaveBeenCalled();
-// proves nothing about the unique constraint, the column type, or the index
 
-// ✅ real database (disposable container) — proves the contract
-const service = new UserService(realRepo); // wired to an ephemeral Postgres container
+// ✅ real database (disposable) — proves the unique constraint exists and works
+const service = new UserService(realRepo);
 await service.create({ email: "a@b.com" });
-await expect(service.create({ email: "a@b.com" }))
-  .rejects.toThrow(/unique constraint/i);
-// proves the uniqueness constraint exists and works
+await expect(service.create({ email: "a@b.com" })).rejects.toThrow(/unique/i);
 ```
 
-Rule of thumb: if you comment out the query implementation and the test still
-passes, it is not testing integration. It is testing the mock.
+Rule of thumb: if you comment out the query and the test still passes, it tests
+the mock.
 
-## Disposable container, not a shared database
+## A disposable database, never a shared one
 
-Every run of the suite brings up its own isolated instance of the dependency — an
-ephemeral Docker container, an equivalent in-memory database, a local emulator, or
-`supabase start` for Supabase — and tears it down at the end. A database shared
-across runs, machines or CI is a source of flakiness and of "it works on my
-machine".
+- **Plain Postgres repos:** a container per run, created and destroyed by the
+  suite (Testcontainers, or a tmpfs `postgres` on a dedicated port).
+- **Supabase repos: the local Supabase database** (`supabase db start`), never a
+  plain Postgres container. Plain Postgres has no `auth` schema, no
+  `anon`/`authenticated` roles and no `auth.uid()`, so an RLS test there proves
+  nothing. CI uses the `supabase/postgres` image alone (see `ci-cd-pipeline`).
+- **Never a dev, staging or dev/hml database.** Shared state across runs is where
+  "it works on my machine" and order-dependent failures come from.
+- CI and local use the same mechanism. "Mock in CI, real locally" is exactly the
+  arrangement that hides bugs.
+- An external provider (payments, SMS, email) gets a **fake**: a working
+  in-memory implementation of its interface, or a local server speaking its
+  contract. Not a mock of each call, which only replays what you assumed.
 
-```
-// ❌ points at a shared dev/staging database
-DATABASE_URL=postgres://dev-shared-db/app_dev
+## Test data
 
-// ✅ bring up an isolated container per run, migrate, run, destroy
-beforeAll ->  startContainer("postgres:16")
-              runMigrations()
-afterAll  ->  destroyContainer()
-```
+- **Factories, not shared fixtures.** Each test builds the minimum it needs; a
+  fixture loaded once for the suite couples tests to execution order.
+- A transaction rolled back after each test is the fastest isolation where the
+  driver allows it, and it survives a test that dies halfway. Otherwise,
+  teardown in `afterEach`/`finally`, never only on the happy path.
+- A unique id per run (uuid) when tests share a database in parallel, so they
+  cannot collide on a unique key.
 
-- One container per suite, rather than per test, is a fair cost trade — as long as
-  the data inside it is isolated per test (next section).
-- CI and the local machine use the same mechanism. "Mock in CI, real locally" — or
-  the reverse — is exactly the arrangement that hides bugs.
-- A third-party service with no viable local version (a payment gateway, an SMS
-  provider) becomes a fake server you control — WireMock, a local HTTP server
-  speaking the same contract — not an in-process mock. The goal is to exercise
-  real serialization and network I/O, replacing only the far side of the wire.
+## Multi-tenant isolation as a test
 
-## Test data setup and teardown
-
-```
-The pattern, in any stack:
-1. create the minimum data the test needs, inside the test or its setup
-2. run the behaviour under test
-3. assert on the resulting state — database, response, side effect
-4. clean up what was created, even when the test fails
-```
-
-- Data is created by the test, never a fixed fixture loaded once for the whole
-  suite and reused: reuse couples tests together and makes execution order matter.
-- A transaction rolled back at the end of each test is the fastest isolation where
-  the driver or framework supports it — no manual `DELETE`/`TRUNCATE`, and it
-  survives a test that dies halfway.
-- Without automatic rollback: explicit teardown in `afterEach`/`finally`, never
-  only on the happy path.
-- A unique identifier per run (uuid) when tests run in parallel against the same
-  container, so concurrent tests cannot collide on a unique key.
-
-## Where the boundaries are
-
-| Layer | Depends on | Proves | Speed |
-|---|---|---|---|
-| Unit | Nothing external — all in memory or mocked | Pure logic, one business rule | Milliseconds |
-| Integration | A real database or service, no UI | The contract between code and dependency: query, constraint, transaction, serialization | Seconds |
-| E2E | The whole system through a real browser | The user's journey end to end | Minutes |
-
-Integration is slower than unit (real I/O takes time) and faster than E2E (no
-browser, no rendering). If the behaviour can be proven without real I/O, it is a
-unit test — do not pay the integration cost for nothing. If it can only be proven
-by bringing up the whole UI (a multi-screen flow, client-side JS), it is E2E; see
-`e2e-testing`. Business rule plus persistence is integration's natural territory.
-
-## Multi-tenant isolation as an automated test
-
-In a multi-tenant system — the usual shape of SaaS with several client accounts —
-isolation between tenants is exactly the kind of contract a mock can never catch.
-RLS, a `tenant_id`/`owner_id` filter, schema-per-tenant: all of them are only
-proven against the real database. Treat each isolation policy as an ordinary
-integration test rather than a manual checklist item.
+Isolation between tenants is exactly the contract a mock can never catch. RLS, a
+`tenant_id` filter, schema-per-tenant: each policy becomes an ordinary versioned
+test, not a checklist item repeated at review time.
 
 ```
-The isolation test, against a real database:
 1. create tenant A and tenant B
 2. create resource R as tenant A
-3. authenticate and query as tenant B
+3. query as tenant B
 4. assert: denied or empty — never A's data
 ```
 
-See `multi-tenant-isolation-audit` for the full inventory of where isolation leaks
-— joins, cache, jobs, storage, exports — and the audit checklist. The point here
-is only that every item on that list becomes a versioned integration test instead
-of a check somebody repeats by hand at review time.
+Name it with the qualifier (`board.isolation.integration.test.ts`) so the suite
+shows at a glance which boundaries are covered. `multi-tenant-isolation-audit`
+has the inventory of where isolation leaks — joins, cache, jobs, storage, exports.
+
+## pgTAP: SQL and RLS where they live
+
+Policies, triggers and functions are tested inside the database with pgTAP, in
+`supabase/tests/`, run by `supabase test db`. Impersonate a user the way
+PostgREST does — claims plus role — inside a transaction that rolls back:
+
+```sql
+begin;
+select plan(1);
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000b","role":"authenticated"}', true);
+set local role authenticated;
+select is_empty(
+  $$ select id from orders where tenant_id = '00000000-0000-0000-0000-00000000000a' $$,
+  'tenant B sees none of tenant A''s orders'
+);
+select * from finish();
+rollback;
+```
 
 ## Checklist
 
-- [ ] Tests run against a real, disposable instance of the dependency — never a mocked data layer
-- [ ] The instance is ephemeral, created and destroyed by the suite itself, and CI and local use the same mechanism
-- [ ] Test data is created by the test or its setup, not loaded from a shared fixed fixture
-- [ ] Teardown guaranteed on failure (transaction rollback, `afterEach`/`finally`) — no orphaned data accumulating between runs
-- [ ] Each test passes alone and inside the full suite, in any order
-- [ ] Constraints, indexes, transactions and queries are genuinely exercised, not just the method call
-- [ ] A third-party service with no local version uses a controlled fake server, not an in-process mock
-- [ ] Every multi-tenant isolation policy has its own integration test: tenant A cannot reach tenant B's resource
-- [ ] The integration suite runs in CI, not only locally before a merge
-- [ ] No integration test is doing E2E's job (opening a browser) or a unit test's (mocking the very dependency it should exercise)
+- [ ] Every file's suffix names the highest level it touches
+- [ ] Real, disposable database; in Supabase repos, the local Supabase database, not plain Postgres
+- [ ] No test points at a shared dev, staging or dev/hml database
+- [ ] Data from factories inside each test; teardown guaranteed on failure
+- [ ] Each test passes alone and in the full suite, in any order
+- [ ] External providers behind a fake, not per-call mocks
+- [ ] Every isolation policy has its own test: tenant A cannot reach tenant B
+- [ ] RLS and SQL functions covered by pgTAP where the repo is on Supabase
+- [ ] The suite runs in CI, and in the pre-push hook
 
 ## Anti-patterns
 
 - ❌ Mocking the repository, ORM or database client and calling it an integration test
-- ❌ Pointing integration tests at a dev or staging database shared across runs
-- ❌ A fixture loaded once and reused suite-wide, coupling tests to execution order
-- ❌ Teardown missing, or only on the happy path — orphaned data contaminates the next run
-- ❌ CI mocking while local uses a real database, or the reverse: divergence that hides bugs until production
-- ❌ Trusting a manual multi-tenant isolation checklist instead of automating it as a test
-- ❌ Writing a full UI E2E to prove something a direct API call against the real database proves faster
-- ❌ An integration suite so slow that nobody runs it locally and it becomes CI's problem alone
+- ❌ RLS tests against a plain Postgres container, where `auth.uid()` does not exist
+- ❌ A `.test.ts` file that silently needs Docker, breaking the unit run
+- ❌ `bunfig.toml` `[test] preload` starting the database for every run
+- ❌ A fixture loaded once and reused suite-wide
+- ❌ A browser test proving what a direct API call against the real database proves faster
 
 ## By stack
 
@@ -150,7 +148,7 @@ of a check somebody repeats by hand at review time.
 let container: StartedPostgreSqlContainer;
 
 beforeAll(async () => {
-  container = await new PostgreSqlContainer("postgres:16").start();
+  container = await new PostgreSqlContainer("postgres:17").start();
   await runMigrations(container.getConnectionUri());
 });
 afterAll(() => container.stop());
@@ -162,17 +160,15 @@ test("rejects a duplicate email", async () => {
 });
 ```
 
-**Supabase local (`supabase start`):**
+**Supabase local database, RLS from TypeScript (`postgres.js`):**
 ```ts
-beforeAll(async () => {
-  // supabase start brings up Postgres, Auth and Storage locally through Docker
-  supabase = createClient(LOCAL_URL, LOCAL_ANON_KEY);
-});
-
-test("RLS blocks cross-tenant reads", async () => {
-  await supabase.auth.signInWithPassword({ email: userA, password });
-  const { data } = await supabase.from('orders').select().eq('id', ordersOfB.id);
-  expect(data).toHaveLength(0); // the policy blocked it; no other owner's data came back
+test("RLS hides another tenant's orders", async () => {
+  await sql.begin(async (tx) => {
+    await tx`select set_config('request.jwt.claims', ${JSON.stringify({ sub: userB.id, role: "authenticated" })}, true)`;
+    await tx`set local role authenticated`;
+    const rows = await tx`select id from orders where id = ${orderOfA.id}`;
+    expect(rows).toHaveLength(0);
+  });
 });
 ```
 
@@ -180,7 +176,7 @@ test("RLS blocks cross-tenant reads", async () => {
 ```python
 @pytest.fixture(scope="module")
 def pg_container():
-    with PostgresContainer("postgres:16") as pg:
+    with PostgresContainer("postgres:17") as pg:
         run_migrations(pg.get_connection_url())
         yield pg
 
@@ -189,16 +185,4 @@ def test_unique_email(pg_container):
     repo.create(email="a@b.com")
     with pytest.raises(IntegrityError):
         repo.create(email="a@b.com")
-```
-
-**Go (dockertest or testcontainers-go):**
-```go
-func TestCreateUser_DuplicateEmail(t *testing.T) {
-    db := setupPostgresContainer(t) // starts the container, migrates, returns *sql.DB
-    repo := NewUserRepository(db)
-
-    require.NoError(t, repo.Create(ctx, User{Email: "a@b.com"}))
-    err := repo.Create(ctx, User{Email: "a@b.com"})
-    require.ErrorContains(t, err, "duplicate key")
-}
 ```

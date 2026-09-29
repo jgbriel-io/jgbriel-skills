@@ -7,11 +7,13 @@ description: The red-green-refactor loop and what makes a test survive a refacto
 
 TDD is the red → green → refactor loop. This skill is the reference that makes that loop produce tests worth keeping: what a good test is, where tests go, the anti-patterns, and the workflow. Every section applies on every cycle — consult them before and during the loop, not after.
 
-When exploring the codebase, use the project's domain glossary (`CONTEXT.md`, if it exists) so test names and interface vocabulary match the project's language, and respect ADRs in the area you're touching.
+When exploring the codebase, use the project's domain glossary (`docs/product/CONTEXT.md`, or a root `CONTEXT.md` in older repos) so test names and interface vocabulary match the project's language, and respect the decisions in `docs/decisions/` for the area you're touching.
 
 ## What a good test is
 
 Tests verify behavior through public interfaces, not implementation details. Code can change entirely; tests shouldn't. A good test reads like a specification — "user can checkout with valid cart" tells you exactly what capability exists — and survives refactors because it doesn't care about internal structure.
+
+**Write the test from the spec, not from the implementation.** The expected values come from the issue, the spec or a worked example, before you read the code you are about to change. A test written by reading the code copies the code's answer, bugs included, and can never disagree with it.
 
 See [tests.md](references/tests.md) for examples and [mocking.md](references/mocking.md) for mocking guidelines.
 
@@ -27,6 +29,8 @@ Ask: "What's the public interface, and which seams should we test?"
 
 - **Implementation-coupled** — mocks internal collaborators, tests private methods, or verifies through a side channel (querying the database instead of using the interface). The tell: the test breaks when you refactor but behavior hasn't changed.
 - **Tautological** — the assertion recomputes the expected value the way the code does (`expect(add(a, b)).toBe(a + b)`, a snapshot derived by hand the same way, a constant asserted equal to itself), so it passes by construction and can never disagree with the code. Expected values must come from an independent source of truth — a known-good literal, a worked example, the spec.
+- **Assertion-free** — the test runs code and asserts nothing about its behavior. It raises coverage and verifies nothing; that coverage does not count.
+- **Green by subtraction** — deleting, skipping or loosening a failing test to get green. A failing test is a finding; a skip carries its reason in the PR.
 - **Horizontal slicing** — writing all tests first, then all implementation. Bulk tests verify _imagined_ behavior: you test the _shape_ of things rather than user-facing behavior, the tests go insensitive to real changes, and you commit to test structure before understanding the implementation. Work in **vertical slices** instead — one test → one implementation → repeat, each test a **tracer bullet** that responds to what the last cycle taught you.
 
 ```
@@ -51,7 +55,7 @@ Before writing any code:
 - [ ] Confirm with user which seams/behaviors to test (prioritize)
 - [ ] Identify opportunities for [deep modules](references/deep-modules.md) (small interface, deep implementation)
 - [ ] Design interfaces for [testability](references/interface-design.md)
-- [ ] List the behaviors to test (not implementation steps)
+- [ ] List the behaviors to test (not implementation steps), with expected values taken from the spec
 - [ ] Get user approval on the plan
 
 ### 2. Tracer bullet
@@ -87,6 +91,8 @@ After all tests in the current slice pass, look for [refactor candidates](refere
 
 ```
 [ ] Test describes behavior, not implementation
+[ ] Expected values came from the spec, not the code
+[ ] Test was seen failing before the code made it pass
 [ ] Test uses public interface only
 [ ] Test would survive internal refactor
 [ ] Code is minimal for this test

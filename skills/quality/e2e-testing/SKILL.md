@@ -1,173 +1,145 @@
 ---
 name: e2e-testing
-description: Guides writing reliable end-to-end tests — programmatic auth fixtures instead of UI login, per-run data isolation, accessible selectors (role/label), and when E2E is the right layer vs. integration/unit. Use when user asks about E2E tests, flaky tests, test selectors, login fixtures for tests, Playwright, Cypress, or Selenium.
+description: Guides writing reliable browser tests (Playwright, `.browser.ts`) — one spec per screen with an axe accessibility floor, programmatic auth with one account per parallel worker, per-run data isolation, role/label locators, `@flaky` quarantine instead of silent skips. Use when user asks about E2E or browser tests, flaky tests, test selectors, login fixtures for tests, accessibility checks in tests, Playwright, Cypress, or Selenium. API-level end-to-end tests (`.e2e.test.ts`) are integration-testing.
 ---
 
-# E2E Testing
+# E2E Testing (browser tier)
 
-## When E2E is the right layer
+## Where the browser tier sits
 
-| Layer | What it proves | Cost | When |
-|---|---|---|---|
-| Unit | Pure logic, one function | Very low | Always — the first line of defence |
-| Integration | The contract between modules, real API plus database | Low to medium | Business rules, service/API/repository layer |
-| E2E | A whole journey through the real UI | High | Critical flows only: login, checkout, sign-up, payment |
+| File | Proves | Skill |
+|---|---|---|
+| `x.test.ts` | Pure logic, one module | `tdd` |
+| `x.integration.test.ts` | The contract with one real dependency | `integration-testing` |
+| `x.e2e.test.ts` | The API end to end, through the app, no browser | `integration-testing` |
+| `x.browser.ts` | The served app in a real browser | this one |
 
-Rule of thumb: if the behaviour can be proven without a browser, it is not E2E.
-E2E does not replace integration — it is the slowest and most fragile layer of the
-pyramid, so spend it sparingly. See `tdd` for the red-green-refactor cycle and
-`integration-testing` for the layer below.
+- **`.browser.ts`, never `.spec.ts`.** Vitest and Bun discover `.test` and
+  `.spec` with zero configuration; neither discovers `.browser.ts`, so a
+  Playwright file can never be swallowed by a unit run.
+- **Every screen gets a spec** that renders it, drives it and asserts what the
+  user sees. A type check never opens the page, so a component that renders
+  nothing passes it. Long multi-screen journeys stay for the critical flows.
+- If the behaviour can be proven without a browser, it belongs a level down —
+  the browser tier is the slowest and most fragile.
 
-## Authentication fixtures
+## Config
 
-Logging in through the UI in every test is slow and flaky: each test inherits the
-fragility of the login screen even when login is not what is under test.
-Authenticate programmatically — call the auth API directly, or reuse a session or
-token already obtained — and only then open the page you care about.
-
-```
-// ❌ UI login in every test
-open("/login")
-fill("#email", "user@test.com")
-fill("#password", "123456")
-click("Sign in")
-waitForUrl("/dashboard")
-// ... the real test only starts here
-
-// ✅ authenticate through the API, session ready before the page opens
-authenticateViaApi("user@test.com", "123456")  // injects cookie/token/localStorage
-open("/profile")
-// the test starts on the behaviour under test
-```
-
-- The login flow itself is exercised through the UI *once*, in the test dedicated
-  to login.
-- Reusing a session across tests for the same user (a `beforeAll` or a global
-  fixture) is fine whenever the test does not need clean auth state.
-
-## Per-run data isolation
-
-Each test creates and cleans up its own data. Never depend on a fixed record in a
-shared environment, or on another test having run first — both break under
-parallelism and under re-runs.
-
-```
-// ❌ depends on fixed data somebody created by hand months ago
-open("/customers/123/orders")
-
-// ✅ creates and destroys its own data, with a per-run unique identifier
-customer = api.createCustomer({ name: `E2E Customer ${uuid()}` })
-api.createOrder(customer.id, { amount: 100 })
-open(`/customers/${customer.id}/orders`)
-// ...
-api.deleteCustomer(customer.id)  // teardown, even when the test fails
-```
-
-Checklist:
-- [ ] Data created through the API or a seed, not through the UI — UI setup is slow and is not what is under test
-- [ ] A unique identifier per run (uuid or timestamp), so parallel runs cannot collide
-- [ ] Teardown guaranteed on failure too (`afterEach`/`finally`, not just the happy path)
-- [ ] The test passes alone and passes inside the full suite, in any order
-
-## Accessible selectors
-
-A CSS class or a positional XPath breaks on every style or DOM change, with no
-relation to the behaviour under test. Selecting by role or accessible label is
-stable because it is the same contract users and screen readers depend on — and
-it pushes the UI to be genuinely accessible (see `accessibility-audit`).
-
-```
-// ❌ coupled to implementation and styling
-select(".btn-primary.submit-form")
-select("div > span:nth-child(2)")
-select("//div[3]/button")
-
-// ✅ the accessibility contract — survives a visual refactor
-selectByRole("button", { name: "Save" })
-selectByLabel("Email")
-selectByText("Order created successfully")
-```
-
-`data-testid` is an acceptable fallback only where no natural role or label exists
-— a purely visual element asserted for state, say. Even then, prefer fixing the
-component to expose accessible semantics.
-
-## Stability
-
-```
-// ❌ a fixed wait — either too short (flaky) or wasteful (slow)
-wait(3000)
-click("Save")
-
-// ✅ wait for the real condition
-waitVisible(selectByText("Order created successfully"))
-click("Save")
-```
-
-- Never a fixed `sleep`/`waitForTimeout`. Wait for an element to be visible, a
-  request to settle, a URL to change.
-- A test that fails sometimes is not "flaky, run it again" — it is a bug, either
-  in the test (race condition, shared data, ambiguous selector) or in the product.
-  Find the cause rather than masking it with a retry.
-- The runner's automatic retry is a safety net for unstable infrastructure, not an
-  excuse for a badly written test.
-
-## Structure
-
-- Wrap repeated selectors and actions in page objects or helpers: it avoids
-  copying `selectByRole(...)` across dozens of files and gives the UI change one
-  place to land.
-- One test, one journey. Stacking assertions from different flows into a single
-  test makes it hard to tell what broke.
-- The suite should run in parallel (workers or sharding). If it cannot, that is
-  usually a symptom of unisolated data.
-
-## By stack
-
-**Playwright (TS)** — auth through `storageState`, reused across tests:
 ```ts
-test.beforeAll(async ({ request }) => {
-  await request.post('/api/auth/login', { data: { email, password } });
-});
-test.use({ storageState: 'auth.json' });
+export default defineConfig({
+  testDir: './e2e',
+  testMatch: '**/*.browser.ts',
+  retries: process.env.CI ? 2 : 0,
+  use: { trace: 'on-first-retry' },
+  projects: [
+    { name: 'setup', testMatch: /.*\.setup\.ts/ },
+    { name: 'app', dependencies: ['setup'] },
+  ],
+})
+```
 
-test('edits the profile', async ({ page }) => {
-  await page.goto('/profile');
-  await page.getByRole('button', { name: 'Save' }).click();
+- `testDir` pins whatever folder the repo already uses; migrating renames only
+  the suffix.
+- One project per surface (a public site and a logged-in app are two).
+- Script `test:browser`. `test:e2e` is the API level, never Playwright.
+
+## Authentication
+
+Logging in through the UI in every test makes every test inherit the login
+screen's fragility. Authenticate through the API, save the storage state, open
+the page under test. The login flow itself goes through the UI once, in its own
+spec.
+
+- **One account per parallel worker** when tests change server state (a CRM,
+  an ERP). Two workers editing as the same user race on the same records, and
+  the failure looks like a flaky test.
+- A single shared account from the setup project only for read-only surfaces.
+- Storage state lives in `playwright/.auth/`, **gitignored**: it holds live
+  session cookies.
+
+```ts
+export const test = base.extend<{}, { workerStorageState: string }>({
+  storageState: ({ workerStorageState }, use) => use(workerStorageState),
+  workerStorageState: [async ({ browser }, use) => {
+    const index = test.info().parallelIndex;
+    const file = `playwright/.auth/worker-${index}.json`;
+    const page = await browser.newPage({ storageState: undefined });
+    await signInViaApi(page.request, testAccounts[index]);
+    await page.context().storageState({ path: file });
+    await page.close();
+    await use(file);
+  }, { scope: 'worker' }],
 });
 ```
 
-**Cypress** — programmatic auth through a custom command:
-```js
-Cypress.Commands.add('login', (email, password) => {
-  cy.request('POST', '/api/auth/login', { email, password })
-    .then(({ body }) => window.localStorage.setItem('token', body.token));
-});
+## Accessibility floor
 
-it('edits the profile', () => {
-  cy.login('user@test.com', '123456');
-  cy.visit('/profile');
-  cy.findByRole('button', { name: 'Save' }).click();
+Every screen's spec runs axe and allows **zero serious or critical**
+violations. It is the automated floor; keyboard and screen-reader checks still
+apply (see `accessibility-audit`).
+
+```ts
+import AxeBuilder from '@axe-core/playwright';
+
+test('customer list has no serious accessibility violations', async ({ page }) => {
+  await page.goto('/customers');
+  const { violations } = await new AxeBuilder({ page }).analyze();
+  expect(violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')).toEqual([]);
 });
 ```
 
-**Selenium (Python)** — auth through the API, selection by accessibility attribute:
-```python
-def test_edits_profile(driver, api_client):
-    token = api_client.login("user@test.com", "123456")
-    driver.add_cookie({"name": "session", "value": token})
-    driver.get(f"{BASE_URL}/profile")
-    driver.find_element(By.CSS_SELECTOR, "[role='button'][aria-label='Save']").click()
+## Data isolation
+
+Each test creates and cleans up its own data, through the API or a factory,
+never through the UI and never by relying on a fixed record somebody created by
+hand. A unique id per run (uuid) keeps parallel runs from colliding; teardown
+runs on failure too.
+
+## Locators
+
+By role and accessible name — the contract users and screen readers depend on,
+so it survives a visual refactor and pushes the UI to be accessible:
+
+```ts
+page.getByRole('button', { name: 'Save' })
+page.getByLabel('Email')
 ```
+
+Never a CSS class, a positional XPath or DOM structure. `getByTestId` only where
+no role or label exists, and even then prefer fixing the component. A spec that
+breaks on a copy change is reporting that the copy moved.
+
+## Flaky tests: quarantine, never silence
+
+- Never a fixed `waitForTimeout`; wait for the real condition (visible element,
+  settled request, URL change).
+- Retries only in CI, with a trace on the first retry. A retry is a net for
+  unstable infrastructure, not a fix.
+- A test that fails intermittently gets the `@flaky` tag, **an owner and a
+  deadline**, and keeps running. It is never `test.skip`ped quietly: a skipped
+  test stops reporting the bug it found.
+- `@smoke` marks the fast subset.
+
+## Out of scope
+
+- **Third parties are not tested**: external sites and services are stubbed at
+  the network layer (`page.route`).
+- **Visual regression is not used** unless CI and local run the same Docker
+  image; font rendering differs between machines and every run goes red.
+
+## Other runners
+
+Cypress and Selenium follow the same rules: programmatic auth (`cy.session`,
+cookies injected before navigation), Testing Library role queries, per-run data,
+no fixed waits.
 
 ## Anti-patterns
 
+- ❌ A `.spec.ts` Playwright file picked up by the unit runner
 - ❌ UI login in every test that is not about login
-- ❌ Depending on fixed data shared across tests or environments
-- ❌ Selecting by CSS class, positional XPath or DOM structure
-- ❌ A fixed `sleep`/`waitForTimeout` instead of waiting on a condition
-- ❌ A test that only passes in one execution order
-- ❌ Covering with E2E what an integration or unit test already proves
-- ❌ Running the whole E2E suite, unparallelised, on every commit
-- ❌ Hiding a flaky test behind a retry instead of finding the cause
-- ❌ Teardown missing, or only on the happy path — orphaned data accumulates and contaminates later runs
+- ❌ Several workers mutating data as the same account
+- ❌ Committing `playwright/.auth/`
+- ❌ A screen with no spec, signed off by a type check
+- ❌ `test.skip` on a flaky test instead of `@flaky` with an owner
+- ❌ Selecting by CSS class or DOM position
+- ❌ A browser suite that exists but never runs in CI
