@@ -122,9 +122,13 @@ storage move), on top of the weekly check.
 **PostgreSQL (any host, including Supabase and Neon)** — the dump, encrypted on
 the way out, and its restore into a throwaway database:
 ```bash
+set -euo pipefail
 pg_dump -Fc "$DATABASE_URL" | age -r "$AGE_PUBLIC_KEY" > "db-$(date -u +%F).dump.age"
 age -d -i restore-key.txt db-2026-09-28.dump.age | pg_restore --no-owner -d "$THROWAWAY_URL"
 ```
+`pipefail` is what makes a failed `pg_dump` fail the job: without it the pipe
+exits with `age`'s status, and a truncated dump reports green. Ping the heartbeat
+only after the upload succeeded.
 PITR on self-managed Postgres: `pg_basebackup` plus WAL archiving
 (`archive_command`), restored via `restore_command` and `recovery_target_time`.
 

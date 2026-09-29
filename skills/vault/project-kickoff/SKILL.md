@@ -159,9 +159,13 @@ first commit. Not later.
   `index.md` plus a `docs/` junction to the repo's `docs/` (Windows:
   `mklink /J`), never copied pages, so there is nothing to sync and nothing to
   drift. Never `rm -rf` the junction: it deletes the target.
+- Exclude the junction from any vault linter's auto-fix when you create it
+  (claude-obsidian: `ignore.paths` in `.vault-meta/lint-config.json`). A vault
+  lint fix would otherwise write into the repo.
 - Move `status:` in the index frontmatter along as the project matures
   (`seed` → `developing` → `evergreen`).
-- Record non-obvious architectural decisions in the wiki — why X became Y.
+- Record non-obvious architectural decisions in the repo's `docs/decisions/` —
+  why X became Y (see `domain-modeling`).
 
 ---
 

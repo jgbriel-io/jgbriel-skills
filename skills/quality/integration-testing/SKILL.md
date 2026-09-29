@@ -68,8 +68,8 @@ the mock.
   nothing. CI uses the `supabase/postgres` image alone (see `ci-cd-pipeline`).
 - **Never a dev, staging or dev/hml database.** Shared state across runs is where
   "it works on my machine" and order-dependent failures come from.
-- CI and local use the same mechanism. "Mock in CI, real locally" is exactly the
-  arrangement that hides bugs.
+- CI and local both use a real, disposable database. "Mock in CI, real locally"
+  is exactly the arrangement that hides bugs.
 - An external provider (payments, SMS, email) gets a **fake**: a working
   in-memory implementation of its interface, or a local server speaking its
   contract. Not a mock of each call, which only replays what you assumed.

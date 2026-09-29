@@ -25,6 +25,10 @@ is the worked example.
   on a shallow clone, and Sonar needs blame data.
 - **Never `continue-on-error` on a test step.** It turns a suite decorative: it
   keeps running, stays green, and verifies nothing.
+- A repo with a lint baseline also runs `oxlint --prune-suppressions` in
+  `checks` and fails when that changed the file
+  (`git diff --exit-code -- oxlint-suppressions.json`), so the baseline only
+  shrinks.
 - `browser` must actually run. A Playwright suite that exists but is never
   wired into CI is the common failure, not a flaky one.
 - A scheduled workflow is disabled by GitHub after 60 days without commits;
@@ -99,8 +103,10 @@ secrets or files nor another runner.
 - The key is the lockfile hash plus the runtime version, never a constant like
   `cache-v1`, which silently pins old dependencies.
 - Cache the resolved dependencies, never the build output.
-- `oven-sh/setup-bun` and `actions/setup-node` read `packageManager` and
-  `engines` from `package.json`; pin the version there, not in the workflow.
+- Pin the runtime once, in `package.json` (`packageManager`, `engines`), and
+  point the setup action at it: `bun-version-file: package.json` for
+  `oven-sh/setup-bun`, `node-version-file: package.json` for `actions/setup-node`.
+  Without that input, the action falls back to whatever the runner has.
 
 ## 8. GitHub Actions
 
@@ -117,6 +123,7 @@ jobs:
       - uses: actions/checkout@v5
         with: { fetch-depth: 0 }
       - uses: oven-sh/setup-bun@v2
+        with: { bun-version-file: package.json }
       - run: bun install --frozen-lockfile
       - run: bun run typecheck
       - run: bun run lint
@@ -128,13 +135,18 @@ jobs:
       postgres:
         image: postgres:17
         env: { POSTGRES_PASSWORD: postgres }
-        ports: ["5432:5432"]
+        ports: ["5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v5
         with: { fetch-depth: 0 }
       - uses: oven-sh/setup-bun@v2
+        with: { bun-version-file: package.json }
       - run: bun install --frozen-lockfile
       - run: bun run test:coverage
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:${{ job.services.postgres.ports['5432'] }}/postgres
       - uses: actions/upload-artifact@v4
         with: { name: coverage, path: coverage/, retention-days: 1 }
 
@@ -143,6 +155,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
+        with: { bun-version-file: package.json }
       - run: bun install --frozen-lockfile
       - run: bunx playwright install chromium
       - run: bun run test:browser
@@ -165,7 +178,10 @@ jobs:
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 ```
 
-No `deploy` job: the host deploys on merge (§4). On a public repo, every
+No `deploy` job: the host deploys on merge (§4). The service container takes a
+random host port (`ports: ["5432"]`), read back through `job.services`: a fixed
+`5432:5432` collides when two runners on one host run jobs at once, and the
+health check keeps tests from starting before Postgres accepts connections. On a public repo, every
 `runs-on` is `ubuntu-latest`. On a self-hosted runner, the browsers' system
 libraries are installed on the host once; `--with-deps` needs root the job
 should not have.

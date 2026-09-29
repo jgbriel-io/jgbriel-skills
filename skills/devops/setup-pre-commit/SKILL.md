@@ -65,7 +65,10 @@ ESLint config into `.oxlintrc.json` as a starting point; review it against §3.
 overwrite the hook it wrote.
 
 `.husky/pre-commit` — same as `project-standard/templates/hooks/pre-commit` in
-this fleet; drop the last line unless `project-standard` is a dev dependency:
+this fleet. The last line is the secret scan (it runs Gitleaks); without
+`project-standard` as a dev dependency, replace it with
+`gitleaks git --pre-commit --staged --redact`, never drop it — a secret that
+reaches the remote stays in the history:
 
 ```
 {exec} lint-staged

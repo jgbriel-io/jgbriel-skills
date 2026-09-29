@@ -112,7 +112,7 @@ Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 | `environment-config` | Environment-based configuration conventions — .env.example, startup-time env validation (fail fast, not mid-request; t3… |
 | `error-tracking` | Apply production error tracking patterns — unhandled exception capture, contextual metadata, release/version tagging, t… |
 | `health-checks-metrics` | Apply health check (readiness vs. |
-| `project-deploy` | Deploys a project by following the runbook documented in the vault — a step-by-step checklist, confirmation before anyt… |
+| `project-deploy` | Deploys a project by following its runbook (docs/engineering/runbook.md in the repo) — a step-by-step checklist, confir… |
 | `resolving-merge-conflicts` | Resolves the conflicts of a merge or rebase already in progress — reads the original intent of each side before choosin… |
 | `rollback-runbook` | Defines a deploy-tool-agnostic rollback runbook — reverting a code deploy (blue-green/canary/previous artifact), why re… |
 | `setup-pre-commit` | Set up a repo's git hooks with Husky — lint-staged running Oxlint and Oxfmt plus a typecheck on pre-commit, the full te… |

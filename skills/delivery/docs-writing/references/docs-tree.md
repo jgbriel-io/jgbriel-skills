@@ -90,8 +90,10 @@ reads them. **No `updated:` field**: git knows, and a hand-typed date drifts.
 | `number`, `date`, `superseded_by` | Integer, ISO date, integer | Decisions |
 | `labels`, `depends_on` | `domain:*` labels, spec numbers | Specs |
 
-Status lives in the file, never in a status column of the index: the column
-drifts the moment a doc changes without the index being touched.
+Status lives in each file, never in a status column of `docs/README.md`: the
+column drifts the moment a doc changes without the index being touched. The
+decisions index is the exception: its Status column is checked against each
+decision file by the docs check.
 
 ## Lifecycle
 

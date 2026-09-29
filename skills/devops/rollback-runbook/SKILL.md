@@ -32,7 +32,7 @@ the host decides the first move:
 
 | Host | First move | Then |
 |---|---|---|
-| Keeps versions (Cloudflare Workers and Pages, Vercel, Netlify) | Instant rollback to the previous version: dashboard or `wrangler rollback` | `git revert` of the PR's squash commit on `main`, right away |
+| Keeps versions (Cloudflare Workers and Pages, Vercel, Netlify) | Instant rollback to the previous version: `wrangler rollback` on Workers, the dashboard on Pages and the others | `git revert` of the PR's squash commit on `main`, right away |
 | Deploys from git with no versions (Hostinger and similar) | `git revert` on `main`; the host redeploys in about a minute | — |
 
 - **Roll back first on a versioned host**, because a deploy writing wrong data
@@ -167,9 +167,10 @@ rebuild:
 vercel rollback <deployment-url-or-id>
 ```
 
-**Cloudflare Pages/Workers** — revert to an earlier version from the dashboard,
-or through wrangler (the last 10 versions; see the `wrangler` skill), then revert
-the squash commit on `main`:
+**Cloudflare Workers** — roll back to an earlier version through wrangler (the
+last 10 versions; see the `wrangler` skill) or the dashboard, then revert the
+squash commit on `main`. **Pages** rolls back from the dashboard (or its API),
+not wrangler:
 ```bash
 wrangler rollback [version-id]
 git revert <squash-sha> && git push origin main

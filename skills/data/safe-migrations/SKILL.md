@@ -13,7 +13,11 @@ Liquibase, Prisma, Alembic, ActiveRecord, goose, EF Core.
 ## Expand-Contract (Parallel Change)
 
 Every destructive migration — rename, drop, type change, a new `NOT NULL` — takes
-three deploys, never one:
+at least two PRs, never one. A migration only adds or widens; whatever removes or
+narrows ships later, once no deployed code uses the old shape. Expand and the
+code that dual-writes can share a PR, because the production deploy runs the
+migration before the new code goes live; a backfill that must finish before the
+new code reads is its own step:
 
 1. **Expand** — add the new thing without touching the old one. Old and new code
    coexist.
@@ -174,7 +178,7 @@ def upgrade():
     # backfill here only for a small table; otherwise a separate batched job
 
 def downgrade():
-    op.drop_column('orders', 'total_amount')
+    raise NotImplementedError("forward-only: fix forward or restore")
 ```
 
 **Flyway/Liquibase (Java) and Rails ActiveRecord** follow the same shape — one
