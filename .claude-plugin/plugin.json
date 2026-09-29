@@ -1,6 +1,6 @@
 {
   "name": "jgbriel-skills",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "The complete Claude Code fleet — skills, agents, commands and hooks: the work loop, per-stack conventions, security, DevOps, the TCC and personal tooling.",
   "author": {
     "name": "João Gabriel",
@@ -120,7 +120,6 @@
     "./skills/tcc/tcc-revisao-impessoal",
     "./skills/vault/obsidian-vault",
     "./skills/vault/project-kickoff",
-    "./skills/vault/project-planner",
-    "./skills/vault/project-sync"
+    "./skills/vault/project-planner"
   ]
 }

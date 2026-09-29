@@ -73,15 +73,32 @@ STRIPE_SECRET_KEY=
 A secret in a query string leaks into proxy logs, CDN logs and browser history.
 Use a header (`Authorization`, `X-Api-Key`) or the body.
 
+## Scan before the push
+
+A secret that reaches the remote stays in the history after it is deleted, so
+the scan has to run before the commit exists:
+
+- **Gitleaks CLI** in the pre-commit hook on staged files, and in CI over the
+  PR's commits. A finding blocks the commit. False positives go in
+  `.gitleaksignore` by fingerprint, never by turning the scan off.
+- The CLI, not `gitleaks-action`, which needs a license key for organisation
+  repos. GitHub's paid secret protection is not needed for this.
+- In repos that pin the fleet's `project-standard` package, `project-standard
+  check` already runs Gitleaks (see `setup-pre-commit`).
+
 ## Secrets in CI
 
 The same rules hold across providers — GitHub Actions, GitLab CI, Azure DevOps,
 Jenkins, CircleCI:
 
+- **No production credential and no deploy token in CI at all.** Anyone who can
+  push a branch — or an agent following injected text — can read them. Deploys
+  go through the host's git integration and production migrations run in the
+  host's deploy (see `ci-cd-pipeline`), so CI never needs them.
+- Test and tool tokens (a code-analysis token, an auth provider's test instance,
+  a non-production database branch) are allowed only when worthless outside CI.
 - Never in plain text in a versioned pipeline file. Use the provider's native
   secret store, injected as an environment variable only in the step that needs it.
-- Restrict by environment or branch where the provider allows it, so a production
-  secret is not available to a fork PR or an unprotected branch.
 - Masking in logs: most platforms mask registered secret values automatically, but
   that breaks as soon as the secret is concatenated, base64-encoded or otherwise
   transformed before it is printed. Never `echo $SECRET`, and never print the whole
@@ -136,7 +153,8 @@ public by mistake. Order matters: revoke first, investigate afterwards.
 - ❌ One secret shared across services or clients, so a single leak breaks multi-tenant isolation
 - ❌ Rotation only after a confirmed leak, never on a schedule
 - ❌ Logging full requests and responses without redacting auth headers and credential-bearing bodies
-- ❌ A CI secret reachable from an unprotected branch or a fork PR
+- ❌ A production credential, deploy token or backup credential in CI secrets
+- ❌ A deny rule for agents written as `.env*`, which also blocks `.env.example`; name the secret files exactly (`.env`, `.env.local`, `.env.production`)
 - ❌ Rewriting git history in the belief that it "removes" a secret already leaked publicly
 
 ## By stack
@@ -146,9 +164,13 @@ public by mistake. Order matters: revoke first, investigate afterwards.
 the local build. The real secret lives in `.env.local` (gitignored), with the
 template in `.env.example`.
 
-**Supabase** — `SUPABASE_SERVICE_ROLE_KEY` never reaches the client, because it
-bypasses RLS. Only the anon key goes to the frontend, protected by the RLS
-policies.
+**Supabase** — `SUPABASE_SERVICE_ROLE_KEY` never reaches the client, CI or an
+agent session, because it bypasses RLS. Only the anon key goes to the frontend,
+protected by the RLS policies.
+
+**MCP servers and agent tooling** — tokens (a code-analysis server, a database
+MCP) live in each developer's environment variables and are referenced as
+`${VAR}` from the committed config, never written into it.
 
 **Python** — `python-dotenv` or `os.environ` to load a local `.env`; in production
 the variable is injected by the runtime and `.env` is never versioned. Libraries

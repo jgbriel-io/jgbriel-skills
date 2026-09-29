@@ -1,201 +1,199 @@
 ---
 name: ci-cd-pipeline
-description: Defines standard CI/CD pipeline stages (lint, type-check, test, build), dependency caching, running migrations in CI, and merge-blocking quality gates — stack-agnostic, with GitHub Actions as the default example. Use when user asks about pipeline stages, GitHub Actions workflows, .gitlab-ci.yml, Jenkinsfiles, CI caching, or quality gates for merge.
+description: Defines the CI jobs (checks, tests, browser, sonar, mutation), where they run (self-hosted runner for private repos, GitHub-hosted for public ones), throwaway database containers, and deploys through the host's git integration instead of an Actions deploy step. Use when the user asks about pipeline stages, GitHub Actions workflows, runners, CI caching, databases or migrations in CI, SonarQube in CI, previews, or what gates a merge. GitLab CI and Jenkins map the same jobs. Git hooks are setup-pre-commit; undoing a bad deploy is rollback-runbook.
 ---
 
 # CI/CD Pipeline
 
-The pipeline is a concept independent of the tool — GitHub Actions, GitLab CI,
-Jenkins, CircleCI. Only the configuration syntax changes.
+CI proves on a clean checkout what the local hooks already ran; CD is the
+host's job, not the pipeline's. The shape is tool-independent, GitHub Actions
+is the worked example.
 
-## Standard stages, in order
+## 1. Jobs
 
-```
-lint → type-check → test → build → deploy
-```
+| Job | Trigger | Runs |
+|---|---|---|
+| `checks` | every PR and push | typecheck, lint, the shared check (`project-standard check --base`) |
+| `tests` | every PR and push | unit, integration, e2e, coverage threshold — against a throwaway database container |
+| `browser` | every PR and push | Playwright; traces and report uploaded as artifacts |
+| `sonar` | push to `main` only | after `tests`, reusing its coverage; waits on the quality gate |
+| `mutation` | nightly schedule | Stryker on the critical modules only |
 
-| Stage | What it verifies | Cost | On failure |
-|---|---|---|---|
-| lint | Style, dead code, static rules | Seconds | Blocks the merge |
-| type-check | Types (TS, mypy, Go build, javac) | Seconds | Blocks the merge |
-| test | Unit plus integration | Medium | Blocks the merge |
-| build | Compiles or packages the production artifact | Medium to high | Blocks the merge |
-| deploy | Publishes the artifact | High, with real effects | Manual gate in production |
+- `checks` is cheap and fails fast; it does not gate the others, because on a
+  one-job-at-a-time runner a `needs:` chain only adds queue.
+- **Full history on checkout** (`fetch-depth: 0`): `turbo run --affected` breaks
+  on a shallow clone, and Sonar needs blame data.
+- **Never `continue-on-error` on a test step.** It turns a suite decorative: it
+  keeps running, stays green, and verifies nothing.
+- A repo with a lint baseline also runs `oxlint --prune-suppressions` in
+  `checks` and fails when that changed the file
+  (`git diff --exit-code -- oxlint-suppressions.json`), so the baseline only
+  shrinks.
+- `browser` must actually run. A Playwright suite that exists but is never
+  wired into CI is the common failure, not a flaky one.
+- A scheduled workflow is disabled by GitHub after 60 days without commits;
+  the nightly job dies silently on a quiet repo.
 
-**Fail fast**: order from cheapest to most expensive. Running a test suite for
-minutes before a lint that takes seconds makes no sense — if lint fails, the rest
-should never start. Each stage runs only when the previous one passed.
+## 2. Runners
 
-Stages independent of each other — backend lint and frontend lint in a monorepo —
-run in parallel rather than in series.
+| Repo | `runs-on` | Why |
+|---|---|---|
+| Private | `self-hosted` | Spends none of the plan's shared Actions minutes; on a Free plan they run out mid-month and private CI stops |
+| Public | `ubuntu-latest` | Free for public repos. A self-hosted runner on a public repo lets any fork's PR run code on your machine |
 
-## Dependency caching
+On a self-hosted runner, a job that starts Docker `services:` has root-level
+reach over the host. Run each runner as a dedicated user with rootless Docker
+and a memory ceiling, so a job can reach neither production's containers,
+secrets or files nor another runner.
 
-Without a cache, every run reinstalls everything from scratch, wasting minutes per
-run.
+## 3. Databases and migrations
 
-- The cache key is a hash of the lockfile (`package-lock.json`, `pnpm-lock.yaml`,
-  `poetry.lock`, `go.sum`, `Gemfile.lock`) plus the runtime version.
-- It changes only when the dependencies change, not on every commit.
-- Restore at the start of the job, save at the end — and only when the install
-  succeeded.
-- Cache the resolved dependency folder (`node_modules`, `.venv`, `vendor`, `~/.m2`),
-  never the final build artifact: that is the `build` stage's output, not an input.
-- A wrong or fixed key silently pins old versions. Always include the lockfile hash;
-  never a constant like `cache-v1`.
+- **Throwaway service container, dying with the job:** `postgres` in a plain
+  Postgres repo, `supabase/postgres` alone in a Supabase repo, so pgTAP and the
+  RLS suite still run. Whether the bare image runs a given repo's migrations is
+  proven per repo, not assumed.
+- The one place a full Supabase CLI stack is worth it: the `browser` job of a
+  Supabase repo whose specs sign in through Supabase Auth — started with the
+  unneeded services excluded (`supabase start -x ...`).
+- **Never the project's dev/hml database.** A schema-changing PR would apply
+  its migration to a shared database before anyone approved it, and parallel
+  runs write into the same tables.
+- CI applies migrations only to its own container. Production migrations run
+  inside the host's production deploy, never in CI and never in a preview
+  build (see `safe-migrations`).
 
-## Migrations in CI
+## 4. Deploy and previews: the host, not Actions
 
-- **In the `test` stage**: apply migrations to an ephemeral database — a disposable
-  container, or `supabase start` locally, created and destroyed inside the job.
-  Never against a shared database or another environment's.
-- **In the `deploy` stage**: migrations run as their own job, before the new
-  application version ships, against the target environment's real database.
-- Migrations have to be idempotent and reversible. CI does not fix a broken
-  migration; it only exposes one.
-- Never run a test migration against production, not even "just to check".
-- In production, a destructive migration (dropping a column or table) goes through a
-  manual gate, never automatically, however green the pipeline is (see
-  `safe-migrations`).
+- **A merge to `main` deploys production through the host's git integration**
+  (Cloudflare Workers Builds or Pages, Hostinger, Netlify). The host builds on
+  its side, so no deploy token sits in GitHub; green CI on the PR is the check.
+- **No production credential and no deploy token in Actions secrets.** Anyone
+  who can push a branch can read them. Test and tool tokens (a Sonar analysis
+  token, an auth provider's test instance, a non-production database branch)
+  are allowed only when worthless outside CI.
+- **Staging is a preview per PR**, not a long-lived branch: non-production
+  branch builds that comment the URL on the PR, behind an access gate (the
+  preview alias is guessable from the branch name). Preview data is synthetic
+  (faker.js), never a copy of production. A host with no previews uses the
+  local stack plus the browser spec instead.
 
-## Quality gates: what blocks a merge
+## 5. What gates a merge
 
-The branch-protection checklist:
+- A PR merges only on green CI; a red job is a stop.
+- **On a free GitHub plan, CI is advisory**: required status checks on private
+  repos are paid. The pre-push hook (`setup-pre-commit`) is the real gate, and
+  CI is the clean-checkout proof behind it. Where a paid plan exists, make the
+  jobs required checks.
+- No skipped test without its reason in the PR.
 
-- [ ] Lint passes with no errors — whether warnings block is a conscious decision, not a default
-- [ ] Type-check passes
-- [ ] Tests pass, with no skipped test (`.skip`/`xit`) left unexplained in the PR
-- [ ] Coverage does not regress below the agreed threshold, where the project uses one
-- [ ] The production build completes
-- [ ] No committed secret or credential (a secret scan)
-- [ ] The branch is up to date with its base before merging
+## 6. SonarQube
 
-A green pipeline is a prerequisite for merging, not a suggestion. Configure it as a
-**required status check** on the protected branch rather than leaving it
-"recommended".
+- **CI-based analysis only.** Automatic analysis ignores
+  `sonar-project.properties`, imports no coverage and cannot handle monorepos.
+- **Push to `main` only on Community Build**: it keeps one branch per project,
+  so a PR scan overwrites the main analysis.
+- `sonar.qualitygate.wait=true`, so the job goes red with the gate.
+- Cap SonarJS's Node bridge with `sonar.javascript.node.maxspace` (MB) under
+  the runner's memory ceiling; uncapped, it grew until the runner was OOM-killed.
+- Not re-running the full suite on `main` just to feed Sonar: download the
+  coverage artifact `tests` produced.
 
-## Variables and secrets
+## 7. Caching
 
-- Secrets are never hardcoded in the `.yml` or `Jenkinsfile`, and never in a
-  committed `.env`. They live in the CI tool's secret store — GitHub Actions
-  secrets, GitLab's protected and masked variables.
-- Scope them per environment: a production secret is not reachable from a job
-  running on a feature branch.
-- A build-time variable baked into the bundle (`VITE_*`, `NEXT_PUBLIC_*`) is not the
-  same as a runtime secret. Never put a sensitive key in a variable that ships to
-  the client (see `secrets-management`).
+- The key is the lockfile hash plus the runtime version, never a constant like
+  `cache-v1`, which silently pins old dependencies.
+- Cache the resolved dependencies, never the build output.
+- Pin the runtime once, in `package.json` (`packageManager`, `engines`), and
+  point the setup action at it: `bun-version-file: package.json` for
+  `oven-sh/setup-bun`, `node-version-file: package.json` for `actions/setup-node`.
+  Without that input, the action falls back to whatever the runner has.
 
-## Artifacts between stages
-
-- `build` produces the artifact once, and `deploy` reuses it. Never rebuild inside
-  the deploy job.
-- Artifacts have a short life — days, not accumulated storage.
-- Matrix builds: one suite across several runtime versions or browsers runs as
-  parallel jobs, with results aggregated at the end.
-
-## By stack
-
-### GitHub Actions
+## 8. GitHub Actions
 
 ```yaml
+on:
+  pull_request:
+  push:
+    branches: [main]
+
 jobs:
-  lint:
-    runs-on: ubuntu-latest
+  checks:
+    runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
-      - run: npm ci
-      - run: npm run lint && npm run type-check
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 0 }
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version-file: package.json }
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun run lint
+      - run: bunx --bun project-standard check --base ${{ github.event_name == 'pull_request' && 'HEAD^1' || github.event.before || 'HEAD^' }}
 
-  test:
-    needs: lint
-    runs-on: ubuntu-latest
+  tests:
+    runs-on: self-hosted
     services:
-      postgres: { image: postgres:16, ports: ["5432:5432"] }
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_PASSWORD: postgres }
+        ports: ["5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
-      - run: npm ci
-      - run: npm run migrate:up
-      - run: npm test -- --coverage
-
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
-      - run: npm ci && npm run build
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 0 }
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version-file: package.json }
+      - run: bun install --frozen-lockfile
+      - run: bun run test:coverage
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:${{ job.services.postgres.ports['5432'] }}/postgres
       - uses: actions/upload-artifact@v4
-        with: { name: dist, path: dist/, retention-days: 1 }
+        with: { name: coverage, path: coverage/, retention-days: 1 }
 
-  deploy_production:
-    needs: build
-    runs-on: ubuntu-latest
-    environment: production   # the manual gate: required reviewers on the environment
-    if: github.ref == 'refs/heads/main'
+  browser:
+    runs-on: self-hosted
     steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version-file: package.json }
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install chromium
+      - run: bun run test:browser
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with: { name: playwright-report, path: playwright-report/, retention-days: 7 }
+
+  sonar:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: tests
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v5
+        with: { fetch-depth: 0 }
       - uses: actions/download-artifact@v4
-        with: { name: dist }
-      - run: ./deploy.sh
+        with: { name: coverage, path: coverage/ }
+      - uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 ```
 
-### GitLab CI
+No `deploy` job: the host deploys on merge (§4). The service container takes a
+random host port (`ports: ["5432"]`), read back through `job.services`: a fixed
+`5432:5432` collides when two runners on one host run jobs at once, and the
+health check keeps tests from starting before Postgres accepts connections. On a public repo, every
+`runs-on` is `ubuntu-latest`. On a self-hosted runner, the browsers' system
+libraries are installed on the host once; `--with-deps` needs root the job
+should not have.
 
-```yaml
-stages: [lint, test, build, deploy]
-
-.node_cache:
-  cache:
-    key:
-      files: [package-lock.json]
-    paths: [node_modules/]
-
-lint:
-  stage: lint
-  extends: .node_cache
-  script: [npm ci, npm run lint, npm run type-check]
-
-test:
-  stage: test
-  extends: .node_cache
-  services: [postgres:16]
-  variables:
-    DATABASE_URL: postgres://postgres:postgres@postgres:5432/test
-  script:
-    - npm ci
-    - npm run migrate:up
-    - npm run test -- --coverage
-
-build:
-  stage: build
-  script: [npm ci, npm run build]
-  artifacts:
-    paths: [dist/]
-    expire_in: 1 day
-
-deploy_production:
-  stage: deploy
-  script: [npm run migrate:up:prod, ./deploy.sh]
-  environment: production
-  when: manual
-  only: [main]
-```
-
-Python (pytest, mypy, ruff), Go (`go vet`, `go test`, `go build`) and wrangler for
-Cloudflare Workers and Pages (see the `wrangler` skill) use the same stages. Only
-the command inside `run`/`script` changes.
+GitLab CI maps the same jobs: `services:` for the container, `cache:key:files:`
+for the lockfile key, `rules:` for the main-only Sonar job.
 
 ## Anti-patterns
 
-- ❌ Running tests before lint and type-check, spending minutes on a commit that would fail in seconds
-- ❌ A fixed cache key that never invalidates when the lockfile changes
-- ❌ Test migrations running against a shared or production database
-- ❌ A secret in a committed environment file, or hardcoded in the pipeline
-- ❌ Merging with a red pipeline, or with the check marked "recommended" rather than required
-- ❌ Rebuilding the artifact inside the deploy job instead of reusing the one `build` produced
-- ❌ A skipped test (`.skip`/`xit`) merged with no explanation
-- ❌ Automatic production deploys with no manual gate for a destructive migration
+- `runs-on: ubuntu-latest` on a private repo, spending shared minutes
+- A self-hosted runner serving a public repo
+- A deploy step or a production credential in Actions
+- Tests or migrations against a shared dev/hml database
+- A Sonar scan on every PR on Community Build
+- `continue-on-error` on a test step

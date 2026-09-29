@@ -1,24 +1,28 @@
 ---
 name: project-deploy
-description: Deploys a project by following the runbook documented in the vault — a step-by-step checklist, confirmation before anything irreversible, post-deploy verification and a release record. Use when the user says "publica o site", "sobe pra produção", "faz o deploy", or names the deploy of one of their projects. Where no runbook exists, it interviews and writes one. Cloudflare-specific tooling is wrangler/cloudflare.
+description: Deploys a project by following its runbook (docs/engineering/runbook.md in the repo) — a step-by-step checklist, confirmation before anything irreversible, post-deploy verification and a release record. Use when the user says "publica o site", "sobe pra produção", "faz o deploy", or names the deploy of one of their projects. Where no runbook exists, it interviews and writes one. Cloudflare-specific tooling is wrangler/cloudflare.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # Project Deploy
 
 Deployment driven by a runbook. The source of truth for HOW each project ships is
-its deployment page in the vault; this skill executes it, verifies the result and
-records the release.
+its runbook in the repo; this skill executes it, verifies the result and records
+the release. Where a merge to `main` deploys through the host's git integration,
+deploying is merging the PR: the skill then runs the pre-deploy checks, watches
+the host's build and verifies the result.
 
 ## Process
 
 ### 1. Find the runbook
 
-- Vault: `wiki/Projetos/<name>/deployment/<Name> - Deploy.md`
-- Fallback: `docs/deployment/` inside the project itself
+1. `docs/engineering/runbook.md` in the repo, its Deploy section
+2. A repo not migrated yet: `docs/deployment/`, or the project's deployment page
+   in the vault
 
-If neither exists, interview the user — one question at a time — and write the
-page before deploying: where it is hosted, how it builds, how it ships (git push,
+If none exists, interview the user — one question at a time — and write
+`docs/engineering/runbook.md` before deploying (its six sections are in
+`rollback-runbook`): where it is hosted, how it builds, how it ships (git push,
 FTP, a control panel, wrangler), the domain and DNS, and what to check afterwards.
 A deploy with no written runbook is how the mistake gets in.
 
@@ -52,20 +56,21 @@ The minimum, even when the runbook does not list it:
 
 ### 5. Record the release
 
-Append a row on the vault's deployment page:
+Where a merge deploys, the squash commits on `main` are the release record;
+append nothing. Otherwise append a row to a `## Releases` table in the runbook:
 
 ```
 | 2026-07-08 | <short commit sha> | <what changed, in one sentence> |
 ```
 
-Create the `## Releases` table if it is missing, and bump `updated:` in the
-frontmatter.
+Create the table if it is missing. Bump `updated:` only on a vault page; docs in
+the repo carry no such field, because git already knows.
 
 ## Which project, and where its runbook is
 
-Each project has its own runbook under `wiki/Projetos/<name>/deployment/` in the
-vault. Resolve the name through the map in `~/.claude/projects-map.md` — a machine
-file outside this repo, the same one `project-sync` reads. For a project that is
+Each project's runbook lives in its repo. Resolve the project's name to its repo
+path through the map in `~/.claude/projects-map.md` — a machine file outside this
+repo. For a project that is
 not there, ask for the host and the path, and offer to append the line.
 
 Never write a client project's name here: this repository is public, and a table

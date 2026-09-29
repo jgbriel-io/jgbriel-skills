@@ -1,6 +1,6 @@
 ---
 name: project-planner
-description: Scaffolds a project's wiki pages in wiki/Projetos/ — index.md with frontmatter, subpage stubs and ADRs — from a direction that is already settled, collecting any missing field first. Use when user says "documenta esse projeto", "cria página do projeto X", "novo projeto no wiki", or wants a project recorded in the vault. Thinking the idea through before it gets written is `discuss`; this is Phase 1 of project-kickoff; for projects with existing docs/ on disk use project-sync.
+description: Scaffolds a project's wiki pages in wiki/Projetos/ — index.md with frontmatter, subpage stubs and ADRs — from a direction that is already settled, collecting any missing field first. Use when user says "documenta esse projeto", "cria página do projeto X", "novo projeto no wiki", or wants a project recorded in the vault. Thinking the idea through before it gets written is `discuss`; this is Phase 1 of project-kickoff; a project whose repo already has docs/ gets only an index.md and a junction to them (project-kickoff phase 5).
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 disable-model-invocation: true
 ---
@@ -16,7 +16,8 @@ Interview the user about a new project and create its wiki pages under
 - The user wants the wiki structure for a project nobody has written up yet
 - The user says "vamos planejar X", "tenho ideia de Y", "cria projeto Z no wiki"
 
-Not for a project that already has `docs/` on disk — that is `project-sync`.
+Not for a project that already has `docs/` in its repo: its vault folder is an
+`index.md` plus a junction to that `docs/`, never pages copied from it.
 
 ---
 
@@ -59,8 +60,8 @@ turn. An idea still too raw to become a page goes to `discuss` first.
 5. **Subpages** — propose the ones that make sense and confirm.
 6. **Docs or repo on disk?** — ask only when it looks like a project already
    underway. If a folder exists (or is planned) in the projects folder on disk,
-   record the path in the frontmatter's `sources:` — that is what `project-sync`
-   reads later.
+   record the path in the frontmatter's `sources:`. Once the repo has `docs/`,
+   the vault reaches it through a junction instead of these stubs.
 7. **Out of scope (v1)** — what the project will NOT do in its first version.
    Suggest two or three candidates from the goal (integrations, mobile, an admin
    panel, multi-tenancy) and confirm. This is a required deliverable of
@@ -116,7 +117,7 @@ Criado:
 
 Próximos passos:
 - Preencher seções marcadas com > [!gap]
-- Se tiver docs no disco, rodar project-sync pra enriquecer
+- Quando o repo tiver `docs/`, ligar a pasta do vault a ele por junction
 - [if it did not come from a brief] Fechar a direção: /discuss · ou pressionar o que já existe: /grill-me
 - Fluxo completo (spec → design → implementação): project-kickoff — esta skill foi a Fase 1
 ```

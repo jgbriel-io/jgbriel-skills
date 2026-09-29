@@ -124,10 +124,9 @@ Create a `## Design system` section in the spec, or its own file:
 **Goal:** build on a solid foundation, one feature at a time.
 
 ### 4.1 Scaffold, with quality gates from day one
-```bash
-# scaffold the project (Next, Astro, etc.), then:
-```
-Invoke `/setup-pre-commit` — lint, type-check and tests on pre-commit. Not later.
+Invoke `/stack-scaffold`. It wires in the hooks (lint-staged and typecheck on
+pre-commit, the full test run on pre-push), CI, docs and agent config from the
+first commit. Not later.
 
 ### 4.2 Order of work
 1. **Database schema first.** Migrations change and break everything downstream,
@@ -139,14 +138,15 @@ Invoke `/setup-pre-commit` — lint, type-check and tests on pre-commit. Not lat
 4. **Edge cases last.** A working MVP beats rare cases handled early.
 
 ### 4.3 Skills during implementation
-- `/supabase-hooks` — Supabase/TanStack hooks, mutations, queries
-- `/supabase-postgres` — schema, RLS, indexes, migrations
+- `/tanstack-query-patterns` — hooks, mutations, queries (`/supabase-hooks` when the project deviates to Supabase)
+- `/postgres-conventions` — schema, indexes (`/supabase-postgres` on Supabase)
+- `/safe-migrations` — migrations that only add or widen
 - `/react-best-practices` — performance, bundle, re-renders
 - `/tdd` — when a feature carries real logic
 
 **Phase 4 deliverables:**
 - The project running locally
-- Pre-commit configured
+- Hooks and CI configured
 - The database schema in versioned migrations
 
 ---
@@ -155,10 +155,17 @@ Invoke `/setup-pre-commit` — lint, type-check and tests on pre-commit. Not lat
 
 **Goal:** keep the wiki in sync with the real code.
 
-- Invoke `/project-sync` whenever the project's `docs/` changes.
+- Once the repo exists, its `docs/` is the only source. The vault folder keeps
+  `index.md` plus a `docs/` junction to the repo's `docs/` (Windows:
+  `mklink /J`), never copied pages, so there is nothing to sync and nothing to
+  drift. Never `rm -rf` the junction: it deletes the target.
+- Exclude the junction from any vault linter's auto-fix when you create it
+  (claude-obsidian: `ignore.paths` in `.vault-meta/lint-config.json`). A vault
+  lint fix would otherwise write into the repo.
 - Move `status:` in the index frontmatter along as the project matures
   (`seed` → `developing` → `evergreen`).
-- Record non-obvious architectural decisions in the wiki — why X became Y.
+- Record non-obvious architectural decisions in the repo's `docs/decisions/` —
+  why X became Y (see `domain-modeling`).
 
 ---
 
@@ -183,12 +190,12 @@ Phase 3 — Design
   [ ] Design tokens documented
 
 Phase 4 — Implementation
-  [ ] /setup-pre-commit configured
+  [ ] /stack-scaffold run, hooks and CI green
   [ ] Schema settled before any query
   [ ] Feature by feature, end to end
 
 Phase 5 — Maintenance
-  [ ] /project-sync in place
+  [ ] vault docs/ junction to the repo in place
   [ ] status: current in the wiki
 ```
 
@@ -207,6 +214,6 @@ Phase 5 — Maintenance
 
 - A one-day or throwaway project → skip phases 3 and 5
 - A project with no UI → skip phase 3
-- A project that already has docs on disk → replace phase 1 with `/project-sync`
-- Refactoring something that exists → start at phase 4, and use `/project-sync` to
-  bring the wiki up to date
+- A project that already has docs in its repo → replace phase 1 with the vault
+  `index.md` and the `docs/` junction (phase 5)
+- Refactoring something that exists → start at phase 4

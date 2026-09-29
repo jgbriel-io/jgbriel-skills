@@ -27,6 +27,22 @@ rate.
 
 ## Reverting the code deploy
 
+When a merge to `main` deploys production through the host's git integration,
+the host decides the first move:
+
+| Host | First move | Then |
+|---|---|---|
+| Keeps versions (Cloudflare Workers and Pages, Vercel, Netlify) | Instant rollback to the previous version: `wrangler rollback` on Workers, the dashboard on Pages and the others | `git revert` of the PR's squash commit on `main`, right away |
+| Deploys from git with no versions (Hostinger and similar) | `git revert` on `main`; the host redeploys in about a minute | — |
+
+- **Roll back first on a versioned host**, because a deploy writing wrong data
+  keeps writing through a full rebuild.
+- **Revert on `main` right after.** Until the revert lands, production differs
+  from `main`, and any merge in that window re-deploys the bad code. Freeze
+  merges until it lands.
+
+On platforms you run yourself, the same move has other shapes:
+
 | Strategy | How it reverts | Speed | Note |
 |---|---|---|---|
 | Blue-green | Switch routing back to the old environment, which is still up | Seconds | Requires keeping both environments alive — double cost during the window |
@@ -36,9 +52,10 @@ rate.
 
 Principles that hold for any tool:
 
-- A code rollback reapplies an already-validated artifact. It is never "git revert,
-  rebuild, redeploy" under pressure. If rollback depends on a build, the pipeline
-  is wrong.
+- Where the platform keeps artifacts, a rollback reapplies an already-validated
+  one instead of rebuilding under pressure. Where it deploys from git with no
+  versions, `git revert` on `main` is the rollback, and a fast host deploy is
+  what keeps it short.
 - Revert to the last known-good version, not to "some earlier one". Confirm which
   deploy was healthy before reverting.
 - Rollback changes the running code, not the database schema. The two are
@@ -70,12 +87,15 @@ things worse:
 
 - If the migration followed expand-contract (see `safe-migrations`), the schema
   never needed reverting: old and new code coexist on the same schema throughout.
-  A code rollback alone resolves it.
+  A code rollback alone resolves it. That is also why a host warning that an
+  older version may fail once the data's structure changed does not bite.
 - `DROP COLUMN` and `DROP TABLE` have no undo. Deleted data does not return without
   a restore (see `backup-restore`). "Reverting the migration" there means a
   restore, not `migrate down`.
-- Running `down` on a migration whose `up` already ran in production, with real
-  data written afterwards, corrupts or loses data that did not exist when `up` ran.
+- There are no `down` migrations to run. A `down` on a migration whose `up`
+  already ran in production, with real data written afterwards, corrupts or loses
+  data that did not exist when `up` ran. A bad migration is fixed forward, or the
+  database is restored.
 - With a migration's lock still held, cancelling the query is safer than trying to
   revert halfway.
 
@@ -88,6 +108,22 @@ In practice:
 - If a destructive migration already ran without expand-contract, that is the root
   cause to address after the incident (see `incident-postmortem`). No destructive
   migration should reach production outside the phased pattern.
+
+## The runbook file
+
+Every production repo keeps `docs/engineering/runbook.md`, with the accepted
+data-loss window at the top and these sections:
+
+| Section | Holds |
+|---|---|
+| Deploy | What happens on merge, where build and runtime logs are, where migrations run |
+| Rollback | The host's first move and the revert on `main` |
+| Restore | Throwaway database first, the deletion re-apply step, then production (see `backup-restore`) |
+| Credential rotation | Every credential the project holds, and how to rotate each |
+| Smoke test | What to check after a deploy or a restore |
+| Incident | The client's contact, and the 24-hour rule for a suspected personal-data incident (see `lgpd-checklist`) |
+
+A runbook written during the incident is written too late.
 
 ## Communication during the incident
 
@@ -104,7 +140,8 @@ In practice:
 
 - [ ] The last healthy deploy identified before reverting, not "some earlier version"
 - [ ] Checked whether the change sits behind a flag before choosing a full rollback
-- [ ] Code rollback done by reapplying a tested artifact, with no rebuild
+- [ ] On a versioned host, the instant rollback first; the revert on `main` right after
+- [ ] Merges frozen until `main` matches what production runs
 - [ ] Verified whether the production migration followed expand-contract; if so, a code rollback suffices and the schema stays untouched
 - [ ] Where a destructive migration already ran, a backup confirmed before any schema action
 - [ ] Incident declared and the action announced before execution
@@ -114,7 +151,7 @@ In practice:
 
 ## Anti-patterns
 
-- ❌ A rollback that depends on building under pressure — if it is not reapplying a ready artifact, it is not a fast rollback
+- ❌ Rolling back on the host and never reverting on `main`, so the next merge re-deploys the bug
 - ❌ Running `migrate down` in production without checking whether new data was written after the `up`
 - ❌ Reverting a whole deploy when turning off a feature flag would take seconds
 - ❌ A destructive migration shipped without expand-contract, forcing a schema rollback mid-incident
@@ -130,10 +167,13 @@ rebuild:
 vercel rollback <deployment-url-or-id>
 ```
 
-**Cloudflare Pages/Workers** — revert to an earlier deployment from the dashboard,
-or republish the previous version through wrangler (see the `wrangler` skill):
+**Cloudflare Workers** — roll back to an earlier version through wrangler (the
+last 10 versions; see the `wrangler` skill) or the dashboard, then revert the
+squash commit on `main`. **Pages** rolls back from the dashboard (or its API),
+not wrangler:
 ```bash
-wrangler rollback [deployment-id]
+wrangler rollback [version-id]
+git revert <squash-sha> && git push origin main
 ```
 
 **Kubernetes** — roll the deployment back to its previous revision, reusing the

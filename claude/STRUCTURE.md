@@ -37,7 +37,7 @@ by deleting them and running `node scripts/bootstrap.mjs`.
 Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 
 <!-- inventory:skills:start -->
-**78 skills**, across 12 category folders:
+**77 skills**, across 12 category folders:
 
 <details><summary><code>backend</code> — 6 skills</summary>
 
@@ -81,7 +81,7 @@ Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 
 | Skill | What it is for |
 |---|---|
-| `backup-restore` | Explains backup strategy and restore testing for relational databases — full vs. |
+| `backup-restore` | Explains backup strategy and restore testing for relational databases — the daily encrypted off-provider dump, RPO/RTO,… |
 | `postgres-conventions` | Apply Postgres best practices — schema design, indexes, RLS policies, SQL queries, connection pooling. |
 | `query-performance` | Diagnoses slow SQL queries by reading execution plans and picking the right index strategy — composite, partial, coveri… |
 | `safe-migrations` | Explains zero-downtime schema migrations for relational databases — expand-contract pattern, batch data backfills, lock… |
@@ -93,7 +93,7 @@ Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 
 | Skill | What it is for |
 |---|---|
-| `docs-writing` | Technical documentation style guide for README, docs/, ADRs, JSDoc/TSDoc, and inline code comments. |
+| `docs-writing` | Technical documentation style guide and the docs/ layout — README, the docs/ tree (product, architecture, engineering, … |
 | `estimation` | Applies effort-estimation technique to any deliverable, technical or not — task decomposition, three-point estimation (… |
 | `incident-postmortem` | Runs a blameless incident postmortem — timeline with timestamps, impact, root cause (5 whys), and corrective actions wi… |
 | `proposta-comercial` | Turns a client briefing into a freelance commercial proposal — closed scope (included and excluded), deliverables, sche… |
@@ -107,16 +107,16 @@ Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 
 | Skill | What it is for |
 |---|---|
-| `ci-cd-pipeline` | Defines standard CI/CD pipeline stages (lint, type-check, test, build), dependency caching, running migrations in CI, a… |
+| `ci-cd-pipeline` | Defines the CI jobs (checks, tests, browser, sonar, mutation), where they run (self-hosted runner for private repos, Gi… |
 | `container-conventions` | Defines multi-stage Docker builds, minimal base images, non-root users, .dockerignore, layer cache ordering, and docker… |
-| `environment-config` | Environment-based configuration conventions — .env.example, startup-time env validation (fail fast, not mid-request), a… |
+| `environment-config` | Environment-based configuration conventions — .env.example, startup-time env validation (fail fast, not mid-request; t3… |
 | `error-tracking` | Apply production error tracking patterns — unhandled exception capture, contextual metadata, release/version tagging, t… |
 | `health-checks-metrics` | Apply health check (readiness vs. |
-| `project-deploy` | Deploys a project by following the runbook documented in the vault — a step-by-step checklist, confirmation before anyt… |
+| `project-deploy` | Deploys a project by following its runbook (docs/engineering/runbook.md in the repo) — a step-by-step checklist, confir… |
 | `resolving-merge-conflicts` | Resolves the conflicts of a merge or rebase already in progress — reads the original intent of each side before choosin… |
 | `rollback-runbook` | Defines a deploy-tool-agnostic rollback runbook — reverting a code deploy (blue-green/canary/previous artifact), why re… |
-| `setup-pre-commit` | Set up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. |
-| `stack-scaffold` | Scaffold a new project with the user's standard stack — React 18 + TypeScript + Tailwind + shadcn/ui, on Vite + Supabas… |
+| `setup-pre-commit` | Set up a repo's git hooks with Husky — lint-staged running Oxlint and Oxfmt plus a typecheck on pre-commit, the full te… |
+| `stack-scaffold` | Scaffold a new project on the user's default stack — a system (Bun + Turborepo, Next 16 on Cloudflare via OpenNext, an … |
 | `structured-logging` | Apply structured (JSON) logging practices — log levels, request/tenant correlation IDs, context propagation, and what m… |
 
 </details>
@@ -150,8 +150,8 @@ Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 | Skill | What it is for |
 |---|---|
 | `code-reviewer` | Stack-specific review checklist for React + TanStack Query + Supabase multi-tenant apps — hook architecture, RLS/tenant… |
-| `e2e-testing` | Guides writing reliable end-to-end tests — programmatic auth fixtures instead of UI login, per-run data isolation, acce… |
-| `integration-testing` | Guides writing integration tests against real dependencies — disposable containers for database/services instead of moc… |
+| `e2e-testing` | Guides writing reliable browser tests (Playwright, `.browser.ts`) — one spec per screen with an axe accessibility floor… |
+| `integration-testing` | Guides writing integration and API end-to-end tests against real dependencies — a disposable database instead of mocks … |
 | `tdd` | The red-green-refactor loop and what makes a test survive a refactor — behavior through the public interface, the seam … |
 
 </details>
@@ -179,14 +179,13 @@ Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 | `tcc-revisao-impessoal` | Final sweep of a TCC chapter looking for first person, academic clichés, informality, weak vocabulary, orphan citations… |
 
 </details>
-<details><summary><code>vault</code> — 4 skills</summary>
+<details><summary><code>vault</code> — 3 skills</summary>
 
 | Skill | What it is for |
 |---|---|
 | `obsidian-vault` | Creates, searches and links notes in the personal Obsidian vault following the wiki conventions — folder structure, wik… |
 | `project-kickoff` | Orchestrates a project from scratch — idea to spec, design system and implementation plan — invoking each phase's skill… |
 | `project-planner` | Scaffolds a project's wiki pages in wiki/Projetos/ — index.md with frontmatter, subpage stubs and ADRs — from a directi… |
-| `project-sync` | Reads a project's `docs/` folder and creates or updates its pages under `wiki/Projetos/` in the Obsidian vault, mirrori… |
 
 </details>
 <!-- inventory:skills:end -->

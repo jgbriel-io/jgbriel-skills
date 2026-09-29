@@ -1,6 +1,6 @@
 ---
 name: domain-modeling
-description: Build and sharpen a project's domain model and ubiquitous language. Use when the user wants to pin down domain terminology, mentions "domain model", "ubiquitous language" or "CONTEXT.md", wants to record an architectural decision, asks to "grill with docs" or stress-test a plan against the documented domain model, or when another skill needs to maintain the domain model.
+description: Build and sharpen a project's domain model and ubiquitous language. Use when the user wants to pin down domain terminology, mentions "domain model", "ubiquitous language" or "CONTEXT.md", wants to record an architectural decision or ADR, asks to "grill with docs" or stress-test a plan against the documented domain model, or when another skill needs to maintain the domain model.
 ---
 
 # Domain Modeling
@@ -12,32 +12,31 @@ Actively build and sharpen the project's domain model as you design. This is the
 Most repos have a single context:
 
 ```
-/
-├── CONTEXT.md
-├── docs/
-│   └── adr/
-│       ├── 0001-event-sourced-orders.md
-│       └── 0002-postgres-for-write-model.md
-└── src/
+docs/
+├── product/
+│   └── CONTEXT.md
+└── decisions/
+    ├── README.md                     ← index, one row per decision
+    ├── 0001-event-sourced-orders.md
+    └── 0002-postgres-for-write-model.md
 ```
 
-If a `CONTEXT-MAP.md` exists at the root, the repo has multiple contexts. The map points to where each one lives:
+If `docs/product/CONTEXT-MAP.md` exists, the repo has multiple contexts. The map points to where each one lives:
 
 ```
-/
-├── CONTEXT-MAP.md
-├── docs/
-│   └── adr/                          ← system-wide decisions
-├── src/
-│   ├── ordering/
-│   │   ├── CONTEXT.md
-│   │   └── docs/adr/                 ← context-specific decisions
-│   └── billing/
-│       ├── CONTEXT.md
-│       └── docs/adr/
+docs/
+├── product/
+│   ├── CONTEXT-MAP.md
+│   ├── ordering/CONTEXT.md
+│   └── billing/CONTEXT.md
+└── decisions/                        ← one log for the whole repo
 ```
 
-Create files lazily — only when you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `docs/adr/` exists, create it when the first ADR is needed.
+Glossaries and decisions live in `docs/`, not beside the code: agents, code search and every clone read the documentation there, and a single decision log keeps the numbering contiguous.
+
+A repo not yet on this layout may have a root `CONTEXT.md` or `docs/adr/`. Use what exists; moving files is the repo's migration, not a side effect of this skill.
+
+Create files lazily — only when you have something to write. If no `CONTEXT.md` exists, create one when the first term is resolved. If no `docs/decisions/` exists, create it when the first decision is needed.
 
 ## During the session
 
@@ -63,15 +62,15 @@ When a term is resolved, update `CONTEXT.md` right there. Don't batch these up �
 
 `CONTEXT.md` should be totally devoid of implementation details. Do not treat `CONTEXT.md` as a spec, a scratch pad, or a repository for implementation decisions. It is a glossary and nothing else.
 
-### Offer ADRs sparingly
+### Offer decisions sparingly
 
-Only offer to create an ADR when all three are true:
+Only offer to record a decision when all three are true:
 
 1. **Hard to reverse** — the cost of changing your mind later is meaningful
 2. **Surprising without context** — a future reader will wonder "why did they do it this way?"
 3. **The result of a real trade-off** — there were genuine alternatives and you picked one for specific reasons
 
-If any of the three is missing, skip the ADR. Use the format in [ADR-FORMAT.md](./ADR-FORMAT.md).
+If any of the three is missing, skip it. Use the format in [ADR-FORMAT.md](./ADR-FORMAT.md).
 
 ## Grill with docs (plan stress-test mode)
 
@@ -80,5 +79,5 @@ When the user wants a plan stress-tested against the documented domain model ("g
 - Interview the user relentlessly about every aspect of the plan until you reach shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
 - For each question, provide your recommended answer.
 - Ask the questions one at a time, waiting for feedback on each question before continuing.
-- If a question can be answered by exploring the codebase, explore the codebase instead. During exploration, also look for existing documentation (`CONTEXT.md`, `CONTEXT-MAP.md`, `docs/adr/`) and ground the grill-me in it.
-- All the disciplines above apply during the session: challenge against the glossary, sharpen fuzzy language, discuss concrete scenarios, cross-reference with code, update `CONTEXT.md` inline, offer ADRs sparingly.
+- If a question can be answered by exploring the codebase, explore the codebase instead. During exploration, also look for existing documentation (`docs/product/CONTEXT.md`, `CONTEXT-MAP.md`, `docs/decisions/`) and ground the grill-me in it.
+- All the disciplines above apply during the session: challenge against the glossary, sharpen fuzzy language, discuss concrete scenarios, cross-reference with code, update `CONTEXT.md` inline, offer decisions sparingly.

@@ -13,7 +13,11 @@ Liquibase, Prisma, Alembic, ActiveRecord, goose, EF Core.
 ## Expand-Contract (Parallel Change)
 
 Every destructive migration — rename, drop, type change, a new `NOT NULL` — takes
-three deploys, never one:
+at least two PRs, never one. A migration only adds or widens; whatever removes or
+narrows ships later, once no deployed code uses the old shape. Expand and the
+code that dual-writes can share a PR, because the production deploy runs the
+migration before the new code goes live; a backfill that must finish before the
+new code reads is its own step:
 
 1. **Expand** — add the new thing without touching the old one. Old and new code
    coexist.
@@ -98,14 +102,30 @@ Rules:
   checkpoint so it can resume if it dies halfway.
 - Watch replica or CDC lag while it runs.
 
-## Reversibility
+## Reversibility: forward only
 
-- Every migration has an `up` and a `down`, even when the `down` is "documented,
-  not fully executable" — data removed by `DROP COLUMN` does not come back.
-- Rolling back code is fast; rolling back schema is slow and risky. That is why
-  expand-contract exists: the schema never has to be reverted mid-deploy.
+- **No `down` migrations.** A bad migration is fixed forward, or the database is
+  restored (see `backup-restore`). A `down` run after real data was written
+  loses that data, and data removed by `DROP COLUMN` does not come back anyway.
+- Rolling back code never rolls back the database. Expand-contract is what keeps
+  a code rollback safe at any moment: every migration keeps the previous release
+  working.
 - Take a backup or snapshot before any `DROP COLUMN` or `DROP TABLE` in
   production.
+
+## Where migrations run
+
+- **Only the production deploy applies migrations to production**, before the
+  new code goes live, with a credential only the host holds. CI applies them to
+  its own throwaway container; previews never apply them.
+- On a host that builds branches too (Cloudflare Workers Builds), the migration
+  belongs to the production **deploy** command, never the **build** command,
+  which also runs for every preview:
+  `bun run db:migrate && npx wrangler deploy`.
+- On a host that runs the app from a boot command, migrate at boot, before the
+  server listens.
+- An unmerged migration is never applied to a shared dev/hml database: a
+  schema-changing PR would change it before anyone approved it.
 
 ## Checklist
 
@@ -114,7 +134,8 @@ Rules:
 - [ ] New index created with the concurrent/online variant
 - [ ] Backfill batched, outside the migration transaction, idempotent
 - [ ] `lock_timeout` and `statement_timeout` set in the migration
-- [ ] Tested against a production dump or copy at real volume, not an empty dev database
+- [ ] Tested at realistic volume — synthetic data generated to production scale, not an empty dev database. A copy of production outside production is personal data outside its protection
+- [ ] Applied only by the production deploy; never by CI against a shared database, never by a preview build
 - [ ] Old and new code both exercised against the post-migration schema
 - [ ] Backup taken before any destructive operation
 
@@ -124,11 +145,16 @@ Rules:
 - ❌ `ALTER TABLE ... ADD COLUMN ... NOT NULL` straight onto a table with data
 - ❌ `CREATE INDEX` without the concurrent variant on a large production table
 - ❌ Backfilling millions of rows in a single transaction
-- ❌ A migration with no `down` and no documented rollback strategy
-- ❌ Running a migration by hand in production, outside the versioned pipeline
+- ❌ Writing and running a `down` migration in production instead of fixing forward
+- ❌ Running a migration by hand in production, outside the production deploy
+- ❌ A migration in the build command, so every preview build applies it
 - ❌ Testing only against an empty dev database, never at production volume
 
 ## By stack
+
+**Drizzle** — `drizzle-kit generate`, then edit the generated SQL to follow
+expand-contract before committing it; `drizzle-kit migrate` (behind the repo's
+`db:migrate` script) runs in the production deploy command.
 
 **Supabase CLI** — `supabase migration new add_total_amount`, then edit the
 generated SQL to follow expand-contract. The backfill is a separate script, never
@@ -152,7 +178,7 @@ def upgrade():
     # backfill here only for a small table; otherwise a separate batched job
 
 def downgrade():
-    op.drop_column('orders', 'total_amount')
+    raise NotImplementedError("forward-only: fix forward or restore")
 ```
 
 **Flyway/Liquibase (Java) and Rails ActiveRecord** follow the same shape — one

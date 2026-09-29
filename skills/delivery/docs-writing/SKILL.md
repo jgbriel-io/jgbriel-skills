@@ -1,6 +1,6 @@
 ---
 name: docs-writing
-description: Technical documentation style guide for README, docs/, ADRs, JSDoc/TSDoc, and inline code comments. Use when writing or reviewing technical documentation, READMEs, API docs, architecture decision records, or any non-academic prose in the codebase. Does NOT apply to the TCC's academic prose, which has its own voice and norms — that is tcc-rascunho for drafting and tcc-revisao-impessoal for the final pass.
+description: Technical documentation style guide and the docs/ layout — README, the docs/ tree (product, architecture, engineering, decisions, specs, plans, handoffs), frontmatter, decision records, JSDoc/TSDoc and code comments. Use when writing or reviewing technical documentation, READMEs, API docs, decision records/ADRs, AGENTS.md, where a doc should live in docs/, or any non-academic prose in the codebase. Does NOT apply to the TCC's academic prose, which has its own voice and norms — that is tcc-rascunho for drafting and tcc-revisao-impessoal for the final pass.
 ---
 
 # Technical Documentation Style
@@ -100,6 +100,8 @@ None of these is mandatory. Cut what adds nothing.
 
   [supabase-docs]: https://supabase.com/docs
   ```
+- Between docs, relative paths (`../decisions/0012-slug.md`), never wikilinks:
+  they resolve on GitHub, in a notes app and for agents alike.
 - Descriptive link text, never "click here":
   - ✅ `See the [migration guide](./MIGRATION.md)`
   - ❌ `See [here](./MIGRATION.md)`
@@ -118,13 +120,16 @@ a table when the second adds information rather than restating the first.
 
 ## Code comments
 
-- The **why**, never the **what**. Well-named code already says what.
+- **Zero by default.** Better names and structure first; a comment explaining
+  unclear code is the second-best fix for it.
+- The one exception: an algorithm still not self-explanatory after that
+  (non-obvious math, bit tricks, a gnarly regex). One line.
+- A workaround, a design rationale or "why this approach" goes in the commit
+  body or a decision, never in a comment, which rots silently when the code
+  under it changes.
   - ❌ `// increment the counter`
-  - ✅ `// Daily reset at 00:00 BRT, not UTC — HR policy`
-- One line. If it needs more, it belongs in a document.
-- No obvious comments (`// imports`, `// helper functions`).
-- TODO/FIXME with context and an owner:
-  `// TODO(joao): expire the token after 24h, pending RFC validation`.
+  - ❌ `// Daily reset at 00:00 BRT, not UTC — HR policy` → a decision in `docs/decisions/`
+- A TODO is a comment too; the follow-up goes in an issue.
 
 ## JSDoc / TSDoc
 
@@ -140,82 +145,41 @@ a table when the second adds information rather than restating the first.
    */
   ```
 
-## ADRs (Architecture Decision Records)
+## Decisions
 
-Write one when:
-- The architectural decision is not obvious — a library, a pattern, infrastructure.
-- There is an explicit trade-off someone may question later.
+Record one when the choice is not obvious (a library, a pattern, infrastructure)
+or carries a trade-off someone will question later. Files are
+`docs/decisions/NNNN-slug.md`, numbered contiguously, listed one row each in
+`docs/decisions/README.md`:
 
-Minimum template (`docs/adr/NNNN-title.md`):
 ```md
-# NNNN. Decision title
-
-Status: accepted | superseded by XXXX | deprecated
-Date: YYYY-MM-DD
+---
+type: decision
+status: accepted
+number: 12
+date: 2026-09-27
+superseded_by:
+---
+# 0012 Clerk for auth
 
 ## Context
-The problem that motivated the decision.
-
 ## Decision
-What was decided.
-
 ## Consequences
-Good, bad, and the risks accepted.
-
-## Alternatives considered
-Why they were rejected.
+## Rejected alternatives
 ```
+
+- A decision is recorded only when every doc it contradicts is updated in the
+  same commit; otherwise the docs disagree with the log from day one.
+- Superseded, never rewritten: the old file gets `status: superseded` and
+  `superseded_by`, the new one explains what changed.
 
 ## The `docs/` folder
 
-The standard tree by tier, the index with its status table, and the shape of each
-file live in [references/docs-tree.md](references/docs-tree.md). Tier 1 applies to
-every project; the rest arrive when the project justifies them.
-
-## Sprint documentation
-
-### Naming
-
-```
-sprint-NN-type-description-kebab.md
-```
-
-- `NN` — zero-padded: `01`, `12`
-- `type` — `mvp` | `refactor` | `fix`
-- Unimplemented ones: `sprint-NN-type-description-NAO-IMPLEMENTADA.md`
-
-### Required sections
-
-| Section | Content |
-|---------|---------|
-| **Problem Statement** | Current state, symptoms, impact, quantified |
-| **Requirements** | Functional, non-functional, acceptance criteria, out of scope |
-| **Background** | Stack involved, relevant architecture, project patterns, affected files |
-| **Proposed Solution** | Approach, folder structure, patterns, why this one |
-| **Task Breakdown** | Tasks with goal, implementation, affected files, test, demo |
-| **Implementation Details** | Tables by category: migrations, components, hooks |
-| **Files Created** | File tree with a brief description |
-| **Files Modified** | `path` — what changed and why |
-| **Testing & Validation** | Checklist: build, type-check, lint, tests, manual test |
-| **Results & Impact** | Quantitative metrics plus qualitative improvements |
-| **Technical Debt** | Identified but unresolved, with the reason |
-| **Lessons Learned** | What worked, what to improve, where it applies next |
-| **Next Steps** | Following actions and the suggested next sprint |
-| **References** | Links to issues, PRs, ADRs, related docs |
-
-### `sprints/README.md`
-
-The status table is mandatory:
-
-```md
-| Sprint | Period | Focus | Status | File |
-|--------|--------|-------|--------|------|
-| Sprint 1 | DD–DD month YYYY | Description | ✅ Implemented | [sprint-01](./sprint-01-...) |
-| Sprint N | — | Description | ❌ Not implemented | [sprint-N](./sprint-N-...) |
-```
-
-Sections: history by type (MVP / Refactor / Fix), then Not Implemented, then
-References.
+The tree, what each folder answers, naming, frontmatter, lifecycle rules and
+`AGENTS.md` live in [references/docs-tree.md](references/docs-tree.md). Work to
+build next is a spec in `docs/specs/`, its execution a plan in `docs/plans/`
+with the same number, and a session's stopping point a handoff in
+`docs/handoffs/` — no sprint files.
 
 ## Anti-patterns
 

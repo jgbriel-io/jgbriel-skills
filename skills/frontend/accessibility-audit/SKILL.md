@@ -34,7 +34,7 @@ test('automated a11y', async () => {
 
 | Layer | What it catches | When it runs |
 |---|---|---|
-| Linter (`eslint-plugin-jsx-a11y`, `eslint-plugin-vuejs-accessibility`) | Obvious source-level mistakes, before anything runs | Editor and pre-commit |
+| Linter (Oxlint's `jsx-a11y` plugin; `eslint-plugin-vuejs-accessibility` in Vue) | Obvious source-level mistakes, before anything runs | Editor and pre-commit |
 | axe-core/Lighthouse in CI | Mechanically detectable WCAG violations | Every PR, against the rendered component or page |
 | Manual (keyboard plus screen reader) | Focus order, meaningful alternative text, comprehensible announcements | Critical flows, before merge or release |
 
@@ -167,7 +167,7 @@ Interface strings stay in Portuguese, because the product's users read them.
 
 ## By stack
 
-**React** — automated testing with jest-axe:
+**React** — `jsx-a11y` in `.oxlintrc.json` `plugins` (see `setup-pre-commit`), plus jest-axe in component tests:
 ```tsx
 import { axe, toHaveNoViolations } from 'jest-axe';
 expect.extend(toHaveNoViolations);
@@ -197,12 +197,15 @@ trap.focusInitialElement();
 ```ts
 import AxeBuilder from '@axe-core/playwright';
 
-test('the home page is accessible', async ({ page }) => {
+test('the home page has no serious accessibility violations', async ({ page }) => {
   await page.goto('/');
-  const results = await new AxeBuilder({ page }).analyze();
-  expect(results.violations).toEqual([]);
+  const { violations } = await new AxeBuilder({ page }).analyze();
+  expect(violations.filter((v) => v.impact === 'serious' || v.impact === 'critical')).toEqual([]);
 });
 ```
+
+Every screen's browser spec runs this, and the floor is zero serious or critical
+violations (see `e2e-testing`).
 
 ## Anti-patterns
 
