@@ -231,6 +231,14 @@ everything before it at the new higher rate.
 
 - At the break reminder (now 60 min interval / 90 min threshold), actually stop:
   run `/handoff` to checkpoint, then `/clear`. Don't dismiss it.
+- **A new task ends the session.** A new task is a request that does not use the
+  context already loaded. When one arrives, say so in one line and offer `/clear`
+  before starting; offer `/handoff` first only when something is still in flight.
+  If the user declines, carry on — this is an offer, never a refusal. Re-measured
+  2026-10-05 over 320 sessions: the 127 over 150 turns held 79% of `cache_read`,
+  and most were many unrelated requests piling up (median 19 prompts each). A
+  single long task (one prompt past 150 turns: 12 sessions, 15%) is not cut by
+  this rule; push its exploration into subagents instead.
 - Prefer several scoped sessions over one long one. A 300-turn session costs
   ~212k/turn; a 1000+ turn session costs ~498k/turn.
 - Keep bulk tool output out of the conversation — that is what inflates the
@@ -364,7 +372,11 @@ not listed here: this repo is public and those repos are not. The live list live
 
 ---
 
-_Last revised: 2026-09-27 — §3: two subagent rules, report file written first and security findings
+_Last revised: 2026-10-05 — §11a: a new task ends the session, offered as `/clear` (plus `/handoff`
+only when work is in flight), with no turn cap. Prompted by re-measuring session cost: long sessions
+are mostly unrelated requests piling up, not one long task._
+
+_Previously revised: 2026-09-27 — §3: two subagent rules, report file written first and security findings
 confirmed with git before being repeated. Prompted by a fan-out where two subagents died on the rate
 limit leaving nothing, and one reported a committed secret that was gitignored and in no commit._
 

@@ -10,10 +10,19 @@ technical or procedural — not to find someone to blame. The same structure ser
 an outage, a critical production bug, an operational mistake or a late delivery:
 the incident changes, the structure does not.
 
-Where the vault is available, the finished document goes under
-`wiki/Projects/<category>/<project>/docs/`, or `wiki/Clients/Direct|Partners/<client>/` when
-the incident belongs to a client project. During the incident itself the skill is
-`rollback-runbook`; this one starts once it is resolved.
+The finished document lives in the vault only, never in a repo — a client's repo
+is permanent and the client reads it. Where it goes depends on what failed:
+
+| Incident | Vault location |
+|---|---|
+| Technical, in a product | the project's vault folder, next to its `index.md` and outside its `docs/` junction |
+| Not technical (delivery, client relationship) | the client's folder under `wiki/Clients/Direct\|Partners/` |
+| Shared infrastructure with no repo | next to that infrastructure's pages |
+
+Name it `YYYY-MM-DD Incident - <slug>.md`. Each corrective action that changes a
+repo becomes an issue in that repo, linking nothing back to the vault. Without the
+vault mounted, say so and keep the draft in the conversation. During the incident
+itself the skill is `rollback-runbook`; this one starts once it is resolved.
 
 ## Blameless, and why
 

@@ -19,11 +19,17 @@ on every other machine, and this skill does nothing useful without the vault
 mounted. Say so and stop, instead of writing notes somewhere else.
 
 Inside it, `WIKI.md` is the real root and is never touched. Everything else lives
-under `wiki/<domain>/`, one folder per domain (learning, clients, college,
-personal, projects, tools).
+under `wiki/<domain>/`. The domains and which content goes where are in the vault's
+own `.claude/CLAUDE.md`, section "Roteamento de conteúdo": find that heading and
+read only that section before writing, and follow its fallback when no row fits.
+It is the single source; no copy of the domain list lives here.
 
 **Never create `.md` files at the vault root.** Every new page goes inside
-`wiki/<domain>/`. If no domain fits, ask the user which one to use.
+`wiki/<domain>/`.
+
+From a session in another repo, write to the vault only when the user asked for
+it in so many words ("salva no vault"). Something worth keeping that came up on
+its own is mentioned, not written.
 
 ## Wikilinks
 
