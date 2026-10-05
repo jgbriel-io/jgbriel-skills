@@ -11,7 +11,7 @@ an outage, a critical production bug, an operational mistake or a late delivery:
 the incident changes, the structure does not.
 
 Where the vault is available, the finished document goes under
-`wiki/Projetos/<project>/`, or `wiki/Clientes/Diretos|Parceiros/<client>/` when
+`wiki/Projects/<category>/<project>/docs/`, or `wiki/Clients/Direct|Partners/<client>/` when
 the incident belongs to a client project. During the incident itself the skill is
 `rollback-runbook`; this one starts once it is resolved.
 

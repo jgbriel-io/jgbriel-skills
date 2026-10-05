@@ -18,7 +18,7 @@ the host's build and verifies the result.
 
 1. `docs/engineering/runbook.md` in the repo, its Deploy section
 2. A repo not migrated yet: `docs/deployment/`, or the project's deployment page
-   in the vault
+   in the vault under `wiki/Projects/<category>/<project>/`
 
 If none exists, interview the user — one question at a time — and write
 `docs/engineering/runbook.md` before deploying (its six sections are in

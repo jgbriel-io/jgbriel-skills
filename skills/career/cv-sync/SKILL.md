@@ -21,7 +21,7 @@ On another machine, say so and stop — there is no useful halfway here.
 | Site (what the download button serves) | `public/resumes/` in the same repo |
 | Personal copy | the documents folder on `D:` |
 | Vault mirror | `wiki/Professional/Currículo.md` |
-| Runbook and releases | the site's deployment page in the vault |
+| Runbook and releases | `docs/deployment/overview.md` in the same repo (the vault's `docs/` junction) |
 
 The repo path itself lives in `~/.claude/projects-map.md`, outside this
 repository. `resumes-src/` sits outside `public/` on purpose: the source is
@@ -94,11 +94,11 @@ minutes, so repeat once before reporting a failure.
 ### 6. Record
 
 - Append a row to the runbook's `## Releases` table:
-  `| YYYY-MM-DD | <short sha> | <one-sentence change> |`. Resolve the page by
-  globbing the vault rather than writing the path from memory: the domain is
-  spelled two ways across the older pages, and a wrong path becomes a ghost page.
+  `| YYYY-MM-DD | <short sha> | <one-sentence change> |`. The runbook is
+  `docs/deployment/overview.md` in the site repo; the vault's `docs/` junction
+  shows that same file, so never write a second copy in the vault.
 - Sync `wiki/Professional/Currículo.md` with the new content.
-- Update the `updated:` frontmatter on both pages.
+- Update the `updated:` frontmatter on the vault page.
 
 ## Quick mode
 
