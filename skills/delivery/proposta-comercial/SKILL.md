@@ -72,7 +72,7 @@ In the order of what blocks the proposal most:
 
 ### 4. Save and review
 
-- Save to `wiki/Clientes/<client>/Proposta - <Project>.md`. Ask where it goes when
+- Save to `wiki/Clients/<Direct|Partners>/<client>/Documents/Proposal <N> - <Project>/Client/Proposta - <Project>.md`. Ask where it goes when
   the client has no folder yet, and never write to the vault root.
 - Read it back with the client's eyes: is there a line they could read as "this is
   included" when it is not? Close that gap.

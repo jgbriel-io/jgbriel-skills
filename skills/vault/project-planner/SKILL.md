@@ -1,6 +1,6 @@
 ---
 name: project-planner
-description: Scaffolds a project's wiki pages in wiki/Projetos/ — index.md with frontmatter, subpage stubs and ADRs — from a direction that is already settled, collecting any missing field first. Use when user says "documenta esse projeto", "cria página do projeto X", "novo projeto no wiki", or wants a project recorded in the vault. Thinking the idea through before it gets written is `discuss`; this is Phase 1 of project-kickoff; a project whose repo already has docs/ gets only an index.md and a junction to them (project-kickoff phase 5).
+description: Scaffolds a project's wiki pages in wiki/Projects/ — index.md with frontmatter, subpage stubs and ADRs — from a direction that is already settled, collecting any missing field first. Use when user says "documenta esse projeto", "cria página do projeto X", "novo projeto no wiki", or wants a project recorded in the vault. Thinking the idea through before it gets written is `discuss`; this is Phase 1 of project-kickoff; a project whose repo already has docs/ gets only an index.md and a junction to them (project-kickoff phase 5).
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 disable-model-invocation: true
 ---
@@ -8,7 +8,7 @@ disable-model-invocation: true
 # project-planner
 
 Interview the user about a new project and create its wiki pages under
-`wiki/Projetos/`, following the vault's conventions.
+`wiki/Projects/<category>/`, following the vault's conventions.
 
 ## When to use
 
@@ -110,9 +110,9 @@ After writing the files, list them:
 
 ```
 Criado:
-- wiki/Projetos/<name>/index.md
-- wiki/Projetos/<name>/architecture/<Name> - Arquitetura.md
-- [if any] wiki/Projetos/<name>/architecture/<Name> - ADR-001-slug.md
+- wiki/Projects/<category>/<name>/index.md
+- wiki/Projects/<category>/<name>/architecture/<Name> - Arquitetura.md
+- [if any] wiki/Projects/<category>/<name>/architecture/<Name> - ADR-001-slug.md
 - ...
 
 Próximos passos:

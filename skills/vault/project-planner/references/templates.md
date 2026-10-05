@@ -1,6 +1,6 @@
 # Templates — index.md and subpages
 
-Path: `wiki/Projetos/<nome>/index.md`
+Path: `wiki/Projects/<category>/<nome>/index.md`
 
 The templates below are written into the user's vault and stay in Portuguese —
 a Brazilian reader consumes them.
@@ -109,7 +109,7 @@ Replace the `## Decisões` table with wikilinks to the ADRs when any was created
 
 ## Step 3 — Create stub subpages
 
-Create only the subpages the user marked as relevant. Path: `wiki/Projetos/<nome>/<secao>/<Nome> - <Seção>.md`
+Create only the subpages the user marked as relevant. Path: `wiki/Projects/<category>/<nome>/<secao>/<Nome> - <Seção>.md`
 
 ### Subpage template
 

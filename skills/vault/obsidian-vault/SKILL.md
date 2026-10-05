@@ -31,7 +31,7 @@ Links **never resolve by alias** in this vault — only by file name or path.
 A link pointing at an alias renders dark and creates an empty ghost file when
 clicked. Therefore:
 
-- Link by path: `[[wiki/Projetos/X/index|Display Text]]` or by exact file name `[[File Name]]`
+- Link by path: `[[wiki/Projects/<category>/X/index|Display Text]]` or by exact file name `[[File Name]]`
 - Frontmatter `aliases:` are for search/identification only, never for linking
 - Inside markdown tables, escape the display pipe: `[[path\|Text]]` — a raw `|`
   splits the cell and breaks both link and table

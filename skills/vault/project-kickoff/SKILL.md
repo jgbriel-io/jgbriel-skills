@@ -23,7 +23,7 @@ design system, schema, scope — are made before any code is written.
      and costs accordingly.
 
 2. Invoke `/project-planner` to turn the brief into the vault pages under
-   `wiki/Projetos/<name>/`.
+   `wiki/Projects/<category>/<name>/`.
    - It takes its fields from the `discuss` brief and asks for whatever is missing.
    - It leaves `index.md` and the subpage stubs in place.
 
@@ -32,7 +32,7 @@ design system, schema, scope — are made before any code is written.
    scope creep out during development.
 
 **Phase 1 deliverables:**
-- A complete `wiki/Projetos/<name>/index.md`
+- A complete `wiki/Projects/<category>/<name>/index.md`
 - Out of scope, documented
 - An idea that has been stress-tested
 
@@ -42,7 +42,7 @@ design system, schema, scope — are made before any code is written.
 
 **Goal:** write down what the system must do, before any code.
 
-Create `wiki/Projetos/<name>/<Name> - Spec.md` covering:
+Create `wiki/Projects/<category>/<name>/<Name> - Spec.md` covering:
 
 ### 2.1 Functional requirements
 The behaviours the system MUST have, as checkboxes:

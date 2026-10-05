@@ -240,7 +240,7 @@ discovered on its own.
 |---|---|
 | `obsidian-vault` | Creates, searches and links notes in the personal Obsidian vault following the wiki conventions — folder structure, wik… |
 | `project-kickoff` | Orchestrates a project from scratch — idea to spec, design system and implementation plan — invoking each phase's skill… |
-| `project-planner` | Scaffolds a project's wiki pages in wiki/Projetos/ — index.md with frontmatter, subpage stubs and ADRs — from a directi… |
+| `project-planner` | Scaffolds a project's wiki pages in wiki/Projects/ — index.md with frontmatter, subpage stubs and ADRs — from a directi… |
 
 </details>
 <!-- inventory:skills:end -->

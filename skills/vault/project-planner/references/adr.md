@@ -4,7 +4,7 @@ One per relevant decision captured in the interview (architecture, monorepo vs
 polyrepo, hosting choice, and so on). Do not create an ADR for a trivial choice
 or one already covered by the plain `## Decisões` table.
 
-Path: `wiki/Projetos/<nome>/architecture/<Nome> - ADR-NNN-slug-da-decisao.md`
+Path: `wiki/Projects/<category>/<nome>/architecture/<Nome> - ADR-NNN-slug-da-decisao.md`
 
 The templates below are written into the user's vault and stay in Portuguese —
 a Brazilian reader consumes them.
