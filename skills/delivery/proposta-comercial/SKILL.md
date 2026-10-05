@@ -1,7 +1,7 @@
 ---
 name: proposta-comercial
-description: Turns a client briefing into a freelance commercial proposal — closed scope (included and excluded), deliverables, schedule, price and conditions. Interviews for whatever is missing, one question at a time, and saves the proposal in the client's vault folder. Use when the user says "faz a proposta pro cliente X", "monta o orçamento", "escopo pro freela", "proposta comercial", or pastes a briefing asking for pricing. It does not produce a legal contract, only the proposal.
-allowed-tools: Read, Write, Edit, Glob, Grep
+description: Turns a client briefing into a freelance commercial proposal — closed scope (included and excluded), deliverables, schedule, price and conditions. Interviews for whatever is missing, one question at a time, saves the proposal in the client's vault folder, and renders it to PDF with Typst. Use when the user says "faz a proposta pro cliente X", "monta o orçamento", "escopo pro freela", "proposta comercial", or pastes a briefing asking for pricing. It does not produce a legal contract, only the proposal.
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # Freelance Proposal
@@ -40,10 +40,17 @@ In the order of what blocks the proposal most:
 
 ### 3. Build the proposal
 
-```markdown
-# Proposta — <Projeto> · <Cliente>
+The title block comes from the frontmatter, so the body starts at `## Contexto`.
 
-**Data:** <YYYY-MM-DD> · **Validade:** <X dias>
+```markdown
+---
+type: document
+title: Proposta — <Projeto>
+subtitle: <Cliente>
+author: João Gabriel
+date: '<dia> de <mês> de <ano> · Validade: <X> dias'
+lang: pt-BR
+---
 
 ## Contexto
 <2-3 frases: o problema do cliente e o que será feito.>
@@ -78,6 +85,24 @@ In the order of what blocks the proposal most:
   included" when it is not? Close that gap.
 - Offer a short version for WhatsApp or email, five to eight lines, if the user
   wants one.
+
+### 5. Render the PDF
+
+Once the user approves the text, render it with Typst through pandoc, using
+`proposal.typ` from this skill's directory. Typst only imports files inside its
+project root, so run from the skill directory and pass the proposal and the PDF
+as absolute paths:
+
+```bash
+cd "<this skill's directory>" && pandoc "<proposal.md>" -o "<same folder>/Proposta - <Project>.pdf" \
+  --pdf-engine=typst --columns=10000 -V template=proposal.typ
+```
+
+`--columns=10000` keeps pandoc from fixing table column widths, which makes a
+short header like "Semana" overlap its neighbour. Needs `pandoc` 3.1+ and
+`typst` on the PATH (`winget install Typst.Typst` on Windows). Render the pages
+to PNG (`pandoc ... -t typst -s -o x.typ`, then `typst compile x.typ "p{p}.png"`)
+and look at them before handing the PDF over.
 
 ## Limits
 
