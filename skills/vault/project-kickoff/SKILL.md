@@ -163,7 +163,7 @@ first commit. Not later.
   (claude-obsidian: `ignore.paths` in `.vault-meta/lint-config.json`). A vault
   lint fix would otherwise write into the repo.
 - Move `status:` in the index frontmatter along as the project matures
-  (`seed` → `developing` → `evergreen`).
+  (`draft` → `current` → `archived`).
 - Record non-obvious architectural decisions in the repo's `docs/decisions/` —
   why X became Y (see `domain-modeling`).
 

@@ -61,16 +61,20 @@ duplicated alias, fix the page that carries the wrong one.
 
 ## New page frontmatter
 
+`type:` and `status:` take only the values listed in the vault's own
+`.claude/CLAUDE.md`, section "Frontmatter obrigatório", which also says which type
+fits which page. Read it before writing; no copy of the lists lives here.
+
 ```yaml
 ---
-type: reference        # or entity, concept
+type: reference
 title: "Page Title"
 aliases:
   - Page Title
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 tags: [domain, topic]
-status: evergreen      # or seedling, budding
+status: current
 related:
   - "[[wiki/<domain>/index|Parent]]"
 ---

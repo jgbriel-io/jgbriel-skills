@@ -11,7 +11,7 @@ a Brazilian reader consumes them.
 
 ```yaml
 ---
-type: reference
+type: decision
 title: "<Nome> — ADR-NNN — <Título curto>"
 created: <YYYY-MM-DD>
 updated: <YYYY-MM-DD>
@@ -19,7 +19,7 @@ tags:
   - project
   - adr
   - <nome-kebab>
-status: <proposta|accepted|rejected|superseded>
+status: <draft|decided|superseded>
 related:
   - "[[<Nome do Projeto>]]"
 ---

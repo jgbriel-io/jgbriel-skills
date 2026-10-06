@@ -55,8 +55,8 @@ turn. An idea still too raw to become a page goes to `discuss` first.
 3. **Stack** — ask or suggest layer by layer (frontend, backend, database,
    infrastructure). Offer a common stack for that kind of project when the user
    does not know.
-4. **Status** — no code yet (`seed`), under development (`developing`), in
-   production (`evergreen`).
+4. **Status** — no code yet (`draft`), under development or in production
+   (`current`).
 5. **Subpages** — propose the ones that make sense and confirm.
 6. **Docs or repo on disk?** — ask only when it looks like a project already
    underway. If a folder exists (or is planned) in the projects folder on disk,
@@ -85,7 +85,7 @@ Resumo antes de criar:
 **Nome**: <name>
 **Objetivo**: <sentence>
 **Stack**: Frontend: X · Backend: Y · Banco: Z · Infra: W
-**Status**: seed
+**Status**: draft
 **Subpáginas**: Arquitetura · Backend · Frontend · Database
 **Fora do escopo (v1)**: A · B · C
 [full level] **Domínios**: ... **Papéis de usuário**: ... **Decisões a virar ADR**: ...

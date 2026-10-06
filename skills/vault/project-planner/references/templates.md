@@ -9,7 +9,7 @@ a Brazilian reader consumes them.
 
 ```yaml
 ---
-type: entity
+type: project
 title: "<Nome do Projeto>"
 aliases:
   - <Nome do Projeto>
@@ -20,7 +20,7 @@ tags:
   - <tag-de-stack-1>
   - <tag-de-stack-2>
 entity_type: repository
-status: <seed|developing|evergreen>
+status: <draft|current>
 related:
   - "[[Projetos]]"
 sources: []
@@ -28,9 +28,8 @@ sources: []
 ```
 
 Status mapping:
-- `seed` → idea only, no code yet
-- `developing` → under active development
-- `evergreen` → in production / stable
+- `draft` → idea only, no code yet
+- `current` → under development or in production
 
 ### Body of index.md (minimum level)
 
@@ -115,14 +114,14 @@ Create only the subpages the user marked as relevant. Path: `wiki/Projects/<cate
 
 ```yaml
 ---
-type: reference
+type: project
 title: "<Nome> — <Seção>"
 created: <YYYY-MM-DD>
 updated: <YYYY-MM-DD>
 tags:
   - project
   - <nome-kebab>
-status: seed
+status: draft
 related:
   - "[[<Nome do Projeto>]]"
 ---
