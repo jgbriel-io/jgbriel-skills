@@ -61,6 +61,16 @@ secrets or files nor another runner.
 - CI applies migrations only to its own container. Production migrations run
   inside the host's production deploy, never in CI and never in a preview
   build (see `safe-migrations`).
+- **Leave nothing on the runner.** GitHub Actions removes a `services:`
+  container without its volumes (actions/runner#1885), and the Postgres image
+  declares its data dir as a `VOLUME`, so every run on a self-hosted runner
+  leaks one anonymous volume. Mount the data dir as tmpfs with a size taken
+  from the repo's measured peak database size
+  (`--tmpfs /var/lib/postgresql/data:size=<n>m`; the example's `512m` is a
+  placeholder, not a recommendation). A Supabase CLI stack stops with
+  `supabase stop --no-backup` under `if: always()`; a one-off `docker run`
+  uses `--rm`. A weekly `docker volume prune -f` on the runner's own daemon is
+  a backstop, never the fix, and never on a daemon that also runs production.
 
 ## 4. Deploy and previews: the host, not Actions
 
@@ -138,6 +148,7 @@ jobs:
         ports: ["5432"]
         options: >-
           --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+          --tmpfs /var/lib/postgresql/data:size=512m
     steps:
       - uses: actions/checkout@v5
         with: { fetch-depth: 0 }
