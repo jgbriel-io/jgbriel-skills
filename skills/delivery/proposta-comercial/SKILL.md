@@ -44,7 +44,7 @@ The title block comes from the frontmatter, so the body starts at `## Contexto`.
 
 ```markdown
 ---
-type: document
+type: reference
 title: Proposta — <Projeto>
 subtitle: <Cliente>
 author: João Gabriel
