@@ -130,9 +130,10 @@ Read AGENTS.md.
 
 ## Templates
 
-The fleet ships them in `project-standard/templates/docs/` — the index, the
-architecture overview, decisions, specs, plans, handoffs and research —
-with `{placeholders}` to fill. The same package's `project-standard check`
+`project-standard` ships them in its `templates/docs/` (repo
+`jgbriel-io/project-standard`) — the index, the architecture overview,
+decisions, specs, plans, handoffs and research — with `{placeholders}` to
+fill. The same package's `project-standard check`
 enforces the frontmatter, the links, contiguous decision numbers and the
 `AGENTS.md` cap on changed files.
 

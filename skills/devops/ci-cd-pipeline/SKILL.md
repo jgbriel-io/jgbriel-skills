@@ -13,7 +13,7 @@ is the worked example.
 
 | Job | Trigger | Runs |
 |---|---|---|
-| `checks` | every PR and push | typecheck, lint, the shared check (`project-standard check --base`) |
+| `checks` | every PR and push | typecheck, lint, the shared check (`project-standard check --base`, from the `jgbriel-io/project-standard` dev dependency) |
 | `tests` | every PR and push | unit, integration, e2e, coverage threshold — against a throwaway database container |
 | `browser` | every PR and push | Playwright; traces and report uploaded as artifacts |
 | `sonar` | push to `main` only | after `tests`, reusing its coverage; waits on the quality gate |

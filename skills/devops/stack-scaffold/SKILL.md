@@ -112,8 +112,8 @@ The last line only when an island needs it.
 ## 4. The engineering standard, wired in
 
 Generate each item; the detail lives in the skill named, not here. When the
-fleet's `project-standard/templates/` carries a template for an item, copy it
-instead of writing one.
+`project-standard`'s `templates/` (repo `jgbriel-io/project-standard`) carries a
+template for an item, copy it instead of writing one.
 
 | Item | What goes in | Detail |
 |---|---|---|
@@ -122,7 +122,7 @@ instead of writing one.
 | Lint, format, hooks | Oxlint + Oxfmt pinned exactly; lint-staged + typecheck on pre-commit, `test:coverage` on pre-push | `setup-pre-commit` |
 | Env | t3-env with zod, one schema per app; `.env.example` with every key | `environment-config` |
 | Tests | Level suffixes, the standard script names, 80% coverage from day one (`coverageThreshold` in `bunfig.toml`), Playwright on `.browser.ts` | `integration-testing`, `e2e-testing` |
-| Docs and agent config | `docs/README.md` and only the folders with content, `AGENTS.md`, the `CLAUDE.md` stub, `.mcp.json`, `.claude/settings.json`, `.socraticodeignore`, `.github/pull_request_template.md` from `project-standard/templates/`; `project-standard` pinned as a dev dependency to its `standard-vX.Y.Z` tag, then `project-standard sync` | `docs-writing` |
+| Docs and agent config | `docs/README.md` and only the folders with content, `AGENTS.md`, the `CLAUDE.md` stub, `.mcp.json`, `.claude/settings.json`, `.socraticodeignore`, `.github/pull_request_template.md` from `project-standard`'s `templates/`; `project-standard` pinned as a dev dependency to a `vX.Y.Z` tag (`"project-standard": "github:jgbriel-io/project-standard#v0.2.0"`), then `project-standard sync` | `docs-writing` |
 | CI | `checks`, `tests`, `browser` on `self-hosted` when private, `ubuntu-latest` when public; `sonar` on `main` only; no deploy job | `ci-cd-pipeline` |
 | Dependencies | `.github/dependabot.yml`, grouped monthly plus security updates | `dependency-audit` |
 | Secrets | Gitleaks through `project-standard check`; deny rules name secret files exactly (`.env`, `.env.local`), never `.env*`, which would block `.env.example` | `secrets-management` |
