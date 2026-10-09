@@ -20,7 +20,7 @@ mounted. Say so and stop, instead of writing notes somewhere else.
 
 Inside it, `WIKI.md` is the real root and is never touched. Everything else lives
 under `wiki/<domain>/`. The domains and which content goes where are in the vault's
-own `.claude/CLAUDE.md`, section "Roteamento de conteúdo": find that heading and
+own `AGENTS.md` (vault root), section "Roteamento de conteúdo": find that heading and
 read only that section before writing, and follow its fallback when no row fits.
 It is the single source; no copy of the domain list lives here.
 
@@ -62,7 +62,7 @@ duplicated alias, fix the page that carries the wrong one.
 ## New page frontmatter
 
 `type:` and `status:` take only the values listed in the vault's own
-`.claude/CLAUDE.md`, section "Frontmatter obrigatório", which also says which type
+`AGENTS.md` (vault root), section "Frontmatter obrigatório", which also says which type
 fits which page. Read it before writing; no copy of the lists lives here.
 
 ```yaml
