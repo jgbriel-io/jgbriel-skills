@@ -1,0 +1,3 @@
+interface:
+  display_name: "API Design"
+  short_description: "Applies stack-agnostic REST API design conventions — resource naming, HTTP verbs, status codes,…"

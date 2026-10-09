@@ -1,0 +1,3 @@
+interface:
+  display_name: "Background Jobs"
+  short_description: "Designs asynchronous background work — job queues, retry/backoff policies, idempotency keys,…"

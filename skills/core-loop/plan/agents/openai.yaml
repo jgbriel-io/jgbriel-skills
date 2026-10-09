@@ -1,0 +1,5 @@
+interface:
+  display_name: "Plan"
+  short_description: "Produce an implementation plan — ordered steps, explicit dependencies, mechanical proofs, risks…"
+policy:
+  allow_implicit_invocation: false

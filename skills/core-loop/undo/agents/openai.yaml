@@ -1,0 +1,5 @@
+interface:
+  display_name: "Undo"
+  short_description: "Undoes the last commit with a soft reset — keeps the changes staged, removes only the commit."
+policy:
+  allow_implicit_invocation: false

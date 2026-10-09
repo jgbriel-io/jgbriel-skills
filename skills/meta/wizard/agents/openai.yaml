@@ -1,0 +1,5 @@
+interface:
+  display_name: "Wizard"
+  short_description: "Generates an interactive bash wizard for setup steps only a human can do — dashboards,…"
+policy:
+  allow_implicit_invocation: false

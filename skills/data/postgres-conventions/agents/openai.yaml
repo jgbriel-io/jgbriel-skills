@@ -1,0 +1,3 @@
+interface:
+  display_name: "Postgres Conventions"
+  short_description: "Apply Postgres best practices — schema design, indexes, RLS policies, SQL queries, connection…"

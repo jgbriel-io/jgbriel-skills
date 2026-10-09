@@ -2,7 +2,8 @@
 // PreToolUse hook for Bash. Blocks catastrophic commands the permissions
 // allowlist might let slip through (e.g. `bash -c 'rm -rf /'`).
 // Reads JSON from stdin: { tool_name, tool_input: { command } }.
-// Exit code 2 + stderr message -> Claude Code blocks the tool call.
+// Exit code 2 + stderr message -> Claude Code and Codex block the tool call.
+// Cursor names the tool "Shell" and wants `{ "permission": ... }` on stdout.
 
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
@@ -142,18 +143,23 @@ function main() {
     process.exit(0);
   }
 
-  if (payload.tool_name !== "Bash") process.exit(0);
+  const cursor = payload.tool_name === "Shell";
+  if (payload.tool_name !== "Bash" && !cursor) process.exit(0);
 
   const cmd = String(payload?.tool_input?.command ?? "");
   if (!cmd) process.exit(0);
 
   const hit = dangerousPattern(cmd);
   if (hit) {
-    process.stderr.write(
-      `[guard-dangerous-bash] BLOCKED: matched ${hit}\nCommand: ${cmd.replace(/\s+/g, " ").trim()}\n`
-    );
+    const message = `[guard-dangerous-bash] BLOCKED: matched ${hit}\nCommand: ${cmd.replace(/\s+/g, " ").trim()}\n`;
+    if (cursor) {
+      process.stdout.write(JSON.stringify({ permission: "deny", user_message: message, agent_message: message }));
+      process.exit(0);
+    }
+    process.stderr.write(message);
     process.exit(2);
   }
+  if (cursor) process.stdout.write(JSON.stringify({ permission: "allow" }));
   process.exit(0);
 }
 

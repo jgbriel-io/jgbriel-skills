@@ -1,0 +1,3 @@
+interface:
+  display_name: "Skill Sync"
+  short_description: "Sync the skill fleet against its upstreams — mattpocock/skills and lucasmonstrox/utevo-lux —…"

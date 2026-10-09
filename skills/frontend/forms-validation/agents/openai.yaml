@@ -1,0 +1,3 @@
+interface:
+  display_name: "Forms Validation"
+  short_description: "Defines form validation as a single schema shared between client and server, with Brazilian…"

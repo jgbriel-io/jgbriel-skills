@@ -1,0 +1,3 @@
+interface:
+  display_name: "PR Acceptance"
+  short_description: "Work a PR from either end — `accept` judges whether it delivers what was asked (issue/spec,…"

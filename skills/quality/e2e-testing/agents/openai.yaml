@@ -1,0 +1,3 @@
+interface:
+  display_name: "E2E Testing"
+  short_description: "Guides writing reliable browser tests (Playwright, `.browser.ts`) — one spec per screen with an…"

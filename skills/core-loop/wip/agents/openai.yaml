@@ -1,0 +1,5 @@
+interface:
+  display_name: "WIP"
+  short_description: "Quick WIP commit to save progress."
+policy:
+  allow_implicit_invocation: false

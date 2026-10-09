@@ -1,0 +1,3 @@
+interface:
+  display_name: "Stack Scaffold"
+  short_description: "Scaffold a new project on the user's default stack — a system (Bun + Turborepo, Next 16 on…"

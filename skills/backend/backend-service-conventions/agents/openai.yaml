@@ -1,0 +1,3 @@
+interface:
+  display_name: "Backend Service Conventions"
+  short_description: "Framework-agnostic conventions for backend service structure — layering…"

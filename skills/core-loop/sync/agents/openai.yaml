@@ -1,0 +1,5 @@
+interface:
+  display_name: "Sync"
+  short_description: "Syncs the current branch with its remote — fetch, pull rebase, final status."
+policy:
+  allow_implicit_invocation: false

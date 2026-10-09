@@ -1,0 +1,3 @@
+interface:
+  display_name: "Web Perf"
+  short_description: "Measures web performance on a running page through the Chrome DevTools MCP — Core Web Vitals (LCP,…"

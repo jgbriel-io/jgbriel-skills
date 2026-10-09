@@ -8,7 +8,6 @@ months earlier. Anything a human has to remember to update is a table that lies.
 Each block lives between markers and is replaced wholesale:
 
     <!-- inventory:skills:start -->  ... <!-- inventory:skills:end -->
-    <!-- inventory:commands:start --> ... <!-- inventory:commands:end -->
     <!-- inventory:agents:start -->  ... <!-- inventory:agents:end -->
 
     gen-inventory.py           rewrite the blocks
@@ -74,14 +73,6 @@ def block_skills():
     return "\n".join(lines)
 
 
-def block_commands():
-    rows = flat("commands")
-    return "\n".join(
-        [f"**{len(rows)} slash commands:**", "", "| Command | Description |", "|---|---|"]
-        + [f"| `/{n}` | {d} |" for n, d in rows]
-    )
-
-
 def block_agents():
     rows = flat("agents")
     return "\n".join(
@@ -90,7 +81,7 @@ def block_agents():
     )
 
 
-BLOCKS = {"skills": block_skills, "commands": block_commands, "agents": block_agents}
+BLOCKS = {"skills": block_skills, "agents": block_agents}
 TARGETS = ["README.md", os.path.join("claude", "STRUCTURE.md")]
 
 

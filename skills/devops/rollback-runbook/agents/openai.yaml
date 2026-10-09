@@ -1,0 +1,3 @@
+interface:
+  display_name: "Rollback Runbook"
+  short_description: "Defines a deploy-tool-agnostic rollback runbook — reverting a code deploy…"

@@ -20,7 +20,7 @@ jobs:
       # The sweep and the three test files gate what they check only if
       # something runs them. Until now nothing did, which is the same failure
       # the sweep itself exists to catch: a rule nobody runs reports clean.
-      - name: skills, agents and commands sweep
+      - name: skills and agents sweep
         run: python3 scripts/audit-sweep.py
 
       - name: sweep rules fire on the real defects
@@ -34,3 +34,9 @@ jobs:
 
       - name: project-standard check and generator
         run: node project-standard/test.mjs
+
+      - name: every skill has an up-to-date agents/openai.yaml
+        run: node scripts/gen-openai-yaml.mjs --check
+
+      - name: agent linker wires Codex and Cursor idempotently
+        run: node scripts/test_link_agents.mjs

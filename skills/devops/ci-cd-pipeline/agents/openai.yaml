@@ -1,0 +1,3 @@
+interface:
+  display_name: "CI CD Pipeline"
+  short_description: "Defines the CI jobs (checks, tests, browser, sonar, mutation), where they run (self-hosted runner…"

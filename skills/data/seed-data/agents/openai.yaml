@@ -1,0 +1,3 @@
+interface:
+  display_name: "Seed Data"
+  short_description: "Explains reproducible seed data per environment — determinism, idempotency, dependency ordering,…"

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Review"
+  short_description: "Code review of the current diff via the reviewer agent."
+policy:
+  allow_implicit_invocation: false

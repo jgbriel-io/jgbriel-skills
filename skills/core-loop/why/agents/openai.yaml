@@ -1,0 +1,5 @@
+interface:
+  display_name: "Why"
+  short_description: "Historical context for a line or range — git blame + log + the last commit that touched it."
+policy:
+  allow_implicit_invocation: false

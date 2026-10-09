@@ -5,7 +5,9 @@ argument-hint: <topic or question> [focus]
 disable-model-invocation: true
 ---
 
-Investigate: `$ARGUMENTS`
+Investigate: `<arguments>`
+
+The arguments are whatever the user typed after the skill name; this text calls them `<arguments>`.
 
 The deliverable is the investigation. **Implement nothing.** Where the project has already settled something in a recorded decision, this does not re-open it — new evidence may contest it, but contesting ends in a proposed decision, never a silent reversal.
 

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Status"
+  short_description: "Quick snapshot of repo state — branch, ahead/behind, staged, unstaged, untracked, last commit."
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Scope"
+  short_description: "Breaks a task into independent vertical slices — each slice demoable end-to-end."
+policy:
+  allow_implicit_invocation: false

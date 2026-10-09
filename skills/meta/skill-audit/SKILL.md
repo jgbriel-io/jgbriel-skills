@@ -20,21 +20,20 @@ not invent a round number: when a criterion has an exemplar, open the exemplar.
 | Reference | Size |
 |---|---|
 | `utevo-lux` — 7 skills | 64 to 185 lines, median **76** |
-| `skills/core-loop/` — 13 skills | 28 to 257 lines, median **95** |
+| `skills/core-loop/` — 23 skills | 28 to 301 lines, median **54** |
 
-A skill past ~260 lines is past everything that has been shown to work here, and
+A skill past ~300 lines is past everything that has been shown to work here, and
 the burden is on it. Past 750, splitting is not optional.
 
 ## 0. Mechanical sweep — before reading anything
 
 ```bash
-python3 scripts/audit-sweep.py <category>    # or no argument for skills + agents + commands
-python3 scripts/audit-sweep.py agents        # the 3 agent definitions
-python3 scripts/audit-sweep.py commands      # the 11 slash commands
+python3 scripts/audit-sweep.py <category>    # or no argument for skills + agents
+python3 scripts/audit-sweep.py agents        # the agent definitions
 python3 scripts/audit-sweep.py --sizes       # the distribution against the reference
 ```
 
-`agents` and `commands` are swept by their own rules: a body that delegates to an
+`agents` are swept by their own rules: a body that delegates to an
 agent the frontmatter never granted `Task` for, an agent name that points at no
 file in `agents/`, a hardcoded machine path. `scripts/test_audit_sweep.py` is the
 check that those rules still fire.

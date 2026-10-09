@@ -4,7 +4,7 @@ description: Capture, enrich and organise future ideas in a project's wishlist f
 argument-hint: <free-form idea> | list | <W-ID> [edit] | done <W-ID> | drop <W-ID> | promote <W-ID>
 ---
 
-The wishlist is the project's **raw idea inbox** — what someone wants one day, before it becomes tracked work. One hand-curated file, `docs/wishlist.md` by default (match the project's existing location if it keeps one elsewhere). Input: `$ARGUMENTS`.
+The wishlist is the project's **raw idea inbox** — what someone wants one day, before it becomes tracked work. One hand-curated file, `docs/wishlist.md` by default (match the project's existing location if it keeps one elsewhere). Input: `<arguments>`, whatever the user typed after the skill name.
 
 **Altitude:** a wishlist is desire, not commitment. It is **not** the official record — the project's decision log, its specs, and its list of deliberate cuts remain the sources of truth. No decision numbers, no acceptance criteria, no tests here. Don't rebuild those machines; bridge to them when an idea matures.
 
@@ -12,7 +12,7 @@ The wishlist is the project's **raw idea inbox** — what someone wants one day,
 
 ## 0. Route the mode
 
-| Signal in `$ARGUMENTS` | Mode |
+| Signal in `<arguments>` | Mode |
 | --- | --- |
 | free text describing a desire *(default)* | **add** — §1 |
 | `list`, `show`, empty, or a question about the wishlist | **list** — §2 |

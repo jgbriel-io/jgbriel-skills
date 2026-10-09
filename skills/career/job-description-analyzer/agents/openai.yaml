@@ -1,0 +1,3 @@
+interface:
+  display_name: "Job Description Analyzer"
+  short_description: "Analyzes a job posting against the user's profile — mandatory requirements separated from…"

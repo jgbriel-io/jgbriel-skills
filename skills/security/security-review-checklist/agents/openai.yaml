@@ -1,0 +1,3 @@
+interface:
+  display_name: "Security Review Checklist"
+  short_description: "An OWASP-style sweep of a PR or release — injection, XSS, SSRF, IDOR, CSRF, insecure…"

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Tanstack Query Patterns"
+  short_description: "Client data layer with TanStack Query 5 + Axios — service pattern, module-prefixed query keys,…"

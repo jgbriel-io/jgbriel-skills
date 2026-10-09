@@ -1,0 +1,3 @@
+interface:
+  display_name: "Incident Postmortem"
+  short_description: "Runs a blameless incident postmortem — timeline with timestamps, impact, root cause (5 whys), and…"

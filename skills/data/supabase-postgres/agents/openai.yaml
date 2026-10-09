@@ -1,0 +1,3 @@
+interface:
+  display_name: "Supabase Postgres"
+  short_description: "Apply Postgres conventions through the Supabase client — column selection, single vs maybeSingle,…"

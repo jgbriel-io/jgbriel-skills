@@ -1,0 +1,3 @@
+interface:
+  display_name: "Accessibility Audit"
+  short_description: "Guides accessibility (a11y) auditing — automated tooling (axe-core) wired into CI as a floor not a…"

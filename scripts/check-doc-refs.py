@@ -47,8 +47,7 @@ NOT_A_NAME = {
 
 def provided():
     """Everything this repo ships, by name, plus what it keeps archived."""
-    names = {os.path.basename(p)[:-3] for p in glob.glob(os.path.join(ROOT, "commands", "*.md"))}
-    names |= {os.path.basename(p)[:-3] for p in glob.glob(os.path.join(ROOT, "agents", "*.md"))}
+    names = {os.path.basename(p)[:-3] for p in glob.glob(os.path.join(ROOT, "agents", "*.md"))}
     names |= {os.path.basename(os.path.dirname(p))
               for p in glob.glob(os.path.join(ROOT, "skills", "*", "*", "SKILL.md"))}
     archived = {os.path.basename(p) for p in glob.glob(os.path.join(ROOT, "claude", "skills-archived", "*"))}

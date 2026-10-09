@@ -5,7 +5,9 @@ argument-hint: <plan, PRD, issue or task> [scope notes]
 disable-model-invocation: true
 ---
 
-Implement: `$ARGUMENTS`
+Implement: `<arguments>`
+
+The arguments are whatever the user typed after the skill name; this text calls them `<arguments>`.
 
 ## 0. Gate — resolve the target before touching anything
 

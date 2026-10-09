@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""One runnable check that the agents/ and commands/ rules actually fire.
+"""One runnable check that the agents/ and delegation rules actually fire.
 
 A sweep rule that never triggers is worse than no rule: it reports a clean run
 over the files it cannot see. These three fixtures are the defects the fleet
-actually shipped (PR #38) — `Task` missing from a delegating command, a machine
+actually shipped (PR #38) — `Task` missing from a delegating skill, a machine
 path, an agent `name` that disagrees with its filename.
 
     python3 scripts/test_audit_sweep.py
@@ -20,9 +20,15 @@ spec.loader.exec_module(sweep)
 
 def findings(kind, stem, text):
     with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(d, stem + ".md")
+        if kind == "skills":
+            os.makedirs(os.path.join(d, stem))
+            path = os.path.join(d, stem, "SKILL.md")
+            audit = sweep.audit
+        else:
+            path = os.path.join(d, stem + ".md")
+            audit = sweep.audit_flat
         open(path, "w", encoding="utf-8").write(text)
-        return [m for _, m in sweep.audit_flat(path, kind)[1]]
+        return [m for _, m in audit(path)[1]]
 
 
 def has(msgs, needle):
@@ -30,7 +36,7 @@ def has(msgs, needle):
 
 
 def demo():
-    delegating = findings("commands", "where", """---
+    delegating = findings("skills", "where", """---
 description: Locates where a symbol is defined. Delegates to the researcher agent.
 allowed-tools: Read, Grep, Glob
 ---
@@ -39,7 +45,7 @@ Call the `researcher` agent to locate: $ARGUMENTS
 """)
     assert has(delegating, "never grants `Task`"), delegating
 
-    granted = findings("commands", "where", """---
+    granted = findings("skills", "where", """---
 description: Locates where a symbol is defined. Delegates to the researcher agent.
 allowed-tools: Task, Read, Grep, Glob
 ---
@@ -48,7 +54,7 @@ Call the `researcher` agent to locate: $ARGUMENTS
 """)
     assert not has(granted, "never grants `Task`"), granted
 
-    ghost = findings("commands", "map", """---
+    ghost = findings("skills", "map", """---
 description: Maps a directory.
 allowed-tools: Task, Read
 ---
@@ -57,7 +63,7 @@ Call the `nobody-home` agent to map it.
 """)
     assert has(ghost, "not in agents/"), ghost
 
-    machine = findings("commands", "diff", """---
+    machine = findings("skills", "diff", """---
 description: Diffs two refs.
 allowed-tools: Bash(git diff:*)
 ---

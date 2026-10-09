@@ -1,0 +1,5 @@
+interface:
+  display_name: "Diff"
+  short_description: "Summarized diff against a ref (branch, sha, HEAD~N)."
+policy:
+  allow_implicit_invocation: false
