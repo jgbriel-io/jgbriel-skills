@@ -47,6 +47,8 @@ Pick one route per agent. The plugin and the links together list every skill twi
 - Cursor names the shell tool `Shell` and blocks only on a JSON `permission` reply or exit code 2; the guard speaks both.
 - Codex runs a hook only after it is trusted by hash, so a changed hook command needs `/hooks` again.
 - Codex reads at most `project_doc_max_bytes` (32 KiB) of instructions, global file included; the script raises it to 64 KiB.
+- The guard did not block in Codex 0.162 (2026-10-09). The model ran its shell call inside the code-mode `exec` tool, the trusted `Bash` hook never fired, and `--disable code_mode_host` leaves `gpt-6.1-sol` with no way to run commands at all. The limit on a Codex agent is its sandbox, not the guard.
+- When Claude Code spawns Codex, its own guard sees only the `codex exec` line, never what Codex runs. Spawn with `-s read-only` (research, review) or `-s workspace-write` (implementation), never `--dangerously-bypass-approvals-and-sandbox`; run it in the background, since an open-ended `codex exec` outlives a 150 s foreground timeout; collect the answer with `-o <file>`.
 
 ## Sources
 
