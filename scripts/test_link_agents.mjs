@@ -101,9 +101,9 @@ try {
   assert.ok(JSON.parse(readFileSync(join(home, ".cursor", "mcp.json"), "utf8")).mcpServers.other, "foreign MCP server kept");
   assert.equal(JSON.parse(readFileSync(join(home, ".cursor", "hooks.json"), "utf8")).hooks.preToolUse.length, 1);
   const codexHooks = JSON.parse(readFileSync(join(home, ".codex", "hooks.json"), "utf8")).hooks;
-  assert.match(codexHooks.SessionStart[0].hooks[0].command, /inject-mode\.mjs caveman:ultra ponytail:ultra i-have-adhd$/);
+  assert.match(codexHooks.SessionStart[0].hooks[0].command, /inject-mode\.mjs$/);
   const cursorSession = JSON.parse(readFileSync(join(home, ".cursor", "hooks.json"), "utf8")).hooks.sessionStart;
-  assert.match(cursorSession[0].command, /inject-mode\.mjs --cursor caveman:ultra ponytail:ultra i-have-adhd$/);
+  assert.match(cursorSession[0].command, /inject-mode\.mjs --cursor$/);
   const injected = spawnSync(cursorSession[0].command, { shell: true, env: { ...process.env, LINK_AGENTS_HOME: home }, encoding: "utf8" });
   assert.match(JSON.parse(injected.stdout).additional_context, /^CAVEMAN MODE ACTIVE, level: ultra\..*Drop articles\./s);
   assert.equal(modeContext(["ponytail:ultra"], home), "", "a mode whose skill is absent adds nothing");
