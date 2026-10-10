@@ -32,9 +32,6 @@ jobs:
       - name: guard blocks the catastrophic and allows the ordinary
         run: node scripts/test_guard_bash.mjs
 
-      - name: project-standard check and generator
-        run: node project-standard/test.mjs
-
       - name: every skill has an up-to-date agents/openai.yaml
         run: node scripts/gen-openai-yaml.mjs --check
 

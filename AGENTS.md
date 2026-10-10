@@ -29,7 +29,6 @@ node scripts/gen-openai-yaml.mjs --check
 node scripts/test_link_agents.mjs
 node scripts/test_guard_bash.mjs
 node scripts/test_bootstrap.mjs
-node project-standard/test.mjs
 ```
 
 ## Wire this machine

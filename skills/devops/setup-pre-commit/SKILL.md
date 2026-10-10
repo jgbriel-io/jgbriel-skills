@@ -64,9 +64,10 @@ ESLint config into `.oxlintrc.json` as a starting point; review it against §3.
 `{exec} husky init` creates `.husky/` and adds `"prepare": "husky"`. Then
 overwrite the hook it wrote.
 
-`.husky/pre-commit` — same as `project-standard/templates/hooks/pre-commit` in
-this fleet. The last line is the secret scan (it runs Gitleaks); without
-`project-standard` as a dev dependency, replace it with
+`.husky/pre-commit` — same as `templates/hooks/pre-commit` in
+`jgbriel-io/project-standard`. The last line is the secret scan (it runs
+Gitleaks); without `project-standard` as a dev dependency
+(`"project-standard": "github:jgbriel-io/project-standard#v0.2.0"`), replace it with
 `gitleaks git --pre-commit --staged --redact`, never drop it — a secret that
 reaches the remote stays in the history:
 

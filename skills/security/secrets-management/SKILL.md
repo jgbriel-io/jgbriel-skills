@@ -83,8 +83,8 @@ the scan has to run before the commit exists:
   `.gitleaksignore` by fingerprint, never by turning the scan off.
 - The CLI, not `gitleaks-action`, which needs a license key for organisation
   repos. GitHub's paid secret protection is not needed for this.
-- In repos that pin the fleet's `project-standard` package, `project-standard
-  check` already runs Gitleaks (see `setup-pre-commit`).
+- In repos that pin the `project-standard` package (`jgbriel-io/project-standard`),
+  `project-standard check` already runs Gitleaks (see `setup-pre-commit`).
 
 ## Secrets in CI
 
