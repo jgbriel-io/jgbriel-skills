@@ -7,7 +7,7 @@ One fleet for three agents: Claude Code, Codex, Cursor. `skills/` is the source 
 - `skills/<category>/<name>/SKILL.md`: Agent Skills format, read by all three. A skill the human types by name sets `disable-model-invocation: true`. There is no `commands/` folder.
 - `skills/**/agents/openai.yaml`: Codex picker metadata and invocation policy. Generated, never edited.
 - `agents/*.md`: Claude subagents. The Codex TOML and the Cursor markdown are generated from them.
-- `hooks/`: `guard-dangerous-bash.mjs` is wired by the plugin for Claude Code. It and `inject-mode.mjs` (keeps caveman and ponytail on) are merged into Codex and Cursor by `scripts/link-agents.mjs`.
+- `hooks/`: `guard-dangerous-bash.mjs` is wired by the plugin for Claude Code. It and `inject-mode.mjs` (keeps caveman and ponytail on) are merged into Codex and Cursor by `scripts/link-agents.mjs`, which also gives Codex `project-pretooluse.mjs` (a repo's own Claude `PreToolUse` Bash hooks) and `inject-memory.mjs` (Claude's per-project memory index).
 - `claude/`: global rules and reference docs for Claude Code.
 
 ## Rules
