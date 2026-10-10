@@ -1,0 +1,5 @@
+interface:
+  display_name: "Where"
+  short_description: "Locates where a symbol, function, class or string is defined and used."
+policy:
+  allow_implicit_invocation: false

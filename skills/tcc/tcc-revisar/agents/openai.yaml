@@ -1,0 +1,5 @@
+interface:
+  display_name: "TCC Revisar"
+  short_description: "Academic review of a TCC chapter through the tcc-orientador agent."
+policy:
+  allow_implicit_invocation: false

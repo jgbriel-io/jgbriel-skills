@@ -1,0 +1,3 @@
+interface:
+  display_name: "Rate Limiting"
+  short_description: "Stack-agnostic rate limiting and throttling — token bucket vs sliding/fixed window algorithms,…"

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Environment Config"
+  short_description: "Environment-based configuration conventions — .env.example, startup-time env validation (fail…"

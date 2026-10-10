@@ -1,0 +1,3 @@
+interface:
+  display_name: "Error UX"
+  short_description: "Defines client-side error handling — render error boundaries that isolate failure without crashing…"

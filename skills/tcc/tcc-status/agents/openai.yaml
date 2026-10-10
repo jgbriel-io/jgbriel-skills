@@ -1,0 +1,5 @@
+interface:
+  display_name: "TCC Status"
+  short_description: "Snapshot of SyncClass TCC progress — status of each chapter (1-10), what is pending, next steps."
+policy:
+  allow_implicit_invocation: false

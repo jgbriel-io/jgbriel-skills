@@ -1,0 +1,3 @@
+interface:
+  display_name: "Skill Audit"
+  short_description: "Audit Claude Code skills against the fleet's reference implementation — a mechanical sweep first,…"

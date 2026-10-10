@@ -1,0 +1,3 @@
+interface:
+  display_name: "Structured Logging"
+  short_description: "Apply structured (JSON) logging practices — log levels, request/tenant correlation IDs, context…"

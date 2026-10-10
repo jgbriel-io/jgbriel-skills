@@ -1,0 +1,3 @@
+interface:
+  display_name: "Error Tracking"
+  short_description: "Apply production error tracking patterns — unhandled exception capture, contextual metadata,…"

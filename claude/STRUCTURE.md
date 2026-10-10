@@ -8,7 +8,7 @@
 ## 1. Two machines, one plugin
 
 The repo **is** the plugin. Nothing is hand-copied into `~/.claude/`: installing
-from the marketplace resolves skills, commands, agents and hooks in one go, and
+from the marketplace resolves skills, agents and hooks in one go, and
 the installation is a versioned copy under
 `~/.claude/plugins/cache/jgbriel/jgbriel-skills/<version>/`.
 
@@ -37,7 +37,7 @@ by deleting them and running `node scripts/bootstrap.mjs`.
 Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 
 <!-- inventory:skills:start -->
-**77 skills**, across 12 category folders:
+**91 skills**, across 12 category folders:
 
 <details><summary><code>backend</code> — 6 skills</summary>
 
@@ -60,21 +60,33 @@ Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 | `resume-tailor` | Adapts the resume to a specific posting without inventing anything — reorders skills, rewrites bullets into the languag… |
 
 </details>
-<details><summary><code>core-loop</code> — 11 skills</summary>
+<details><summary><code>core-loop</code> — 23 skills</summary>
 
 | Skill | What it is for |
 |---|---|
+| `branch` | Creates a new branch from an up-to-date main/master and switches to it. |
 | `codebase-design` | Shared vocabulary for designing deep modules. |
 | `codebase-memory` | Use the codebase knowledge graph for structural code queries. |
+| `commit` | Writes a Conventional Commits message from the staged diff. |
 | `diagnose` | Diagnosis loop for hard bugs and performance regressions. |
+| `diff` | Summarized diff against a ref (branch, sha, HEAD~N). |
 | `discuss` | Develop an idea through structured discussion — one decision at a time, down a decision tree, until intent, audience, s… |
 | `domain-modeling` | Build and sharpen a project's domain model and ubiquitous language. |
 | `grill-me` | Grill the user relentlessly about a plan, decision or idea that already exists, working the design tree in rounds until… |
 | `handoff` | Compact the current conversation into a handoff document for another agent to pick up. |
 | `implement` | Implement planned work — a plan, PRD, issue or agreed task. |
+| `map` | Map of a directory — one line per file with its detected responsibility. |
 | `plan` | Produce an implementation plan — ordered steps, explicit dependencies, mechanical proofs, risks and exit criteria. |
 | `pr-acceptance` | Work a PR from either end — `accept` judges whether it delivers what was asked (issue/spec, description and discussions… |
 | `research` | Investigate a question or topic against primary sources and the repo's own history, then capture verified findings as a… |
+| `review` | Code review of the current diff via the reviewer agent. |
+| `scope` | Breaks a task into independent vertical slices — each slice demoable end-to-end. |
+| `status` | Quick snapshot of repo state — branch, ahead/behind, staged, unstaged, untracked, last commit. |
+| `sync` | Syncs the current branch with its remote — fetch, pull rebase, final status. |
+| `undo` | Undoes the last commit with a soft reset — keeps the changes staged, removes only the commit. |
+| `where` | Locates where a symbol, function, class or string is defined and used. |
+| `why` | Historical context for a line or range — git blame + log + the last commit that touched it. |
+| `wip` | Quick WIP commit to save progress. |
 
 </details>
 <details><summary><code>data</code> — 6 skills</summary>
@@ -167,7 +179,7 @@ Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 | `security-review-checklist` | An OWASP-style sweep of a PR or release — injection, XSS, SSRF, IDOR, CSRF, insecure deserialization — as an explicit c… |
 
 </details>
-<details><summary><code>tcc</code> — 6 skills</summary>
+<details><summary><code>tcc</code> — 8 skills</summary>
 
 | Skill | What it is for |
 |---|---|
@@ -177,6 +189,8 @@ Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 | `tcc-grill` | Academic interrogation of the SyncClass TCC — challenges hypotheses, methodology, scope, bibliographic gaps and the val… |
 | `tcc-rascunho` | Turns raw fragments into a formal TCC section, paragraph by paragraph, applying ABNT/FEPI norms, impersonal voice and c… |
 | `tcc-revisao-impessoal` | Final sweep of a TCC chapter looking for first person, academic clichés, informality, weak vocabulary, orphan citations… |
+| `tcc-revisar` | Academic review of a TCC chapter through the tcc-orientador agent. |
+| `tcc-status` | Snapshot of SyncClass TCC progress — status of each chapter (1-10), what is pending, next steps. |
 
 </details>
 <details><summary><code>vault</code> — 3 skills</summary>
@@ -197,7 +211,7 @@ truth is `claude plugin details`.
 
 ---
 
-## 3. Agents and commands
+## 3. Agents
 
 <!-- inventory:agents:start -->
 **4 agents** — they run in an isolated subagent:
@@ -209,27 +223,6 @@ truth is `claude plugin details`.
 | `reviewer` | Diff and code reviewer. |
 | `tcc-orientador` | Academic reviewer playing a severe TCC advisor. |
 <!-- inventory:agents:end -->
-
-<!-- inventory:commands:start -->
-**14 slash commands:**
-
-| Command | Description |
-|---|---|
-| `/branch` | Creates a new branch from an up-to-date main/master and switches to it. |
-| `/commit` | Writes a Conventional Commits message from the staged diff. |
-| `/diff` | Summarized diff against a ref (branch, sha, HEAD~N). |
-| `/map` | Map of a directory — one line per file with its detected responsibility. |
-| `/review` | Code review of the current diff via the reviewer agent. |
-| `/scope` | Breaks a task into independent vertical slices — each slice demoable end-to-end. |
-| `/status` | Quick snapshot of repo state — branch, ahead/behind, staged, unstaged, untracked, last commit. |
-| `/sync` | Syncs the current branch with its remote — fetch, pull rebase, final status. |
-| `/tcc-revisar` | Academic review of a TCC chapter through the tcc-orientador agent. |
-| `/tcc-status` | Snapshot of SyncClass TCC progress — status of each chapter (1-10), what is pending, next steps. |
-| `/undo` | Undoes the last commit with a soft reset — keeps the changes staged, removes only the commit. |
-| `/where` | Locates where a symbol, function, class or string is defined and used. |
-| `/why` | Historical context for a line or range — git blame + log + the last commit that touched it. |
-| `/wip` | Quick WIP commit to save progress. |
-<!-- inventory:commands:end -->
 
 ---
 

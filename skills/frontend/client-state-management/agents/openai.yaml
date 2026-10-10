@@ -1,0 +1,3 @@
+interface:
+  display_name: "Client State Management"
+  short_description: "Defines the boundary between server state, local UI state, and URL state as an architecture…"

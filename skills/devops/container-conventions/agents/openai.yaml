@@ -1,0 +1,3 @@
+interface:
+  display_name: "Container Conventions"
+  short_description: "Defines multi-stage Docker builds, minimal base images, non-root users, .dockerignore, layer cache…"

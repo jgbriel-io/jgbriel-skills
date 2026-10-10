@@ -1,0 +1,5 @@
+interface:
+  display_name: "Discuss"
+  short_description: "Develop an idea through structured discussion — one decision at a time, down a decision tree,…"
+policy:
+  allow_implicit_invocation: false

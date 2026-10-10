@@ -1,0 +1,3 @@
+interface:
+  display_name: "TCC Rascunho"
+  short_description: "Turns raw fragments into a formal TCC section, paragraph by paragraph, applying ABNT/FEPI norms,…"

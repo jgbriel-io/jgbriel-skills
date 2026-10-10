@@ -1,0 +1,3 @@
+interface:
+  display_name: "Caching Strategy"
+  short_description: "Applies stack-agnostic caching strategy — layers (client, server, CDN), invalidation policy,…"

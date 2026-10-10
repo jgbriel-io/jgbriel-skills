@@ -1,0 +1,3 @@
+interface:
+  display_name: "Dependency Audit"
+  short_description: "Audits third-party dependencies for security and maintainability — lockfile discipline, upgrade…"

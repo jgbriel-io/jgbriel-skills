@@ -1,0 +1,5 @@
+interface:
+  display_name: "Branch"
+  short_description: "Creates a new branch from an up-to-date main/master and switches to it."
+policy:
+  allow_implicit_invocation: false

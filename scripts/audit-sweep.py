@@ -103,12 +103,13 @@ def audit(path):
     if len(re.findall(r"^```", text, re.M)) % 2:
         out.append(("BLOCKER", "unbalanced code fence — a split cut through a block"))
 
+    out += delegation(text, body)
     out += shared(text, os.path.dirname(path))
     return lines, out
 
 
 def shared(text, base):
-    """Checks that read the same on a skill, an agent and a command."""
+    """Checks that read the same on a skill and an agent."""
     out = []
     if len(re.findall(r"^```", text, re.M)) % 2:
         out.append(("BLOCKER", "unbalanced code fence — a split cut through a block"))
@@ -118,7 +119,7 @@ def shared(text, base):
         if not os.path.exists(os.path.join(base, link)):
             out.append(("BLOCKER", f"link to `{link}`, which does not exist"))
     # Machine paths are read from the raw text on purpose: the one that bit here
-    # was inside a fenced block, which is where a command's steps live.
+    # was inside a fenced block, which is where a skill's steps live.
     for machine in sorted(set(re.findall(r"/home/\w+|/Users/\w+|[A-Z]:\\[\w\\]+", text))):
         out.append(("BLOCKER", f"hardcoded machine path `{machine}` — it does not exist on the other machine"))
     if re.search(r"(?<![\w/])/tmp/", text):
@@ -126,14 +127,30 @@ def shared(text, base):
     return out
 
 
-# An agent or a command is one file with frontmatter, not a folder, and the two
-# defects that bit here are structural: a body that delegates to an agent the
-# frontmatter never allowed the Task tool for, and a name that points nowhere.
+# The defects that bit here are structural: a body that delegates to an agent
+# the frontmatter never allowed the Task tool for, and a name that points nowhere.
 DELEGATES = re.compile(r"`([a-z0-9-]+)` agent|\bagent `([a-z0-9-]+)`")
 
 
-def audit_flat(path, kind):
-    """Returns (line count, [(severity, message)]) for one agents/ or commands/ file."""
+def delegation(text, head):
+    """Findings for a body that hands work to a fleet agent it cannot reach."""
+    out = []
+    tools = re.search(r"^(?:allowed-tools|tools):\s*(.+)$", head, re.M)
+    granted = tools.group(1) if tools else ""
+    # Not prose(): the agent's name is always in backticks, and prose() drops
+    # exactly that. Fences come out, because a briefing block names it too.
+    delegated = sorted({(a or b) for a, b in DELEGATES.findall(re.sub(r"```.*?```", "", text, flags=re.S))})
+    for agent in delegated:
+        if not os.path.exists(os.path.join(ROOT, "agents", agent + ".md")):
+            out.append(("BLOCKER", f"delegates to agent `{agent}`, which is not in agents/"))
+    if delegated and tools and "Task" not in granted:
+        out.append(("BLOCKER", "delegates to " + ", ".join(f"`{a}`" for a in delegated) +
+                    " but the frontmatter never grants `Task` — the delegation cannot run"))
+    return out
+
+
+def audit_flat(path):
+    """Returns (line count, [(severity, message)]) for one agents/ file."""
     text = open(path, encoding="utf-8").read()
     head = frontmatter(text)
     lines = text.count("\n") + 1
@@ -146,25 +163,13 @@ def audit_flat(path, kind):
     if not desc:
         out.append(("BLOCKER", "no `description` — nothing says what this is for"))
 
-    # An agent is addressed by its `name`; a command is addressed by its filename.
-    if kind == "agents":
-        name = re.search(r"^name:\s*(.+)$", head, re.M)
-        if not name:
-            out.append(("BLOCKER", "no `name` in the frontmatter"))
-        elif name.group(1).strip() != stem:
-            out.append(("BLOCKER", f"`name: {name.group(1).strip()}` does not match file `{stem}.md`"))
+    name = re.search(r"^name:\s*(.+)$", head, re.M)
+    if not name:
+        out.append(("BLOCKER", "no `name` in the frontmatter"))
+    elif name.group(1).strip() != stem:
+        out.append(("BLOCKER", f"`name: {name.group(1).strip()}` does not match file `{stem}.md`"))
 
-    tools = re.search(r"^(?:allowed-tools|tools):\s*(.+)$", head, re.M)
-    granted = tools.group(1) if tools else ""
-    # Not prose(): the agent's name is always in backticks, and prose() drops
-    # exactly that. Fences come out, because a briefing block names it too.
-    delegated = sorted({(a or b) for a, b in DELEGATES.findall(re.sub(r"```.*?```", "", text, flags=re.S))})
-    for agent in delegated:
-        if not os.path.exists(os.path.join(ROOT, "agents", agent + ".md")):
-            out.append(("BLOCKER", f"delegates to agent `{agent}`, which is not in agents/"))
-    if delegated and tools and "Task" not in granted:
-        out.append(("BLOCKER", "delegates to " + ", ".join(f"`{a}`" for a in delegated) +
-                    " but the frontmatter never grants `Task` — the delegation cannot run"))
+    out += delegation(text, head)
 
     if lines > BENCHMARK_MAX:
         out.append(("WARN", f"{lines} lines, past the {BENCHMARK_MAX} of the largest reference skill"))
@@ -189,16 +194,16 @@ def duplicate_refs(paths):
 
 
 def collect(arg):
-    """(paths, kind) for a category name, `agents`, `commands`, or everything."""
-    if arg in ("agents", "commands"):
-        return sorted(glob.glob(os.path.join(ROOT, arg, "*.md"))), arg
+    """(paths, kind) for a category name, `agents`, or everything."""
+    if arg == "agents":
+        return sorted(glob.glob(os.path.join(ROOT, "agents", "*.md"))), "agents"
     return sorted(glob.glob(os.path.join(ROOT, "skills", arg or "*", "*", "SKILL.md"))), "skills"
 
 
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("-")]
     arg = args[0] if args else None
-    targets = [collect(arg)] if arg else [collect(None), collect("agents"), collect("commands")]
+    targets = [collect(arg)] if arg else [collect(None), collect("agents")]
     paths = [p for group, _ in targets for p in group]
     if not paths:
         print("nothing matched")
@@ -241,7 +246,7 @@ def main():
                         findings.append(("BLOCKER", f"references/{os.path.basename(ref)} is byte-identical to " +
                                          ", ".join(f"`{d}`" for d in dupes[ref]) + " — share one copy"))
             else:
-                _, findings = audit_flat(path, kind)
+                _, findings = audit_flat(path)
             if not findings:
                 continue
             rel = os.path.relpath(path, ROOT)

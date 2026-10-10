@@ -1,0 +1,3 @@
+interface:
+  display_name: "Multi Tenant Isolation Audit"
+  short_description: "Audits multi-tenant systems for cross-tenant data leakage — missing isolation filters,…"

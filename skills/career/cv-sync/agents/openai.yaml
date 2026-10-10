@@ -1,0 +1,3 @@
+interface:
+  display_name: "CV Sync"
+  short_description: "The resume pipeline — edit the canonical .tex files, recompile, distribute to the site and the…"

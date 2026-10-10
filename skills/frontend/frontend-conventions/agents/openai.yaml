@@ -1,0 +1,3 @@
+interface:
+  display_name: "Frontend Conventions"
+  short_description: "Conventions for WRITING new frontend code — component structure and extraction, page files that…"

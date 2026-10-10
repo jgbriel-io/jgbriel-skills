@@ -1,0 +1,5 @@
+interface:
+  display_name: "Commit"
+  short_description: "Writes a Conventional Commits message from the staged diff."
+policy:
+  allow_implicit_invocation: false

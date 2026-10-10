@@ -1,0 +1,5 @@
+interface:
+  display_name: "To Issues"
+  short_description: "Break a plan, spec, or PRD into independently-grabbable issues on the project issue tracker using…"
+policy:
+  allow_implicit_invocation: false

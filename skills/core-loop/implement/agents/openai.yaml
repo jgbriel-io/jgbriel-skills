@@ -1,0 +1,5 @@
+interface:
+  display_name: "Implement"
+  short_description: "Implement planned work — a plan, PRD, issue or agreed task."
+policy:
+  allow_implicit_invocation: false

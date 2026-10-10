@@ -1,0 +1,3 @@
+interface:
+  display_name: "Project Deploy"
+  short_description: "Deploys a project by following its runbook (docs/engineering/runbook.md in the repo) — a…"

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Secrets Management"
+  short_description: "Manage secrets and sensitive config across environments and CI — classify sensitive vs."

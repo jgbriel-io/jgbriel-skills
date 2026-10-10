@@ -1,0 +1,5 @@
+interface:
+  display_name: "Project Planner"
+  short_description: "Scaffolds a project's wiki pages in wiki/Projects/ — index.md with frontmatter, subpage stubs and…"
+policy:
+  allow_implicit_invocation: false

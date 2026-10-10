@@ -1,0 +1,3 @@
+interface:
+  display_name: "Auth Patterns"
+  short_description: "Authentication and authorization patterns — OTP/password/OAuth/OIDC flows, session vs JWT,…"

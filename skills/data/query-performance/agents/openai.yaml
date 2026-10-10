@@ -1,0 +1,3 @@
+interface:
+  display_name: "Query Performance"
+  short_description: "Diagnoses slow SQL queries by reading execution plans and picking the right index strategy —…"

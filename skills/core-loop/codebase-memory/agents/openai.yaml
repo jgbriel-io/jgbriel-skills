@@ -1,0 +1,3 @@
+interface:
+  display_name: "Codebase Memory"
+  short_description: "Use the codebase knowledge graph for structural code queries."

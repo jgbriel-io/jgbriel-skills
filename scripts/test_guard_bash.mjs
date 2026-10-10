@@ -7,6 +7,8 @@
  * session, which is how a guard trains people to work around it.
  */
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { dangerousPattern, stripDataHeredocs, isShallowAbsolutePath, isShellCommand } from "../hooks/guard-dangerous-bash.mjs";
 
 const blocks = (cmd) => assert.notEqual(dangerousPattern(cmd), null, `should block: ${cmd}`);
@@ -86,4 +88,19 @@ const stripped = stripDataHeredocs("cat > f <<'EOF'\nsudo\nEOF\necho done");
 assert.ok(!stripped.includes("sudo"), stripped);
 assert.ok(stripped.includes("echo done"), stripped);
 
-console.log("ok — 37 checks");
+const hook = fileURLToPath(new URL("../hooks/guard-dangerous-bash.mjs", import.meta.url));
+const run = (tool_name, command) =>
+  spawnSync(process.execPath, [hook], { input: JSON.stringify({ tool_name, tool_input: { command } }), encoding: "utf8" });
+
+const claude = run("Bash", "rm -rf /");
+assert.equal(claude.status, 2);
+assert.match(claude.stderr, /BLOCKED/);
+assert.equal(run("Bash", "ls").status, 0);
+
+const cursorDeny = run("Shell", "rm -rf /");
+assert.equal(cursorDeny.status, 0);
+assert.equal(JSON.parse(cursorDeny.stdout).permission, "deny");
+assert.equal(JSON.parse(run("Shell", "ls").stdout).permission, "allow");
+assert.equal(run("Read", "rm -rf /").stdout, "");
+
+console.log("ok — 43 checks");

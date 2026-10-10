@@ -3,7 +3,7 @@
 For looking things up mid-session. Only what is **not** generated elsewhere: the
 third-party plugin commands and the map of configuration files.
 
-This repo's skills, commands and agents are in the generated table in
+This repo's skills and agents are in the generated table in
 [STRUCTURE.md](STRUCTURE.md) — not repeated here, because a hand-copied list is a
 list that lies later.
 

@@ -1,8 +1,9 @@
 # jgbriel-skills
 
-My entire **Claude Code** setup as an installable plugin: skills by category,
-slash commands, agents, hooks and the global behaviour rules. A new machine
-matches the old one in two commands.
+My entire **Claude Code** setup as an installable plugin: skills by category
+(the slash commands are skills too), agents, hooks and the global behaviour rules. A new machine
+matches the old one in two commands. Codex and Cursor read the same skills: see
+[Codex and Cursor](#codex-and-cursor).
 
 **Public repo.** Fork it, clone it, or take only what is useful.
 
@@ -19,17 +20,21 @@ jgbriel-skills/
 │   ├── plugin.json           # manifest: hooks + every skill path, declared one by one
 │   └── marketplace.json      # 1 plugin, source "./"
 │
-├── skills/<category>/<name>/SKILL.md     # one folder per category
-├── agents/*.md                           # subagents
-├── commands/*.md                         # slash commands
-├── hooks/*.mjs                           # wired by the manifest, not by settings.json
+├── skills/<category>/<name>/SKILL.md     # one folder per category; read by Claude Code, Codex, Cursor
+├── agents/*.md                           # subagents (Codex and Cursor copies are generated)
+├── hooks/*.mjs                           # the manifest wires the guard for Claude; link-agents.mjs merges it and inject-mode into Codex and Cursor
 │
 ├── scripts/
 │   ├── gen-inventory.py          # regenerates the inventories in this README and in STRUCTURE
 │   ├── check-doc-refs.py         # fails when the docs name a command or skill that is gone
-│   ├── audit-sweep.py            # mechanical pass over skills, agents and commands
+│   ├── audit-sweep.py            # mechanical pass over skills and agents
+│   ├── link-agents.mjs           # wires Codex and Cursor on this machine to the fleet
+│   ├── gen-openai-yaml.mjs       # agents/openai.yaml beside every skill, for Codex
 │   ├── check-project-skills.sh   # finds a project skill shadowed by a personal one
 │   └── audit-labels.sh
+│
+├── AGENTS.md · CLAUDE.md         # maintainer rules for this repo (CLAUDE.md just imports AGENTS.md)
+├── .agents/compat.md             # what each agent reads, per component
 │
 ├── templates/                    # project templates, to copy into any repo
 │   ├── CONTEXT.template.md
@@ -54,27 +59,6 @@ discovered on its own.
 
 ### Claude Code (`claude/`)
 
-<!-- inventory:commands:start -->
-**14 slash commands:**
-
-| Command | Description |
-|---|---|
-| `/branch` | Creates a new branch from an up-to-date main/master and switches to it. |
-| `/commit` | Writes a Conventional Commits message from the staged diff. |
-| `/diff` | Summarized diff against a ref (branch, sha, HEAD~N). |
-| `/map` | Map of a directory — one line per file with its detected responsibility. |
-| `/review` | Code review of the current diff via the reviewer agent. |
-| `/scope` | Breaks a task into independent vertical slices — each slice demoable end-to-end. |
-| `/status` | Quick snapshot of repo state — branch, ahead/behind, staged, unstaged, untracked, last commit. |
-| `/sync` | Syncs the current branch with its remote — fetch, pull rebase, final status. |
-| `/tcc-revisar` | Academic review of a TCC chapter through the tcc-orientador agent. |
-| `/tcc-status` | Snapshot of SyncClass TCC progress — status of each chapter (1-10), what is pending, next steps. |
-| `/undo` | Undoes the last commit with a soft reset — keeps the changes staged, removes only the commit. |
-| `/where` | Locates where a symbol, function, class or string is defined and used. |
-| `/why` | Historical context for a line or range — git blame + log + the last commit that touched it. |
-| `/wip` | Quick WIP commit to save progress. |
-<!-- inventory:commands:end -->
-
 <!-- inventory:agents:start -->
 **4 agents** — they run in an isolated subagent:
 
@@ -92,7 +76,7 @@ discovered on its own.
 - `context-mode-cache-heal.mjs` — self-heals the context-mode plugin cache on `SessionStart`
 
 <!-- inventory:skills:start -->
-**77 skills**, across 12 category folders:
+**91 skills**, across 12 category folders:
 
 <details><summary><code>backend</code> — 6 skills</summary>
 
@@ -115,21 +99,33 @@ discovered on its own.
 | `resume-tailor` | Adapts the resume to a specific posting without inventing anything — reorders skills, rewrites bullets into the languag… |
 
 </details>
-<details><summary><code>core-loop</code> — 11 skills</summary>
+<details><summary><code>core-loop</code> — 23 skills</summary>
 
 | Skill | What it is for |
 |---|---|
+| `branch` | Creates a new branch from an up-to-date main/master and switches to it. |
 | `codebase-design` | Shared vocabulary for designing deep modules. |
 | `codebase-memory` | Use the codebase knowledge graph for structural code queries. |
+| `commit` | Writes a Conventional Commits message from the staged diff. |
 | `diagnose` | Diagnosis loop for hard bugs and performance regressions. |
+| `diff` | Summarized diff against a ref (branch, sha, HEAD~N). |
 | `discuss` | Develop an idea through structured discussion — one decision at a time, down a decision tree, until intent, audience, s… |
 | `domain-modeling` | Build and sharpen a project's domain model and ubiquitous language. |
 | `grill-me` | Grill the user relentlessly about a plan, decision or idea that already exists, working the design tree in rounds until… |
 | `handoff` | Compact the current conversation into a handoff document for another agent to pick up. |
 | `implement` | Implement planned work — a plan, PRD, issue or agreed task. |
+| `map` | Map of a directory — one line per file with its detected responsibility. |
 | `plan` | Produce an implementation plan — ordered steps, explicit dependencies, mechanical proofs, risks and exit criteria. |
 | `pr-acceptance` | Work a PR from either end — `accept` judges whether it delivers what was asked (issue/spec, description and discussions… |
 | `research` | Investigate a question or topic against primary sources and the repo's own history, then capture verified findings as a… |
+| `review` | Code review of the current diff via the reviewer agent. |
+| `scope` | Breaks a task into independent vertical slices — each slice demoable end-to-end. |
+| `status` | Quick snapshot of repo state — branch, ahead/behind, staged, unstaged, untracked, last commit. |
+| `sync` | Syncs the current branch with its remote — fetch, pull rebase, final status. |
+| `undo` | Undoes the last commit with a soft reset — keeps the changes staged, removes only the commit. |
+| `where` | Locates where a symbol, function, class or string is defined and used. |
+| `why` | Historical context for a line or range — git blame + log + the last commit that touched it. |
+| `wip` | Quick WIP commit to save progress. |
 
 </details>
 <details><summary><code>data</code> — 6 skills</summary>
@@ -222,7 +218,7 @@ discovered on its own.
 | `security-review-checklist` | An OWASP-style sweep of a PR or release — injection, XSS, SSRF, IDOR, CSRF, insecure deserialization — as an explicit c… |
 
 </details>
-<details><summary><code>tcc</code> — 6 skills</summary>
+<details><summary><code>tcc</code> — 8 skills</summary>
 
 | Skill | What it is for |
 |---|---|
@@ -232,6 +228,8 @@ discovered on its own.
 | `tcc-grill` | Academic interrogation of the SyncClass TCC — challenges hypotheses, methodology, scope, bibliographic gaps and the val… |
 | `tcc-rascunho` | Turns raw fragments into a formal TCC section, paragraph by paragraph, applying ABNT/FEPI norms, impersonal voice and c… |
 | `tcc-revisao-impessoal` | Final sweep of a TCC chapter looking for first person, academic clichés, informality, weak vocabulary, orphan citations… |
+| `tcc-revisar` | Academic review of a TCC chapter through the tcc-orientador agent. |
+| `tcc-status` | Snapshot of SyncClass TCC progress — status of each chapter (1-10), what is pending, next steps. |
 
 </details>
 <details><summary><code>vault</code> — 3 skills</summary>
@@ -285,7 +283,7 @@ claude plugin marketplace add jgbriel-io/jgbriel-skills
 claude plugin install jgbriel-skills@jgbriel
 ```
 
-Skills, commands, agents and hooks arrive together and the hooks wire themselves —
+Skills, agents and hooks arrive together and the hooks wire themselves —
 there is nothing to copy into `~/.claude/` and no `settings.json` to edit by hand.
 
 To develop the skills, point the marketplace at the working copy itself:
@@ -298,6 +296,28 @@ A directory marketplace reads the tree directly, with no clone. The runtime is
 still a versioned copy: after editing, bump `version` in
 `.claude-plugin/plugin.json` and run `claude plugin update jgbriel-skills@jgbriel`.
 **Without the bump, update has nothing to install and the change never arrives.**
+
+### Codex and Cursor
+
+The skills are plain Agent Skills, so Codex and Cursor read the same folders. Per
+agent, pick one route: the plugin and the links together list every skill twice.
+
+```bash
+codex plugin marketplace add jgbriel-io/jgbriel-skills
+codex plugin add jgbriel-skills@jgbriel
+```
+
+From a clone, for Codex or Cursor, one script links the skills into
+`~/.agents/skills`, generates the subagents, the global rules and the MCP servers
+for both, and merges the dangerous-command guard into their hooks:
+
+```bash
+node scripts/link-agents.mjs --dry-run
+node scripts/link-agents.mjs
+```
+
+What each agent reads, per component, and what does not carry over:
+[.agents/compat.md](.agents/compat.md).
 
 ### Bootstrap
 

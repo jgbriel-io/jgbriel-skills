@@ -10,7 +10,7 @@ template for each. Copy the template, delete the comments, fill it in.
 | `CLAUDE.local.md` | repo root, gitignored | Like project CLAUDE.md, personal only | same |
 | `SKILL.md` | `skills/<categoria>/<nome>/` no repo (fleet) ou `<repo>/.claude/skills/<nome>/` (projeto) | description sempre, se for model-invoked; corpo no gatilho | [SKILL.template.md](SKILL.template.md) |
 | Agent | `agents/<name>.md` no repo (fleet) ou `~/.claude/agents/<name>.md` (avulso) | description always; runs as isolated subagent | [AGENT.template.md](AGENT.template.md) |
-| Slash command | `commands/<name>.md` no repo (fleet) ou `~/.claude/commands/<name>.md` (avulso) | Only when user types `/<name>` | [COMMAND.template.md](COMMAND.template.md) |
+| User-invoked skill (ex-slash command) | `skills/<categoria>/<nome>/` with `disable-model-invocation: true` | Only when the user types `/<name>` | [SKILL.template.md](SKILL.template.md) |
 | Memory | `~/.claude/projects/<proj>/memory/*.md` + `MEMORY.md` index | Index every session; files on recall | [MEMORY.template.md](MEMORY.template.md) |
 | Domain context file | `<repo>/CONTEXT.md`, `docs/DESIGN.md`, `docs/adr/*.md` | On demand, when a skill/agent reads it | [CONTEXT-FILE.template.md](CONTEXT-FILE.template.md) + `../../templates/CONTEXT.template.md` |
 | `settings.json` | `~/.claude/settings.json` (real) | Harness config: permissions, hooks, plugins, model | `../settings.template.json` |

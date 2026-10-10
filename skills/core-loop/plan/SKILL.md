@@ -5,7 +5,9 @@ argument-hint: <target — a task, PRD, issue or topic> [constraints]
 disable-model-invocation: true
 ---
 
-Plan: `$ARGUMENTS`
+Plan: `<arguments>`
+
+The arguments are whatever the user typed after the skill name; this text calls them `<arguments>`.
 
 **This skill implements nothing.** It decides what to do and in what order, so that doing it becomes mechanical.
 

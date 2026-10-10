@@ -1,0 +1,3 @@
+interface:
+  display_name: "Supabase Hooks"
+  short_description: "Client data layer for Supabase + TanStack Query — custom hooks, mutations, queries, real-time…"
