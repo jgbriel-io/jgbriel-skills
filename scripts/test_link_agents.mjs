@@ -12,8 +12,10 @@ import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSyn
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { mcpServers, rescueForeignTables, mergeCodexHook, mergeCodexMode, mergeCursorHook, mergeCursorMode, parseAgent, renderCodexMcp, setBlock, toCodexAgent, toCursorAgent } from "./link-agents.mjs";
+import { mcpServers, rescueForeignTables, mergeCodexHook, mergeCodexMode, mergeCodexProject, mergeCursorHook, mergeCursorMode, parseAgent, renderCodexMcp, setBlock, toCodexAgent, toCursorAgent } from "./link-agents.mjs";
 import { modeContext, skillBody } from "../hooks/inject-mode.mjs";
+import { memoryDir } from "../hooks/inject-memory.mjs";
+import { denial, matches } from "../hooks/project-pretooluse.mjs";
 
 const reviewer = parseAgent("---\nname: reviewer\ndescription: Reviews a diff.\ntools: Read, Grep, Bash\n---\n\nFind bugs.\n");
 assert.equal(reviewer.body, "Find bugs.");
@@ -59,6 +61,22 @@ assert.equal(mergeCodexMode(codexMode, null).hooks.SessionStart.length, 0);
 const cursorMode = mergeCursorMode(cursor, "node inject-mode.mjs --cursor caveman:ultra");
 assert.equal(mergeCursorMode(cursorMode, "node inject-mode.mjs --cursor caveman:ultra").hooks.sessionStart.length, 1);
 assert.equal(cursorMode.hooks.preToolUse.length, 2);
+
+const project = mergeCodexProject(mergeCodexProject({}, "node project-pretooluse.mjs", "node inject-memory.mjs"), "node project-pretooluse.mjs", "node inject-memory.mjs");
+assert.equal(project.hooks.PreToolUse.length, 1);
+assert.equal(project.hooks.SessionStart.length, 1);
+assert.equal(mergeCodexProject(project, null, null).hooks.PreToolUse.length, 0);
+
+assert.ok(matches(undefined, "Bash") && matches("*", "Bash") && matches("Bash|Edit", "Bash"));
+assert.ok(!matches("Edit", "Bash") && !matches("Bas", "Bash"));
+assert.equal(denial(0, "", ""), null);
+assert.equal(denial(2, "", "red checks\n"), "red checks");
+assert.equal(denial(0, JSON.stringify({ hookSpecificOutput: { permissionDecision: "deny", permissionDecisionReason: "sonar red" } }), ""), "sonar red");
+assert.equal(denial(0, JSON.stringify({ hookSpecificOutput: { permissionDecision: "allow" } }), ""), null);
+assert.equal(
+  memoryDir("D:\\Projetos\\Freelas\\BARUK\\whitelabel-crm", "H"),
+  join("H", ".claude", "projects", "D--Projetos-Freelas-BARUK-whitelabel-crm", "memory"),
+);
 
 assert.equal(skillBody("---\nname: x\n---\nRules.\n"), "Rules.");
 

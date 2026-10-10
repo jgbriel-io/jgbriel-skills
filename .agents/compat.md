@@ -13,6 +13,8 @@ What each agent reads, per component. Checked 2026-10-09 against Codex CLI 0.162
 | MCP servers | the table in `scripts/link-agents.mjs` | `claude mcp add` | managed block in `~/.codex/config.toml` | `~/.cursor/mcp.json` |
 | Dangerous-command guard | `hooks/guard-dangerous-bash.mjs` | `plugin.json` hook | `~/.codex/hooks.json`, trusted once with `/hooks` | `~/.cursor/hooks.json`, `preToolUse` on `Shell` |
 | Always-on modes (caveman, ponytail) | the installed skills, read at run time by `hooks/inject-mode.mjs` | each plugin's own hooks | `SessionStart` hook running `inject-mode.mjs` | `sessionStart` hook returning `additional_context` |
+| A repo's own Bash gates | `<repo>/.claude/settings.json` `PreToolUse` | read natively | `PreToolUse` hook running `hooks/project-pretooluse.mjs` | not mirrored |
+| Per-project memory | `~/.claude/projects/<slug>/memory/MEMORY.md` | read natively | `SessionStart` hook running `hooks/inject-memory.mjs` | not mirrored |
 | Settings and permissions | `claude/settings.template.json` | `settings.json` | not mirrored: `approval_policy` and sandbox are a per-user choice | not mirrored: `cli-config.json` permissions |
 
 `scripts/link-agents.mjs` does every row marked generated, linked or merged. Claude Code needs nothing from it.
