@@ -6,7 +6,7 @@ set -uo pipefail
 REPOS="${*:-$(cat "$(dirname "$0")/.pipeline-repos" 2>/dev/null)}"
 [ -n "$REPOS" ] || { echo "usage: audit-labels.sh <owner/repo>...  (or list them in scripts/.pipeline-repos)" >&2; exit 2; }
 
-STATES="needs-triage needs-info ready-for-agent ready-for-human wontfix"
+STATES="needs-triage needs-info ready-for-agent ready-for-human wontfix blocked-by-module"
 TYPES="bug enhancement docs"
 MODELS="opus sonnet haiku"
 
