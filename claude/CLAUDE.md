@@ -170,12 +170,14 @@ One-time approval is **not** a blank check. Ask again in new context.
     Qdrant runs natively (`qdrant.exe`, no Docker — Windows ships an official
     binary) on port 6333. Configured via `env` in `~/.claude/settings.json`:
     `OLLAMA_MODE=external`, `OLLAMA_URL`, `EMBEDDING_MODEL`,
-    `EMBEDDING_DIMENSIONS`, `QDRANT_MODE=external`, `QDRANT_URL`. Neither
-    process autostarts on login yet — start `ollama serve` and `qdrant.exe`
-    manually after a reboot until that's wired up. Replaces
-    `codebase-memory-mcp` (removed — MCP entry, its 3 `cbm-*` hooks, and both
-    binary copies), which had no Windows build and forced Docker containers
-    with no GPU passthrough.
+    `EMBEDDING_DIMENSIONS`, `QDRANT_MODE=external`, `QDRANT_URL`. Ollama
+    autostarts on login (its installer's `Ollama.lnk` in the Startup folder);
+    Qdrant does not yet — start `qdrant.exe` manually after a reboot until
+    that's wired up. On Windows this replaces
+    `codebase-memory-mcp` (removed there — MCP entry, its 3 `cbm-*` hooks, and
+    both binary copies), which had no Windows build and forced Docker
+    containers with no GPU passthrough. The Ubuntu machine still runs
+    `codebase-memory-mcp`, installed by `bootstrap.mjs`.
 - `context-mode` reduces context consumption — follow its guidance for
   commands with long output (use `ctx_batch_execute`, `ctx_execute_file`).
   **Its MCP server sometimes fails to connect at session start.** When the
