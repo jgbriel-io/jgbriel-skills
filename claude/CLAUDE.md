@@ -63,8 +63,27 @@ line and carry on — never turn the task into a language lesson.
   model: ask first.
 - Tell every subagent to write its report file first and fill it as it goes.
   A subagent that dies on the rate limit mid-run otherwise leaves nothing.
+- Scratch output — reports, logs, PR/issue bodies, handover commands — goes
+  to the session scratchpad or the OS temp dir, and every subagent prompt
+  names that path. Never the repo, its parent folder or a worktree root; a
+  command for the user goes in the reply as a `! ` line, not a file.
 - A subagent's security finding is a claim, not a fact. Confirm it with
   `git ls-files`, `git log -- <file>` and `git check-ignore` before repeating it.
+- **Codex takes every offline piece** (`codex exec`; the owner calls it **Sol**).
+  Whenever work is split — by the main session or by a subagent that spawns
+  others — each piece that needs neither the network nor a database goes to
+  Codex first, without being asked: code and its tests, a doc rewrite with the
+  facts inlined, checking a diff against acceptance criteria, applying review
+  findings, typecheck, unit tests, lint, read-only inventories and sweeps.
+  Claude subagents keep what needs the network or the database (`gh`, the push,
+  database and browser suites, the commit) and the review.
+  - Codex lanes are extra to any subagent cap, and run until Codex reports its
+    usage limit; then say so and let a Claude subagent take the offline pieces.
+  - It has no network: the prompt carries the issue text inline. Each lane gets
+    its own worktree and its own scratch folder.
+  - Nothing Codex wrote is verified until a Claude finisher has run it.
+  - A batch that runs on Claude subagents alone while Codex has quota is a miss.
+    Where `codex` is not installed, say so once and carry on.
 
 ## 4. Response style
 
@@ -374,7 +393,15 @@ not listed here: this repo is public and those repos are not. The live list live
 
 ---
 
-_Last revised: 2026-10-05 — §11a: a new task ends the session, offered as `/clear` (plus `/handoff`
+_Last revised: 2026-11-14 — §3: Codex (Sol) takes every offline piece of split work without being
+asked, on top of any subagent cap, up to its usage limit. Prompted by batches that ran on Claude
+subagents alone with Codex idle, after the owner had asked for it more than once._
+
+_Previously revised: 2026-10-19 — §3: scratch output lives in the session scratchpad or OS temp, never
+beside the repo, and commands for the user go in the reply. Prompted by hundreds of loose agent files
+and a row of sibling worktrees found in a project's parent folder._
+
+_Previously revised: 2026-10-05 — §11a: a new task ends the session, offered as `/clear` (plus `/handoff`
 only when work is in flight), with no turn cap. Prompted by re-measuring session cost: long sessions
 are mostly unrelated requests piling up, not one long task._
 
