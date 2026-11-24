@@ -37,7 +37,7 @@ by deleting them and running `node scripts/bootstrap.mjs`.
 Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 
 <!-- inventory:skills:start -->
-**91 skills**, across 12 category folders:
+**92 skills**, across 12 category folders:
 
 <details><summary><code>backend</code> — 6 skills</summary>
 
@@ -115,7 +115,7 @@ Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 | `wish` | Capture, enrich and organise future ideas in a project's wishlist file, before they become tracked work. |
 
 </details>
-<details><summary><code>devops</code> — 11 skills</summary>
+<details><summary><code>devops</code> — 12 skills</summary>
 
 | Skill | What it is for |
 |---|---|
@@ -124,6 +124,7 @@ Generated from the tree by `scripts/gen-inventory.py` — do not edit by hand.
 | `environment-config` | Environment-based configuration conventions — .env.example, startup-time env validation (fail fast, not mid-request; t3… |
 | `error-tracking` | Apply production error tracking patterns — unhandled exception capture, contextual metadata, release/version tagging, t… |
 | `health-checks-metrics` | Apply health check (readiness vs. |
+| `land-prs` | Lands a backlog of open pull requests in conflict-aware rounds, minimizing expensive push and CI cycles. |
 | `project-deploy` | Deploys a project by following its runbook (docs/engineering/runbook.md in the repo) — a step-by-step checklist, confir… |
 | `resolving-merge-conflicts` | Resolves the conflicts of a merge or rebase already in progress — reads the original intent of each side before choosin… |
 | `rollback-runbook` | Defines a deploy-tool-agnostic rollback runbook — reverting a code deploy (blue-green/canary/previous artifact), why re… |

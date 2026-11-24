@@ -1,6 +1,6 @@
 {
   "name": "jgbriel-skills",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "The complete Claude Code fleet — skills, agents and hooks: the work loop, per-stack conventions, security, DevOps, the TCC and personal tooling.",
   "author": {
     "name": "João Gabriel",
@@ -95,6 +95,7 @@
     "./skills/devops/environment-config",
     "./skills/devops/error-tracking",
     "./skills/devops/health-checks-metrics",
+    "./skills/devops/land-prs",
     "./skills/devops/project-deploy",
     "./skills/devops/resolving-merge-conflicts",
     "./skills/devops/rollback-runbook",

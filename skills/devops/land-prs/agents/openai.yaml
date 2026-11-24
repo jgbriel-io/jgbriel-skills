@@ -1,0 +1,3 @@
+interface:
+  display_name: "Land Prs"
+  short_description: "Lands a backlog of open pull requests in conflict-aware rounds, minimizing expensive push and CI…"
